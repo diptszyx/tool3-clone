@@ -47,7 +47,7 @@ export default function SwapSolForm() {
         try {
           const tokenFeeAmount = await getTokenFeeFromUsd(
             selectedToken.address,
-            0.5,
+            0.25,
             publicKey.toString()
           );
           setTokenFee(tokenFeeAmount);
@@ -254,8 +254,9 @@ export default function SwapSolForm() {
 
   return (
     <div
-      className={`md:p-2 max-w-[550px] mx-auto my-2 flex flex-col items-center ${!isMobile && "border-gear"
-        }`}
+      className={`md:p-2 max-w-[550px] mx-auto my-2 flex flex-col items-center ${
+        !isMobile && "border-gear"
+      }`}
     >
       <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">
         Gasless Swap to SOL
@@ -263,7 +264,7 @@ export default function SwapSolForm() {
 
       <div className="mb-6 p-[8px] bg-green-50 border-gear-green-200 w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">
-          ⚡ <strong>No SOL ownership required:</strong> Just $0.50 per
+          ⚡ <strong>No SOL ownership required:</strong> Just $0.25 per
           transaction!
         </p>
       </div>

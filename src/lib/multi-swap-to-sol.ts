@@ -12,6 +12,7 @@ import {
   getAssociatedTokenAddress,
   getMint,
   getAccount,
+  createCloseAccountInstruction,
 } from "@solana/spl-token";
 import { connectionMainnet } from "@/service/solana/connection";
 import { getTokenProgram } from "@/lib/helper";
@@ -95,7 +96,7 @@ export async function createMultiSwapToSolTransactions(
 
   const adminFeeInSol = await getTokenFeeFromUsd(
     SOL_MINT,
-    0.5,
+    0.25,
     walletPublicKey.toString()
   );
 
@@ -125,7 +126,8 @@ export async function createMultiSwapToSolTransactions(
         batch,
         walletPublicKey,
         batchIndex,
-        isLastBatch ? adminFeeInSol : 0
+        isLastBatch ? adminFeeInSol : 0,
+        isLastBatch
       );
 
       batchTransactions.push(batchResult.transaction);
@@ -191,7 +193,8 @@ async function createBatchTransaction(
   tokenBatch: SwapTokenData[],
   userPublicKey: PublicKey,
   batchIndex: number,
-  adminFeeInSol: number = 0
+  adminFeeInSol: number = 0,
+  isLastBatch: boolean = false
 ): Promise<{
   transaction: BatchTransactionResult;
   swapResults: SwapResult[];
@@ -247,6 +250,23 @@ async function createBatchTransaction(
     console.log(
       `Added ${adminFeeInSol} SOL admin fee to batch ${batchIndex + 1}`
     );
+  }
+
+  if (isLastBatch) {
+    const userWsolAccount = await getAssociatedTokenAddress(
+      new PublicKey(SOL_MINT),
+      userPublicKey,
+      false
+    );
+
+    const closeAccountInstruction = createCloseAccountInstruction(
+      userWsolAccount,
+      userPublicKey,
+      userPublicKey
+    );
+
+    instructions.push(closeAccountInstruction);
+    console.log("Added unwrap instruction to final batch");
   }
 
   const { blockhash } = await connectionMainnet.getLatestBlockhash();

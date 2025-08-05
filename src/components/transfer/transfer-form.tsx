@@ -37,7 +37,7 @@ export default function TransferForm() {
   const isMobile = useIsMobile();
   const [selectedToken, setSelectedToken] = useState<UserToken | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [estimatedFee, setEstimatedFee] = useState<number>(0.5);
+  const [estimatedFee, setEstimatedFee] = useState<number>(0.25);
   const [feeLoading, setFeeLoading] = useState(false);
   const { publicKey, signTransaction } = useWallet();
   const [tokenFee, setTokenFee] = useState<number>(0);
@@ -66,14 +66,14 @@ export default function TransferForm() {
             }),
           });
           const data = await response.json();
-          setEstimatedFee(data.fee || 0.5);
+          setEstimatedFee(data.fee || 0.25);
         } catch (error) {
           console.error("Error checking fee:", error);
-          setEstimatedFee(0.5);
+          setEstimatedFee(0.25);
         }
         setFeeLoading(false);
       } else {
-        setEstimatedFee(0.5);
+        setEstimatedFee(0.25);
       }
     };
 
@@ -172,8 +172,9 @@ export default function TransferForm() {
       }
 
       toast.success("🎉 Gasless Transfer Successful!", {
-        description: `Transferred ${values.amount} ${selectedToken.symbol || selectedToken.name
-          } to ${values.recipient.slice(0, 8)}...${values.recipient.slice(-8)}`,
+        description: `Transferred ${values.amount} ${
+          selectedToken.symbol || selectedToken.name
+        } to ${values.recipient.slice(0, 8)}...${values.recipient.slice(-8)}`,
         action: {
           label: "View Transaction",
           onClick: () =>
@@ -197,8 +198,9 @@ export default function TransferForm() {
 
   return (
     <div
-      className={`md:p-2 max-w-[550px] mx-auto my-2 flex flex-col items-center ${!isMobile && "border-gear"
-        }`}
+      className={`md:p-2 max-w-[550px] mx-auto my-2 flex flex-col items-center ${
+        !isMobile && "border-gear"
+      }`}
     >
       <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
         Gasless SPL Token Transfer
@@ -217,14 +219,17 @@ export default function TransferForm() {
         </p>
       </div>
 
-      <div className="mb-6 p-[8px] bg-green-50 border-gear-green-200 mt-4 w-[calc(100%-10px)]" >
+      <div className="mb-6 p-[8px] bg-green-50 border-gear-green-200 mt-4 w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">
           ⚡ <strong>100% Gasless:</strong> No SOL needed!
         </p>
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-6 w-full"
+        >
           <div className="px-[5px] space-y-6">
             <FormField
               control={form.control}

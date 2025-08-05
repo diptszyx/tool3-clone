@@ -136,7 +136,7 @@ export default function SwapAllTokenFormMulti() {
       </h1>
 
       <div className="mb-4 p-[8px] bg-green-50 border-gear-green-200 text-center w-[calc(100%-10px)]">
-        <p className="text-sm text-green-800">⚡ Just $0.50 per transaction!</p>
+        <p className="text-sm text-green-800">⚡ Just $0.25 per transaction!</p>
       </div>
 
       <div className="space-y-4 flex flex-col justify-center w-full">

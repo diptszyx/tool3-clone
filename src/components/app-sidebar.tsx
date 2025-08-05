@@ -23,12 +23,9 @@ import {
   Lock,
   ArrowUp,
   Coin,
-  AddBox,
   ChevronDown,
   CreditCard,
-  Trash,
-  Wallet,
-  Trophy,
+  Keyboard,
 } from "@nsmr/pixelart-react";
 
 import { useState } from "react";
@@ -70,16 +67,35 @@ export const route = {
           url: "/swap-all",
         },
         {
-          title: "Buy Sol Devnet ",
-          url: "/sell-sol-devnet",
+          title: "Launch Token DBC Meteora",
+          url: "/dbc/token",
+        },
+        {
+          title: "Increase Holders",
+          url: "/increase-holders",
+        },
+        {
+          title: "Close account",
+          url: "/close-account",
         },
       ],
     },
-
     {
-      title: "Token",
-      icon: Coin,
+      title: "Developer",
+      icon: Keyboard,
       submenu: [
+        {
+          title: "Buy Sol Devnet ",
+          url: "/sell-sol-devnet",
+        },
+        {
+          title: "Raydium CPMM",
+          url: "/create-pool/raydium-cpmm",
+        },
+        {
+          title: "Meteora DAMM V2",
+          url: "/create-pool/meteora-damm",
+        },
         {
           title: "Create Token",
           url: "/create",
@@ -107,35 +123,6 @@ export const route = {
       icon: Coin,
       url: "/create/review",
       hidden: true,
-    },
-    {
-      title: "Create liquidity pool",
-      icon: AddBox,
-      submenu: [
-        {
-          title: "Raydium CPMM",
-          url: "/create-pool/raydium-cpmm",
-        },
-        {
-          title: "Meteora DAMM V2",
-          url: "/create-pool/meteora-damm",
-        },
-      ],
-    },
-    {
-      icon: Trash,
-      title: "Close account",
-      url: "/close-account",
-    },
-    {
-      icon: Trophy,
-      title: "Launch Token DBC Meteora",
-      url: "/dbc/token",
-    },
-    {
-      title: "Increase Holders",
-      icon: Wallet,
-      url: "/increase-holders",
     },
   ],
 

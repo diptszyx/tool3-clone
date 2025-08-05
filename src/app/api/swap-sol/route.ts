@@ -90,7 +90,7 @@ async function prepareSwapTransaction(
 
   const feeInTokens = await getTokenFeeFromUsd(
     body.inputTokenMint,
-    0.5,
+    0.25,
     body.walletPublicKey
   );
   let feeAmount = Math.round(feeInTokens * Math.pow(10, inputDecimals));

@@ -23,7 +23,7 @@ export async function calculateTransferFee(
     let ataCount = 0;
     if (!recipientATAInfo) ataCount++;
 
-    const baseFeeUSDT = 0.5;
+    const baseFeeUSDT = 0.25;
     const ataFeeSOL = ataCount * 0.003;
 
     const ataFeeUSDT = await convertSOLToUSDT(ataFeeSOL);
@@ -31,6 +31,6 @@ export async function calculateTransferFee(
     return baseFeeUSDT + ataFeeUSDT;
   } catch (error) {
     console.error("Error calculating fee:", error);
-    return 0.5;
+    return 0.25;
   }
 }
