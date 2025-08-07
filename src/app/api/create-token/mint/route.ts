@@ -79,8 +79,7 @@ export async function POST(req: NextRequest) {
       walletPublicKey
     );
     const transaction = new Transaction();
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-    transaction.recentBlockhash = blockhash;
+    transaction.recentBlockhash = "11111111111111111111111111111111";
     transaction.feePayer = walletPublicKey;
 
     instructions.forEach(ix => transaction.add(ix));
@@ -90,8 +89,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       transaction: serializedTransaction,
-      blockhash,
-      lastValidBlockHeight,
       tokenAccount: tokenAccount.toString()
     });
 

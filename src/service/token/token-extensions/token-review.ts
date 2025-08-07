@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Transaction } from "@solana/web3.js";
+import { Transaction, Keypair } from "@solana/web3.js";
 import { toast } from "sonner";
 import { checkExtensionsCompatibility } from "@/utils/token/token-compatibility";
 import { checkExtensionRequiredFields } from "@/utils/token/token-validation";
@@ -312,14 +312,29 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       toast.dismiss(toastId1);
 
       const transactionBuffer = Buffer.from(tokenTxData.transaction, "base64");
-      const transaction = Transaction.from(transactionBuffer);
+      const originalTransaction = Transaction.from(transactionBuffer);
+
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+
+      const transaction = new Transaction();
+      transaction.feePayer = originalTransaction.feePayer;
+      transaction.recentBlockhash = blockhash;
+
+      originalTransaction.instructions.forEach(instruction => {
+        transaction.add(instruction);
+      });
+
+      if (tokenTxData.mintKeypair) {
+        const mintKeypair = Keypair.fromSecretKey(new Uint8Array(tokenTxData.mintKeypair));
+        transaction.partialSign(mintKeypair);
+      }
 
       const signedTransaction = await wallet.signTransaction(transaction);
       const toastId2 = toast.loading("Creating token on blockchain...");
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
       await connection.confirmTransaction({
-        blockhash: tokenTxData.blockhash,
-        lastValidBlockHeight: tokenTxData.lastValidBlockHeight,
+        blockhash,
+        lastValidBlockHeight,
         signature
       }, 'confirmed');
 
@@ -352,12 +367,16 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       const mintTxData = await mintResponse.json();
       const mintTransactionBuffer = Buffer.from(mintTxData.transaction, "base64");
       const mintTransaction = Transaction.from(mintTransactionBuffer);
+
+      const { blockhash: mintBlockhash, lastValidBlockHeight: mintLastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+      mintTransaction.recentBlockhash = mintBlockhash;
+
       const signedMintTransaction = await wallet.signTransaction(mintTransaction);
       const mintSignature = await connection.sendRawTransaction(signedMintTransaction.serialize());
 
       await connection.confirmTransaction({
-        blockhash: mintTxData.blockhash,
-        lastValidBlockHeight: mintTxData.lastValidBlockHeight,
+        blockhash: mintBlockhash,
+        lastValidBlockHeight: mintLastValidBlockHeight,
         signature: mintSignature
       }, 'confirmed');
 
@@ -379,8 +398,10 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       } else if (typeof errorMessage === 'string') {
         if (errorMessage.includes("insufficient funds")) {
           errorMessage = "Insufficient funds to complete the transaction. Please add more SOL to your wallet.";
-        } else if (errorMessage.includes("blockhash")) {
-          errorMessage = "Transaction timeout. Please try again.";
+        } else if (errorMessage.includes("blockhash") || 
+                   errorMessage.includes("Blockhash not found") ||
+                   errorMessage.includes("Transaction simulation failed: Blockhash not found")) {
+          errorMessage = "Network timeout or blockhash expired. This is common on mainnet during high traffic. Please try again in a few moments.";
         } else if (errorMessage.includes("transaction too large")) {
           errorMessage = "Transaction size exceeds limit. Try reducing the number of extensions.";
         }

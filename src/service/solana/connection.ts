@@ -11,5 +11,13 @@ if (!RPC_MAINNET) {
   throw new Error("Environment variable NEXT_PUBLIC_RPC_MAINNET is not set!");
 }
 
-export const connectionDevnet = new Connection(RPC_DEVNET, "confirmed");
-export const connectionMainnet = new Connection(RPC_MAINNET, "confirmed");
+export const connectionDevnet = new Connection(RPC_DEVNET, {
+  commitment: "confirmed",
+  wsEndpoint: undefined,
+  disableRetryOnRateLimit: false
+});
+export const connectionMainnet = new Connection(RPC_MAINNET, {
+  commitment: "confirmed", 
+  wsEndpoint: undefined,
+  disableRetryOnRateLimit: false
+});

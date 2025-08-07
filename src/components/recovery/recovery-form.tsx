@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { toast } from "sonner";
-import { Check, ExternalLink, Loader2, Info, RefreshCw } from "lucide-react";
+import { Check, ExternalLink, Loader2, Info } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { permanentDelegateRecovery, PermanentDelegateRecoveryResult } from "@/service/token/token-extensions/tool/permanent-delegate-recovery";
 import { Separator } from "@/components/ui/separator";
@@ -24,7 +24,7 @@ export interface RecoveryFormProps {
 
 export function RecoveryForm({ }: RecoveryFormProps) {
   const wallet = useWallet();
-  const { publicKey, connected } = wallet;
+  const { connected } = wallet;
   const { connection } = useConnection();
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(false);
@@ -41,8 +41,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
   const [recoverySuccess, setRecoverySuccess] = useState(false);
   const [recoveryResult, setRecoveryResult] = useState<PermanentDelegateRecoveryResult | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [verifyLoading, setVerifyLoading] = useState<boolean>(false);
-  const [isDelegate, setIsDelegate] = useState<boolean | null>(null);
+
 
   useEffect(() => {
     const urlCluster = window.location.href.includes('cluster=devnet') ? 'devnet' : 'mainnet';
@@ -209,28 +208,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
     setMemo("");
   };
 
-  // Verify delegate status
-  const verifyDelegateStatus = async () => {
-    if (!connection || !publicKey || !selectedToken) {
-      toast.error("Please connect your wallet and select a token");
-      return;
-    }
 
-    setVerifyLoading(true);
-
-    try {
-      // Simulate verification
-      setTimeout(() => {
-        setIsDelegate(true);
-        toast.success("Verification successful: You are the permanent delegate");
-        setVerifyLoading(false);
-      }, 1000);
-    } catch {
-      console.error("Error during verification");
-      toast.error("Verification error: Could not verify delegate status");
-      setVerifyLoading(false);
-    }
-  };
 
   if (recoverySuccess && recoveryResult) {
     return (
@@ -321,23 +299,6 @@ export function RecoveryForm({ }: RecoveryFormProps) {
                 onTokensLoaded={handleTokensLoaded}
               />
             </div>
-            {/* Verify Button */}
-            <Button
-              variant="outline"
-              className="mt-2 border-gear-gray cursor-pointer ml-1 py-0 h-[30px]"
-              onClick={verifyDelegateStatus}
-              disabled={!selectedToken || verifyLoading}
-            >
-              {verifyLoading ? (
-                <><RefreshCw className="mr-2 h-4 w-4 animate-spin" /> Verifying...</>
-              ) : (
-                "Verify Delegate Status"
-              )}
-            </Button>
-
-            {isDelegate === true && (
-              <p className="text-sm text-green-500">✓ You are the permanent delegate for this token</p>
-            )}
           </div>
 
           {/* Source Wallet Address */}
@@ -361,7 +322,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
             <div className="flex justify-between items-center">
               <Label htmlFor="source-token-account">Token Account (Calculated)</Label>
               {calculatingSource && (
-                <RefreshCw className="h-3 w-3 animate-spin text-blue-400" />
+                <Loader2 className="h-3 w-3 animate-spin text-blue-400" />
               )}
             </div>
             <Input

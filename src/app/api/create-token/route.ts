@@ -5,6 +5,7 @@ import { ipfsToHTTP, pinJSONToIPFS } from "@/utils/pinata";
 import { ClusterType } from "@/types/types";
 import { connectionDevnet, connectionMainnet } from "@/service/solana/connection";
 
+
 interface TransferFeesOptions {
   'fee-percentage'?: string;
   'max-fee'?: string;
@@ -310,15 +311,10 @@ export async function POST(req: NextRequest) {
 
     const createTransaction = new Transaction();
 
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-    createTransaction.recentBlockhash = blockhash;
+    createTransaction.recentBlockhash = "11111111111111111111111111111111";
     createTransaction.feePayer = walletPublicKey;
 
     createInstructions.forEach(ix => createTransaction.add(ix));
-
-    if (signers.length > 0) {
-      createTransaction.partialSign(...signers);
-    }
 
     const serializedTransaction = createTransaction
       .serialize({ requireAllSignatures: false })
@@ -326,12 +322,14 @@ export async function POST(req: NextRequest) {
 
     const mintAmount = BigInt(Math.floor(supplyAmount * Math.pow(10, decimals)));
 
+    const mintKeypair = signers.find(signer => signer.publicKey.equals(mint));
+    const mintKeypairArray = mintKeypair ? Array.from(mintKeypair.secretKey) : null;
+
     return NextResponse.json({
       success: true,
       transaction: serializedTransaction,
-      blockhash,
-      lastValidBlockHeight,
       mint: mint.toString(),
+      mintKeypair: mintKeypairArray,
       decimals,
       mintAmount: mintAmount.toString(),
       useToken2022,

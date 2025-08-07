@@ -113,8 +113,7 @@ export const transferToken = async (
       
       const transaction = new Transaction();
       
-      // Thêm instruction chuyển phí nếu có địa chỉ nhận phí
-      if (feeRecipientAddress) {
+          if (feeRecipientAddress) {
         try {
           const feeRecipientPublicKey = new PublicKey(feeRecipientAddress);
           const feeLamports = BigInt(Math.round(feePerRecipient * 1e9));
