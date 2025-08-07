@@ -90,8 +90,8 @@ export default function TransferForm() {
             publicKey.toString()
           );
           setTokenFee(tokenFeeAmount);
-        } catch (error) {
-          console.error("Error calculating token fee:", error);
+        } catch {
+          toast.error("Insufficient liquidity, unable to pay fee.");
           setTokenFee(0);
         }
       } else {

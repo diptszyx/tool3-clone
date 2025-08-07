@@ -30,7 +30,7 @@ export async function getTokenFeeFromUsd(
     );
 
     if (!usdtRes.ok) {
-      throw new Error("API Jupiter trả về lỗi");
+      throw new Error("Jupiter API returned an error");
     }
 
     const usdtData: JupiterPriceResponse = await usdtRes.json();
@@ -38,7 +38,6 @@ export async function getTokenFeeFromUsd(
 
     return usdAmount * usdtToTokenRate;
   } catch (err) {
-    console.error("Lỗi khi lấy giá token từ Jupiter:", err);
     throw err;
   }
 }

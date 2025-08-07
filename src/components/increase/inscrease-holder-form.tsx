@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -170,73 +170,76 @@ export default function Component() {
     }
   };
 
-  const validateQuote = async (tokenMint: string, dexType: string) => {
-    setQuoteStatus({ isValid: false, isChecking: true });
-
-    try {
-      const SOL_MINT = "So11111111111111111111111111111111111111112";
-      const testAmount = Math.round(0.001 * LAMPORTS_PER_SOL);
-
-      let dexes: string[] | undefined;
-      let allowFallback = false;
-
-      if (dexType === "Raydium,Meteora,Orca+V2") {
-        allowFallback = true;
-        dexes = dexType.split(",").map((d) => d.trim());
-      } else {
-        dexes = [dexType];
-      }
+  const validateQuote = useCallback(
+    async (tokenMint: string, dexType: string) => {
+      setQuoteStatus({ isValid: false, isChecking: true });
 
       try {
-        const quote = await getJupiterQuote(
-          SOL_MINT,
-          tokenMint,
-          testAmount,
-          undefined,
-          dexes
-        );
+        const SOL_MINT = "So11111111111111111111111111111111111111112";
+        const testAmount = Math.round(0.001 * LAMPORTS_PER_SOL);
 
-        if (quote?.routePlan?.length > 0) {
-          setQuoteStatus({ isValid: true, isChecking: false });
+        let dexes: string[] | undefined;
+        let allowFallback = false;
+
+        if (dexType === "Raydium,Meteora,Orca+V2") {
+          allowFallback = true;
+          dexes = dexType.split(",").map((d) => d.trim());
         } else {
-          throw new Error("No route found");
+          dexes = [dexType];
         }
-      } catch {
-        if (allowFallback) {
-          const fallbackQuote = await getJupiterQuote(
+
+        try {
+          const quote = await getJupiterQuote(
             SOL_MINT,
             tokenMint,
             testAmount,
             undefined,
-            undefined
+            dexes
           );
 
-          if (fallbackQuote?.routePlan?.length > 0) {
-            setQuoteStatus({
-              isValid: true,
-              isChecking: false,
-            });
+          if (quote?.routePlan?.length > 0) {
+            setQuoteStatus({ isValid: true, isChecking: false });
           } else {
-            throw new Error("No fallback route");
+            throw new Error("No route found");
           }
-        } else {
-          const dexName = getDexDisplayName(dexType);
-          toast.message("Incompatible DEX selected. Please choose another.");
-          setQuoteStatus({
-            isValid: false,
-            isChecking: false,
-            error: `No route available for ${dexName}`,
-          });
+        } catch {
+          if (allowFallback) {
+            const fallbackQuote = await getJupiterQuote(
+              SOL_MINT,
+              tokenMint,
+              testAmount,
+              undefined,
+              undefined
+            );
+
+            if (fallbackQuote?.routePlan?.length > 0) {
+              setQuoteStatus({
+                isValid: true,
+                isChecking: false,
+              });
+            } else {
+              throw new Error("No fallback route");
+            }
+          } else {
+            const dexName = getDexDisplayName(dexType);
+            toast.message("Incompatible DEX selected. Please choose another.");
+            setQuoteStatus({
+              isValid: false,
+              isChecking: false,
+              error: `No route available for ${dexName}`,
+            });
+          }
         }
+      } catch {
+        setQuoteStatus({
+          isValid: false,
+          isChecking: false,
+          error: "Failed to check quote",
+        });
       }
-    } catch {
-      setQuoteStatus({
-        isValid: false,
-        isChecking: false,
-        error: "Failed to check quote",
-      });
-    }
-  };
+    },
+    []
+  );
   const rpcUrl = form.watch("rpcUrl");
   useEffect(() => {
     if (rpcUrl && rpcUrl.trim()) {
@@ -268,7 +271,7 @@ export default function Component() {
     } else {
       setQuoteStatus({ isValid: false, isChecking: false });
     }
-  }, [selectedToken, dexType, isFormDisabled, validateQuote]);
+  }, [selectedToken, dexType, isFormDisabled, validateQuote, form]);
 
   useEffect(() => {
     const saved = loadWalletsFromLocalStorage();
@@ -280,7 +283,6 @@ export default function Component() {
   const handleNewRun = (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();
-
     removeWalletsFromLocalStorage();
     setGeneratedWallets(null);
   };
@@ -375,7 +377,6 @@ export default function Component() {
       }
 
       const fullList = [adminWallet, ...wallets];
-      console.log(wallets);
       if (!selectedToken) {
         throw new Error("Please select the token you want to use.");
       }
@@ -391,17 +392,10 @@ export default function Component() {
           [data.dexType]
         );
 
-      console.log("swap data", publicKey, fullList, selectedToken.id, [
-        data.dexType,
-      ]);
-
       const signedTx = await signTransaction(initialTransaction);
 
       const sig1 = await connection.sendTransaction(signedTx);
       await connection.confirmTransaction(sig1, "confirmed");
-
-      console.log("wallets.length:", wallets.length);
-      console.log("childTransactions.length:", childTransactions.length);
 
       for (let i = 0; i < childTransactions.length; i++) {
         const child = childTransactions[i];
@@ -429,13 +423,10 @@ export default function Component() {
         connection
       );
 
-      console.log("update", updatedWallets);
-
       const finalWallets = updatedWallets.map((w, idx) => ({
         ...w,
         result: wallets[idx].result,
       }));
-      console.log("final", finalWallets);
       saveWalletsToLocalStorage(finalWallets);
       setGeneratedWallets(finalWallets);
 
@@ -829,7 +820,10 @@ export default function Component() {
                                       }
                                       size="sm"
                                       type="button"
-                                      disabled={isFormDisabled}
+                                      disabled={
+                                        isFormDisabled ||
+                                        !!form.watch("customQuantity")
+                                      }
                                       onClick={() => field.onChange(qty)}
                                       className={
                                         field.value === qty

@@ -97,7 +97,7 @@ export default function SwapSolForm() {
         }
 
         if (!response.ok) {
-          throw new Error("Failed to fetch quote");
+          toast.error("Token has insufficient liquidity.");
         }
 
         const quote = await response.json();
