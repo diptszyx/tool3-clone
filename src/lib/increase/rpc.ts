@@ -1,5 +1,5 @@
 import { Connection } from "@solana/web3.js";
-import { connectionMainnet } from "@/service/solana/connection";
+import { connectionDevnet } from "@/service/solana/connection";
 
 export interface RPCStatus {
   latency: number;
@@ -34,8 +34,8 @@ export function createConnection(userRpcUrl?: string): Connection {
     try {
       return new Connection(userRpcUrl, "confirmed");
     } catch {
-      return connectionMainnet;
+      return connectionDevnet;
     }
   }
-  return connectionMainnet;
+  return connectionDevnet;
 }
