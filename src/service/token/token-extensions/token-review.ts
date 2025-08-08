@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Transaction, Keypair } from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import { toast } from "sonner";
 import { checkExtensionsCompatibility } from "@/utils/token/token-compatibility";
 import { checkExtensionRequiredFields } from "@/utils/token/token-validation";
@@ -120,6 +120,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
 
 
   const [isLoading, setIsLoading] = useState(true);
+  const [tokenType, setTokenType] = useState<'spl' | 'extensions'>('extensions');
   const [tokenData, setTokenData] = useState<TokenDataType | null>(null);
   const [selectedExtensions, setSelectedExtensions] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -136,6 +137,11 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         const savedData = localStorage.getItem('tokenData');
         if (savedData) {
           const parsedData = JSON.parse(savedData);
+          if (parsedData.tokenType === 'spl') {
+            setTokenType('spl');
+          } else {
+            setTokenType('extensions');
+          }
 
           setTokenData({
             name: parsedData.name,
@@ -150,7 +156,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
             discordUrl: parsedData.discordUrl || ""
           });
 
-          if (parsedData.selectedExtensions) {
+          if (parsedData.selectedExtensions && parsedData.tokenType !== 'spl') {
             const extensions = [...parsedData.selectedExtensions];
 
 
@@ -275,7 +281,20 @@ export function useTokenReview(router: { push: (url: string) => void }) {
 
     try {
       const toastId1 = toast.loading("Preparing token data...");
-      const requestData = {
+      const requestData = tokenType === 'spl' ? {
+        walletPublicKey: wallet.publicKey.toString(),
+        name: tokenData.name,
+        symbol: tokenData.symbol,
+        decimals: tokenData.decimals,
+        supply: tokenData.supply,
+        description: tokenData.description || "",
+        imageUrl: imageUrl,
+        websiteUrl: tokenData.websiteUrl || "",
+        twitterUrl: tokenData.twitterUrl || "",
+        telegramUrl: tokenData.telegramUrl || "",
+        discordUrl: tokenData.discordUrl || "",
+        cluster
+      } : {
         walletPublicKey: wallet.publicKey.toString(),
         name: tokenData.name,
         symbol: tokenData.symbol,
@@ -295,7 +314,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       console.log("TokenReview: Sending request with extensions:", selectedExtensions);
       console.log("TokenReview: Extension options:", tokenData.extensionOptions);
 
-      const response = await fetch("/api/create-token", {
+      const response = await fetch(tokenType === 'spl' ? "/api/create-spl-token" : "/api/create-token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -307,28 +326,189 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to create token transaction");
       }
-
       const tokenTxData = await response.json();
       toast.dismiss(toastId1);
-
-      const transactionBuffer = Buffer.from(tokenTxData.transaction, "base64");
-      const originalTransaction = Transaction.from(transactionBuffer);
-
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
-
+      if (tokenType === 'spl') {
+        // SPL với Metaplex JS SDK - theo ví dụ chuẩn
+        const toastId2 = toast.loading("Creating SPL token with Metaplex...");
+        
+        try {
+          // Import Web3.js và Metaplex để tạo metadata
+          const { 
+            Transaction, 
+            Keypair, 
+            SystemProgram, 
+            PublicKey 
+          } = await import("@solana/web3.js");
+          const {
+            createInitializeMintInstruction,
+            createMintToInstruction,
+            createAssociatedTokenAccountInstruction,
+            getAssociatedTokenAddress,
+            MINT_SIZE,
+            TOKEN_PROGRAM_ID,
+            getMinimumBalanceForRentExemptMint,
+            ASSOCIATED_TOKEN_PROGRAM_ID
+          } = await import("@solana/spl-token");
+          
+          if (!wallet.signTransaction) {
+            throw new Error("Wallet does not support signing transactions");
+          }
+          
+          // Tạo mint keypair từ server data
+          const mintKeypair = Keypair.fromSecretKey(new Uint8Array(tokenTxData.mintKeypair));
+          const mint = mintKeypair.publicKey;
+          
+          // Tạo associated token account
+          const associatedTokenAccount = await getAssociatedTokenAddress(
+            mint,
+            wallet.publicKey!,
+            false,
+            TOKEN_PROGRAM_ID,
+            ASSOCIATED_TOKEN_PROGRAM_ID
+          );
+          
+          // Tạo transaction
       const transaction = new Transaction();
-      transaction.feePayer = originalTransaction.feePayer;
-      transaction.recentBlockhash = blockhash;
+          const rentExemptAmount = await getMinimumBalanceForRentExemptMint(connection);
+          
+          // Create mint account
+          transaction.add(
+            SystemProgram.createAccount({
+              fromPubkey: wallet.publicKey!,
+              newAccountPubkey: mint,
+              space: MINT_SIZE,
+              lamports: rentExemptAmount,
+              programId: TOKEN_PROGRAM_ID,
+            })
+          );
+          
+          // Initialize mint
+          transaction.add(
+            createInitializeMintInstruction(
+              mint,
+              tokenTxData.decimals,
+              wallet.publicKey!,
+              wallet.publicKey!,
+              TOKEN_PROGRAM_ID
+            )
+          );
+          
+          // Create associated token account
+          transaction.add(
+            createAssociatedTokenAccountInstruction(
+              wallet.publicKey!,
+              associatedTokenAccount,
+              wallet.publicKey!,
+              mint,
+              TOKEN_PROGRAM_ID,
+              ASSOCIATED_TOKEN_PROGRAM_ID
+            )
+          );
+          
+          transaction.add(
+            createMintToInstruction(
+              mint,
+              associatedTokenAccount,
+              wallet.publicKey!,
+              Number(tokenTxData.mintAmount),
+              [],
+              TOKEN_PROGRAM_ID
+            )
+          );
+          
+          try {
+            const MetaplexPackage = await import("@metaplex-foundation/mpl-token-metadata");
+            const TOKEN_METADATA_PROGRAM_ID = MetaplexPackage.PROGRAM_ID;
+            
+            const metadataData = {
+              name: tokenTxData.tokenData.name,
+              symbol: tokenTxData.tokenData.symbol,
+              uri: tokenTxData.metadataUri,
+              sellerFeeBasisPoints: 0, 
+              creators: null, 
+              collection: null,
+              uses: null,
+            };
+            
+            const [metadataAddress] = PublicKey.findProgramAddressSync(
+              [
+                Buffer.from("metadata"),
+                TOKEN_METADATA_PROGRAM_ID.toBuffer(),
+                mint.toBuffer(),
+              ],
+              TOKEN_METADATA_PROGRAM_ID
+            );
+            
+            if (MetaplexPackage.createCreateMetadataAccountV3Instruction) {
+              transaction.add(
+                MetaplexPackage.createCreateMetadataAccountV3Instruction(
+                  {
+                    metadata: metadataAddress,
+                    mint: mint,
+                    mintAuthority: wallet.publicKey!,
+                    payer: wallet.publicKey!,
+                    updateAuthority: wallet.publicKey!,
+                  },
+                  {
+                    createMetadataAccountArgsV3: {
+                      data: metadataData,
+                      isMutable: true,
+                      collectionDetails: null,
+                    },
+                  }
+                )
+              );
+            } else {
+              console.warn("createCreateMetadataAccountV3Instruction not available");
+            }
+          } catch (metadataError) {
+            console.warn("Could not add metadata:", metadataError);
+          }
+          
+          const latestBlockhash = await connection.getLatestBlockhash("finalized");
+          transaction.recentBlockhash = latestBlockhash.blockhash;
+          transaction.feePayer = wallet.publicKey!;
 
-      originalTransaction.instructions.forEach(instruction => {
-        transaction.add(instruction);
-      });
-
-      if (tokenTxData.mintKeypair) {
-        const mintKeypair = Keypair.fromSecretKey(new Uint8Array(tokenTxData.mintKeypair));
-        transaction.partialSign(mintKeypair);
-      }
-
+          transaction.partialSign(mintKeypair);
+          let signature: string;
+          if (wallet.signTransaction) {
+            const signedTransaction = await wallet.signTransaction(transaction);
+            signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
+              skipPreflight: false,
+              preflightCommitment: "finalized"
+            });
+            
+            await connection.confirmTransaction({
+              signature,
+              blockhash: latestBlockhash.blockhash,
+              lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+            }, "finalized");
+          } else {
+            throw new Error("Wallet does not support signTransaction");
+          }
+          
+          setCreatedTokenMint(tokenTxData.mint);
+          setTransactionSignature(signature);
+          setSuccess(true);
+          localStorage.removeItem('tokenData');
+          toast.dismiss(toastId2);
+          toast.success("SPL Token created successfully!");
+          return;
+          
+        } catch (splError) {
+          console.error("SPL token creation error:", splError);
+          toast.dismiss(toastId2);
+          toast.error("Failed to create SPL token");
+          return;
+        }
+      } else {
+        // Token Extensions flow cũ
+        const transactionBuffer = Buffer.from(tokenTxData.transaction, "base64");
+        const transaction = Transaction.from(transactionBuffer);
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = wallet.publicKey!;
       const signedTransaction = await wallet.signTransaction(transaction);
       const toastId2 = toast.loading("Creating token on blockchain...");
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
@@ -342,6 +522,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       setCreatedTokenMint(mintAddress);
       setTransactionSignature(signature);
       toast.dismiss(toastId2);
+        // Với Token Extensions flow, cần bước mint riêng
       const toastId3 = toast.loading("Minting tokens to your wallet...");
       const mintRequestData = {
         walletPublicKey: wallet.publicKey.toString(),
@@ -351,7 +532,6 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         useToken2022: tokenTxData.useToken2022,
         cluster
       };
-
       const mintResponse = await fetch("/api/create-token/mint", {
         method: "POST",
         headers: {
@@ -359,7 +539,6 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         },
         body: JSON.stringify(mintRequestData),
       });
-
       if (!mintResponse.ok) {
         const mintErrorData = await mintResponse.json();
         throw new Error(mintErrorData.error || "Failed to mint tokens");
@@ -367,19 +546,15 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       const mintTxData = await mintResponse.json();
       const mintTransactionBuffer = Buffer.from(mintTxData.transaction, "base64");
       const mintTransaction = Transaction.from(mintTransactionBuffer);
-
       const { blockhash: mintBlockhash, lastValidBlockHeight: mintLastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
       mintTransaction.recentBlockhash = mintBlockhash;
-
       const signedMintTransaction = await wallet.signTransaction(mintTransaction);
       const mintSignature = await connection.sendRawTransaction(signedMintTransaction.serialize());
-
       await connection.confirmTransaction({
         blockhash: mintBlockhash,
         lastValidBlockHeight: mintLastValidBlockHeight,
         signature: mintSignature
       }, 'confirmed');
-
       toast.dismiss(toastId3);
 
       toast.success("Token created and minted successfully!");
@@ -388,6 +563,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       setSuccess(true);
 
       localStorage.removeItem('tokenData');
+      }
     } catch (error: Error | unknown) {
       console.error("Detailed token creation error:", error);
 

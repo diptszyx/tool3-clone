@@ -31,7 +31,7 @@ export async function pinJSONToIPFS(metadata: Record<string, unknown>): Promise<
       }
     );
     
-    return `ipfs://${response.data.IpfsHash}`;
+    return `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
   } catch (error) {
     console.error("Error pinning JSON to IPFS:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -90,7 +90,7 @@ export async function pinImageFromBase64(base64Image: string): Promise<string> {
       }
     );
     
-    return `ipfs://${response.data.IpfsHash}`;
+    return `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
   } catch (error) {
     console.error("Error pinning image to IPFS:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -143,7 +143,7 @@ export async function pinFileToIPFS(base64Data: string, fileName: string): Promi
       }
     );
     
-    return `ipfs://${response.data.IpfsHash}`;
+    return `https://gateway.pinata.cloud/ipfs/${response.data.IpfsHash}`;
   } catch (error) {
     console.error("Error pinning file to IPFS:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -156,14 +156,17 @@ export function ipfsToHTTP(ipfsURI: string): string {
   
   const ipfsGateway = 'https://gateway.pinata.cloud/ipfs/';
   
+  // Nếu đã là HTTP URL, return trực tiếp
   if (ipfsURI.startsWith('http')) {
     return ipfsURI;
   }
   
+  // Convert ipfs:// sang HTTP
   if (ipfsURI.startsWith('ipfs://')) {
     return ipfsGateway + ipfsURI.replace('ipfs://', '');
   }
   
+
   return ipfsGateway + ipfsURI;
 }
 

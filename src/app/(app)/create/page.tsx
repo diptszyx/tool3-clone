@@ -1,15 +1,18 @@
 "use client"
 import { TokenCreationForm } from "@/components/token-creation-form"
 import SuspenseLayout from "@/components/suspense-layout"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 
 export default function CreateToken() {
   return (
     <div className="h-full flex md:items-center mt-3 sm:mt-10 md:mt-0">
       <div className="container mx-auto px-4 max-h-[calc(100vh-60px)]">
-        <SuspenseLayout>
-          <TokenCreationForm />
-        </SuspenseLayout>
+        <ScrollArea className="h-[calc(100vh-80px)]">
+          <SuspenseLayout>
+            <TokenCreationForm />
+          </SuspenseLayout>
+        </ScrollArea>
       </div>
     </div>
   );
