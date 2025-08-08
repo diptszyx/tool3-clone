@@ -1,32 +1,40 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import React from "react";
 
 interface TokenTypeSelectorProps {
   tokenType: 'spl' | 'extensions';
   onTokenTypeChange: (type: 'spl' | 'extensions') => void;
 }
 
-export const TokenTypeSelector = ({ tokenType, onTokenTypeChange }: TokenTypeSelectorProps) => {
+export const TokenTypeSelector: React.FC<TokenTypeSelectorProps> = ({
+  tokenType,
+  onTokenTypeChange
+}) => {
   return (
-    <div className="flex gap-2 mb-4">
-      <Button
+    <div className="flex space-x-2 mb-6">
+      <button
         type="button"
-        variant={tokenType === 'spl' ? 'default' : 'outline'}
         onClick={() => onTokenTypeChange('spl')}
-        size="sm"
+        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          tokenType === 'spl'
+            ? 'bg-gray-700 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        }`}
       >
         SPL Token
-      </Button>
-
-      <Button
+      </button>
+      <button
         type="button"
-        variant={tokenType === 'extensions' ? 'default' : 'outline'}
         onClick={() => onTokenTypeChange('extensions')}
-        size="sm"
+        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+          tokenType === 'extensions'
+            ? 'bg-gray-700 text-white'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+        }`}
       >
         Token Extensions
-      </Button>
+      </button>
     </div>
   );
 };

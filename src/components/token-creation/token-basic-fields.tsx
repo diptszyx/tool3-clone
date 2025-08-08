@@ -22,7 +22,7 @@ interface TokenBasicFieldsProps {
   imagePreview: string | null;
   setImagePreview: (preview: string | null) => void;
   uploadingImage: boolean;
-  formErrors: { [key: string]: string };
+  formErrors: Record<string, string | undefined>;
   onImageUpload: (file: File) => void;
 }
 
@@ -45,7 +45,13 @@ export const TokenBasicFields = ({
         setImagePreview(event.target?.result as string);
       };
       reader.readAsDataURL(file);
-      onImageUpload(file);
+      
+   
+      if (typeof onImageUpload === 'function') {
+        onImageUpload(file);
+      } else {
+        console.error('onImageUpload chưa được định nghĩa hoặc không phải là function');
+      }
     }
   };
   

@@ -31,6 +31,7 @@ export const TokenExtensionsSidebar = ({
   validationErrors,
   onToggleExtension,
   onUpdateExtensionOption
+  
 }: TokenExtensionsSidebarProps) => {
   const isMobile = useIsMobile();
   const [openExtensions, setOpenExtensions] = useState<Record<string, boolean>>({});

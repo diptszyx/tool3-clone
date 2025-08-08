@@ -1,7 +1,7 @@
 "use client";
 
-import { Control } from "react-hook-form";
-import type { TokenFormValues } from "./types";
+import React from "react";
+import { UseFormReturn } from "react-hook-form";
 import {
   FormControl,
   FormField,
@@ -12,36 +12,36 @@ import {
 import { Input } from "@/components/ui/input";
 
 interface SocialLinksFieldsProps {
-  control: Control<TokenFormValues>;
+  form: UseFormReturn<Record<string, unknown>>;
 }
 
-export const SocialLinksFields = ({ control }: SocialLinksFieldsProps) => {
+export const SocialLinksFields: React.FC<SocialLinksFieldsProps> = ({ form }) => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Social Links (Optional)</h3>
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
-          control={control}
+          control={form.control}
           name="websiteUrl"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Website URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://example.com" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input placeholder="https://example.com" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
-          control={control}
+          control={form.control}
           name="twitterUrl"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Twitter URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://twitter.com/username" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input placeholder="https://twitter.com/username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -51,27 +51,26 @@ export const SocialLinksFields = ({ control }: SocialLinksFieldsProps) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
-          control={control}
+          control={form.control}
           name="telegramUrl"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Telegram URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://t.me/groupname" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input placeholder="https://t.me/username" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <FormField
-          control={control}
+          control={form.control}
           name="discordUrl"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Discord URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://discord.gg/invite" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input placeholder="https://discord.gg/invite" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
