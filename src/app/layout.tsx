@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import * as Sentry from "@sentry/nextjs";
+import { getTraceData } from "@sentry/nextjs";
 import "./globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
   },
 
   other: {
-    ...Sentry.getTraceData(),
+    ...getTraceData(),
   },
 };
 
