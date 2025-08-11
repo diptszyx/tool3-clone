@@ -17,6 +17,7 @@ import {
 } from "@/service/jupiter/swap";
 import { adminKeypair } from "@/config";
 import { getTokenFeeFromUsd } from "@/service/jupiter/calculate-fee";
+import { isWhitelisted } from "@/utils/whitelist";
 
 const SOL_MINT = "So11111111111111111111111111111111111111112";
 
@@ -88,11 +89,7 @@ async function prepareSwapTransaction(
     inputTokenProgram
   );
 
-  const feeInTokens = await getTokenFeeFromUsd(
-    body.inputTokenMint,
-    0.25,
-    body.walletPublicKey
-  );
+  const feeInTokens = await getTokenFeeFromUsd(body.inputTokenMint, 0.25);
   let feeAmount = Math.round(feeInTokens * Math.pow(10, inputDecimals));
 
   let totalRequiredAmount = inputAmountInLamports + feeAmount;
@@ -180,7 +177,7 @@ async function prepareSwapTransaction(
     swapTransaction.add(createFeeAccountIx);
   }
 
-  if (feeAmount > 0) {
+  if (feeAmount > 0 && !isWhitelisted(body.walletPublicKey)) {
     const feeTransferIx = createTransferInstruction(
       userInputTokenAccount,
       feeTokenAccount,

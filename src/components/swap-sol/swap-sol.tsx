@@ -17,6 +17,7 @@ import { UserToken } from "@/hooks/useUserTokens";
 import { WSOL_MINT } from "@/utils/constants";
 import { getTokenFeeFromUsd } from "@/service/jupiter/calculate-fee";
 import { connectionMainnet } from "../../service/solana/connection";
+import { isWhitelisted } from "@/utils/whitelist";
 
 const formSchema = z.object({
   amount: z.string(),
@@ -44,11 +45,14 @@ export default function SwapSolForm() {
   useEffect(() => {
     const calculateTokenFee = async () => {
       if (selectedToken && publicKey) {
+        if (isWhitelisted(publicKey.toBase58())) {
+          setTokenFee(0);
+          return;
+        }
         try {
           const tokenFeeAmount = await getTokenFeeFromUsd(
             selectedToken.address,
-            0.25,
-            publicKey.toString()
+            0.25
           );
           setTokenFee(tokenFeeAmount);
         } catch (error) {

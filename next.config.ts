@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   images: {
@@ -12,14 +13,14 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: '/:path*',
+        source: "/:path*",
         has: [
           {
-            type: 'host',
-            value: 'www.tool3.xyz',
+            type: "host",
+            value: "www.tool3.xyz",
           },
         ],
-        destination: 'https://tool3.xyz/:path*',
+        destination: "https://tool3.xyz/:path*",
         permanent: true,
       },
     ];
@@ -27,11 +28,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
           {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload',
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
           },
         ],
       },
@@ -39,4 +40,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: "moonraise",
+  project: "tool3",
+  silent: !process.env.CI,
+  disableLogger: true,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+});

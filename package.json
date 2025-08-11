@@ -41,6 +41,7 @@
     "@radix-ui/react-tooltip": "^1.2.6",
     "@radix-ui/react-visually-hidden": "^1.2.2",
     "@raydium-io/raydium-sdk-v2": "0.1.133-alpha",
+    "@sentry/nextjs": "^10.2.0",
     "@solana/spl-token": "^0.4.13",
     "@solana/spl-token-metadata": "^0.1.6",
     "@solana/wallet-adapter-base": "^0.9.26",

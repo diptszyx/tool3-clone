@@ -1,48 +1,60 @@
-"use client"
+"use client";
 
-import { useWallet } from "@solana/wallet-adapter-react"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogTrigger, DialogTitle, DialogHeader } from "@/components/ui/dialog"
-import { Wallet, ChevronRight } from "lucide-react"
-import Image from "next/image"
-import type { WalletName } from "@solana/wallet-adapter-base"
-import { Loader } from "@nsmr/pixelart-react"
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogTitle,
+  DialogHeader,
+} from "@/components/ui/dialog";
+import { Wallet, ChevronRight } from "lucide-react";
+import Image from "next/image";
+import type { WalletName } from "@solana/wallet-adapter-base";
+import { Loader } from "@nsmr/pixelart-react";
 
 export function shortenAddress(address: string, chars = 4): string {
-  return `${address.slice(0, chars)}...${address.slice(-chars)}`
+  return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 
 export default function WalletConnectButton() {
-  const { publicKey, select, wallets, disconnect, connecting, connected } = useWallet()
+  const { publicKey, select, wallets, disconnect, connecting, connected } =
+    useWallet();
 
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const [selectedWallet, setSelectedWallet] = useState<string | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
 
-  const displayAddress = publicKey ? shortenAddress(publicKey.toBase58()) : ""
+  const displayAddress = publicKey ? shortenAddress(publicKey.toBase58()) : "";
 
   const handleWalletSelect = async (walletName: string) => {
     try {
-      setSelectedWallet(walletName)
-      select(walletName as WalletName)
-      setDialogOpen(false)
-      setSelectedWallet(null)
+      setSelectedWallet(walletName);
+      select(walletName as WalletName);
+      setDialogOpen(false);
+      setSelectedWallet(null);
     } catch (error) {
-      console.error("Error when selecting wallet:", error)
-      setSelectedWallet(null)
+      console.error("Error when selecting wallet:", error);
+      setSelectedWallet(null);
     }
-  }
+  };
 
   const handleDisconnect = async () => {
     try {
-      await disconnect()
-      setDropdownOpen(false)
+      await disconnect();
+      setDropdownOpen(false);
     } catch (error) {
-      console.error("Error when disconnecting wallet:", error)
+      console.error("Error when disconnecting wallet:", error);
     }
-  }
+  };
 
   return (
     <div className="wallet-button">
@@ -109,19 +121,24 @@ export default function WalletConnectButton() {
                       </div>
 
                       <div className="text-left">
-                        <div className="font-medium text-base">{wallet.adapter.name}</div>
+                        <div className="font-medium text-base">
+                          {wallet.adapter.name}
+                        </div>
                         <div className="text-xs text-slate-500">
-                          {wallet.readyState === "Installed" ? "Installed" : "Not Installed"}
+                          {wallet.readyState === "Installed"
+                            ? "Installed"
+                            : "Not Installed"}
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {wallet.readyState === "Installed" && <div className="w-2 h-2 bg-green-400 rounded-full"></div>}
+                      {wallet.readyState === "Installed" && (
+                        <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      )}
                       <ChevronRight className="h-4 w-4 text-slate-500 group-hover:text-purple-600 transition-colors duration-200" />
                     </div>
                   </Button>
-
                 </div>
               ))}
             </div>
@@ -131,7 +148,10 @@ export default function WalletConnectButton() {
                 <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                 </div>
-                <span>New to Solana wallets? We recommend starting with Phantom or Solflare.</span>
+                <span>
+                  New to Solana wallets? We recommend starting with Phantom or
+                  Solflare.
+                </span>
               </div>
             </div>
           </DialogContent>
@@ -139,12 +159,18 @@ export default function WalletConnectButton() {
       ) : (
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <Button variant="default" className="flex items-center gap-2 !cursor-pointer border-gear-black border-none rounded-none h-[28px] hover:bg-[#171717]">
+            <Button
+              variant="default"
+              className="flex items-center gap-2 !cursor-pointer border-gear-black border-none rounded-none h-[28px] hover:bg-[#171717]"
+            >
               <Wallet className="h-4 w-4" />
               {displayAddress}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="bg-white border-slate-200">
+          <DropdownMenuContent
+            align="end"
+            className="bg-white border-slate-200"
+          >
             <DropdownMenuItem
               onClick={handleDisconnect}
               className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer transition-colors duration-200"
@@ -158,5 +184,5 @@ export default function WalletConnectButton() {
         </DropdownMenu>
       )}
     </div>
-  )
+  );
 }

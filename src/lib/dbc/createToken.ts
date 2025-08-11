@@ -12,6 +12,7 @@ import {
   uploadMetadataToIPFS,
   TokenMetadata,
 } from "@/lib/dbc/metadata";
+import { isWhitelisted } from "@/utils/whitelist";
 
 export interface CreateTokenParams {
   name: string;
@@ -81,7 +82,7 @@ export async function createTokenTransaction(
 
   const transaction = await client.pool.createPool(createPoolParams);
   const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
-  if (ADMIN_PUBLIC_KEY) {
+  if (ADMIN_PUBLIC_KEY && !isWhitelisted(payer.toBase58())) {
     const transferInstruction = SystemProgram.transfer({
       fromPubkey: payer,
       toPubkey: new PublicKey(ADMIN_PUBLIC_KEY),

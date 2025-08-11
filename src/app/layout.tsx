@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import * as Sentry from "@sentry/nextjs";
 import "./globals.css";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -38,6 +39,10 @@ export const metadata: Metadata = {
     description:
       "Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.",
     images: ["https://tool3.xyz/image/social-preview.png"],
+  },
+
+  other: {
+    ...Sentry.getTraceData(),
   },
 };
 

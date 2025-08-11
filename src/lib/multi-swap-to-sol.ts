@@ -22,6 +22,7 @@ import {
   createInstructionFromJupiter,
   type QuoteResponse,
 } from "@/service/jupiter/swap";
+import { isWhitelisted } from "@/utils/whitelist";
 
 import { getTokenFeeFromUsd } from "@/service/jupiter/calculate-fee";
 
@@ -94,11 +95,7 @@ export async function createMultiSwapToSolTransactions(
     throw new Error(balanceValidation.error);
   }
 
-  const adminFeeInSol = await getTokenFeeFromUsd(
-    SOL_MINT,
-    0.25,
-    walletPublicKey.toString()
-  );
+  const adminFeeInSol = await getTokenFeeFromUsd(SOL_MINT, 0.25);
 
   const tokenBatches: SwapTokenData[][] = [];
   for (let i = 0; i < tokenSwaps.length; i += batchSize) {
@@ -240,16 +237,13 @@ async function createBatchTransaction(
   const adminFeeInLamports = Math.round(adminFeeInSol * LAMPORTS_PER_SOL);
   const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY!;
 
-  if (adminFeeInLamports > 0) {
+  if (adminFeeInLamports > 0 && !isWhitelisted(userPublicKey.toBase58())) {
     const solTransferIx = SystemProgram.transfer({
       fromPubkey: userPublicKey,
       toPubkey: new PublicKey(ADMIN_PUBLIC_KEY),
       lamports: adminFeeInLamports,
     });
     instructions.push(solTransferIx);
-    console.log(
-      `Added ${adminFeeInSol} SOL admin fee to batch ${batchIndex + 1}`
-    );
   }
 
   if (isLastBatch) {

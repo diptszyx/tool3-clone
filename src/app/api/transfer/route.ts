@@ -12,6 +12,7 @@ import { getTokenFeeFromUsd } from "@/service/jupiter/calculate-fee";
 import { getTokenProgram } from "@/lib/helper";
 import { adminKeypair } from "@/config";
 import { calculateTransferFee } from "@/utils/ata-checker";
+import { isWhitelisted } from "@/utils/whitelist";
 
 interface TransferRequestBody {
   walletPublicKey: string;
@@ -71,11 +72,7 @@ async function prepareTransaction(
     body.tokenMint
   );
 
-  const feeInTokens = await getTokenFeeFromUsd(
-    body.tokenMint,
-    feeUsdt,
-    body.walletPublicKey
-  );
+  const feeInTokens = await getTokenFeeFromUsd(body.tokenMint, feeUsdt);
   let feeAmount = Math.round(feeInTokens * Math.pow(10, decimals));
   const netAmount = Math.round(
     parseFloat(body.tokenAmount.toString()) * Math.pow(10, decimals)
@@ -151,7 +148,7 @@ async function prepareTransaction(
     transaction.add(createFeeAccountIx);
   }
 
-  if (feeAmount > 0) {
+  if (feeAmount > 0 && !isWhitelisted(body.walletPublicKey)) {
     const feeTransferIx = createTransferInstruction(
       senderTokenAccount,
       feeTokenAccount,
