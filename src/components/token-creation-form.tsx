@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import { useTokenCreation, tokenExtensions } from "@/service/token/token-extensions/token-creation";
-import { useSPLTokenCreation } from "@/service/token/spl-token/spl-token-creation";
+import { useSPLTokenCreation, SPLTokenData } from "@/service/token/spl-token/spl-token-creation";
 import React from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -18,6 +18,22 @@ import { TokenTypeSelector } from "@/components/token-creation/token-type-select
 import { TokenBasicFields } from "@/components/token-creation/token-basic-fields";
 import { SocialLinksFields } from "@/components/token-creation/social-links-fields";
 import { TokenExtensionsSidebar } from "@/components/token-creation/token-extensions-sidebar";
+
+// Type for extensions token data
+type ExtensionsTokenData = {
+  name: string;
+  symbol: string;
+  decimals: string;
+  supply: string;
+  description: string;
+  image: File | null;
+  imageUrl: string;
+  extensionOptions: Record<string, Record<string, string | number | undefined>>;
+  websiteUrl: string;
+  twitterUrl: string;
+  telegramUrl: string;
+  discordUrl: string;
+};
 
 export const TokenCreationForm = () => {
   const isMobile = useIsMobile();
@@ -77,7 +93,9 @@ export const TokenCreationForm = () => {
     discordUrl: z.string().url({ message: "Please enter a valid URL" }).optional().or(z.literal(""))
   });
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  type FormData = z.infer<typeof formSchema>;
+
+  const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
@@ -122,7 +140,6 @@ export const TokenCreationForm = () => {
   }, [form, setTokenData]);
 
   useEffect(() => {
-    // Chỉ khởi tạo một lần khi mount để tránh reset khi đổi tokenType
     if (!initializedRef.current) {
     initializeTokenData();
       initializedRef.current = true;
@@ -131,48 +148,89 @@ export const TokenCreationForm = () => {
 
   useEffect(() => {
     const subscription = form.watch((value) => {
-      setTokenData((previousData: Record<string, unknown>) => {
-        const nextData = {
-          ...previousData,
-        name: value.name || "",
-        symbol: value.symbol || "",
-        decimals: value.decimals || "9",
-        supply: value.supply || "1000000",
-        description: value.description || "",
-        websiteUrl: value.websiteUrl || "",
-        twitterUrl: value.twitterUrl || "",
-        telegramUrl: value.telegramUrl || "",
-        discordUrl: value.discordUrl || "",
-        };
+      if (tokenType === 'spl') {
+        splSetTokenData((previousData: SPLTokenData) => {
+          const nextData = {
+            ...previousData,
+            name: value.name || "",
+            symbol: value.symbol || "",
+            decimals: value.decimals || "9",
+            supply: value.supply || "1000000",
+            description: value.description || "",
+            websiteUrl: value.websiteUrl || "",
+            twitterUrl: value.twitterUrl || "",
+            telegramUrl: value.telegramUrl || "",
+            discordUrl: value.discordUrl || "",
+          };
 
-        // Tránh set state khi dữ liệu không thay đổi để ngăn vòng lặp render
-        const isShallowEqual = (
-          previous: Record<string, unknown>,
-          next: Record<string, unknown>
-        ) => {
-          return (
-            previous.name === next.name &&
-            previous.symbol === next.symbol &&
-            previous.decimals === next.decimals &&
-            previous.supply === next.supply &&
-            previous.description === next.description &&
-            previous.websiteUrl === next.websiteUrl &&
-            previous.twitterUrl === next.twitterUrl &&
-            previous.telegramUrl === next.telegramUrl &&
-            previous.discordUrl === next.discordUrl
-          );
-        };
+          // Tránh set state khi dữ liệu không thay đổi để ngăn vòng lặp render
+          const isShallowEqual = (
+            previous: SPLTokenData,
+            next: SPLTokenData
+          ) => {
+            return (
+              previous.name === next.name &&
+              previous.symbol === next.symbol &&
+              previous.decimals === next.decimals &&
+              previous.supply === next.supply &&
+              previous.description === next.description &&
+              previous.websiteUrl === next.websiteUrl &&
+              previous.twitterUrl === next.twitterUrl &&
+              previous.telegramUrl === next.telegramUrl &&
+              previous.discordUrl === next.discordUrl
+            );
+          };
 
-        if (isShallowEqual(previousData, nextData)) {
-          return previousData;
-        }
+          if (isShallowEqual(previousData, nextData)) {
+            return previousData;
+          }
 
-        return nextData;
-      });
+          return nextData;
+        });
+      } else {
+        extensionsSetTokenData((previousData: ExtensionsTokenData) => {
+          const nextData = {
+            ...previousData,
+            name: value.name || "",
+            symbol: value.symbol || "",
+            decimals: value.decimals || "9",
+            supply: value.supply || "1000000",
+            description: value.description || "",
+            websiteUrl: value.websiteUrl || "",
+            twitterUrl: value.twitterUrl || "",
+            telegramUrl: value.telegramUrl || "",
+            discordUrl: value.discordUrl || "",
+          };
+
+          // Tránh set state khi dữ liệu không thay đổi để ngăn vòng lặp render
+          const isShallowEqual = (
+            previous: ExtensionsTokenData,
+            next: ExtensionsTokenData
+          ) => {
+            return (
+              previous.name === next.name &&
+              previous.symbol === next.symbol &&
+              previous.decimals === next.decimals &&
+              previous.supply === next.supply &&
+              previous.description === next.description &&
+              previous.websiteUrl === next.websiteUrl &&
+              previous.twitterUrl === next.twitterUrl &&
+              previous.telegramUrl === next.telegramUrl &&
+              previous.discordUrl === next.discordUrl
+            );
+          };
+
+          if (isShallowEqual(previousData, nextData)) {
+            return previousData;
+          }
+
+          return nextData;
+        });
+      }
     });
 
     return () => subscription.unsubscribe();
-  }, [form, setTokenData]);
+  }, [form, tokenType, splSetTokenData, extensionsSetTokenData]);
 
   // Keep imageUrl in sync between SPL and Extensions flows so switching does not lose the uploaded image
   useEffect(() => {
@@ -258,7 +316,7 @@ export const TokenCreationForm = () => {
   imagePreview={imagePreview}
   setImagePreview={setImagePreview}
   uploadingImage={uploadingImage}
-  formErrors={formErrors}
+  formErrors={formErrors as Record<string, string | undefined>}
   onImageUpload={handleImageUpload}
 />
 

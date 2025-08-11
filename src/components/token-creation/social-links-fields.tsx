@@ -11,8 +11,20 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+interface TokenFormData {
+  name?: string;
+  symbol?: string;
+  decimals: string;
+  supply: string;
+  description?: string;
+  websiteUrl?: string;
+  twitterUrl?: string;
+  telegramUrl?: string;
+  discordUrl?: string;
+}
+
 interface SocialLinksFieldsProps {
-  form: UseFormReturn<Record<string, unknown>>;
+  form: UseFormReturn<TokenFormData>;
 }
 
 export const SocialLinksFields: React.FC<SocialLinksFieldsProps> = ({ form }) => {
@@ -70,7 +82,7 @@ export const SocialLinksFields: React.FC<SocialLinksFieldsProps> = ({ form }) =>
             <FormItem>
               <FormLabel>Discord URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://discord.gg/invite" {...field} />
+                <Input type="string" placeholder="https://discord.gg/invite" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
