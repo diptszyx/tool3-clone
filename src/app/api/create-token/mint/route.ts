@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PublicKey, Transaction } from "@solana/web3.js";
 import { connectionDevnet, connectionMainnet } from "@/service/solana/connection";
-import { TransferFeeToken } from "solana-token-extension-boost";
+import { TransferFeeToken, Token } from "solana-token-extension-boost";
 import { ClusterType } from "@/types/types";
+import { TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from "@solana/spl-token";
 
 
 interface MintTokenRequestBody {
@@ -54,33 +55,86 @@ export async function POST(req: NextRequest) {
 
     const mintAmount = BigInt(Math.floor(amountValue * Math.pow(10, body.decimals)));
 
-    // Xác định recipient 
+  
     const recipient = body.recipientAddress
       ? new PublicKey(body.recipientAddress)
       : walletPublicKey;
 
-    const transferFeeConfig = {
-      feeBasisPoints: 0,
-      maxFee: BigInt(0),
-      transferFeeConfigAuthority: walletPublicKey,
-      withdrawWithheldAuthority: walletPublicKey
-    };
 
-    const token = new TransferFeeToken(
-      connection,
-      mintPublicKey,
-      transferFeeConfig
-    );
+    let tokenProgram = TOKEN_PROGRAM_ID;
+    let mintInfo;
 
-    const { instructions, address: tokenAccount } = await token.createAccountAndMintToInstructions(
-      recipient,
-      walletPublicKey,
-      mintAmount,
-      walletPublicKey
-    );
+    // Retry logic for mint account check (sometimes takes time to propagate)
+    let retryCount = 0;
+    const maxRetries = 5;
+
+    while (retryCount < maxRetries) {
+      try {
+        mintInfo = await connection.getAccountInfo(mintPublicKey, "finalized");
+        if (mintInfo) {
+          if (mintInfo.owner.equals(TOKEN_2022_PROGRAM_ID)) {
+            tokenProgram = TOKEN_2022_PROGRAM_ID;
+          }
+          break; // Success, exit retry loop
+        } else if (retryCount === maxRetries - 1) {
+          throw new Error("Mint account does not exist. Please create the token first.");
+        } else {
+          console.log(`Mint account not found, retry ${retryCount + 1}/${maxRetries}`);
+          retryCount++;
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds
+        }
+      } catch (error) {
+        console.error("Error checking mint program:", error);
+        if (retryCount === maxRetries - 1) {
+          if (error instanceof Error && error.message.includes("does not exist")) {
+            throw error;
+          }
+          throw new Error("Could not determine token program for mint");
+        }
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
+
+    let instructions, tokenAccount;
+
+    if (body.useToken2022 || tokenProgram.equals(TOKEN_2022_PROGRAM_ID)) {
+      // Use Token Extensions for Token 2022 mints
+      const transferFeeConfig = {
+        feeBasisPoints: 0,
+        maxFee: BigInt(0),
+        transferFeeConfigAuthority: walletPublicKey,
+        withdrawWithheldAuthority: walletPublicKey
+      };
+
+      const token = new TransferFeeToken(
+        connection,
+        mintPublicKey,
+        transferFeeConfig
+      );
+
+      const result = await token.createAccountAndMintToInstructions(
+        recipient,
+        walletPublicKey,
+        mintAmount,
+        walletPublicKey
+      );
+      instructions = result.instructions;
+      tokenAccount = result.address;
+    } else {
+      // Use regular SPL Token for standard mints
+      const token = new Token(connection, mintPublicKey);
+      const result = await token.createAccountAndMintToInstructions(
+        recipient,
+        walletPublicKey,
+        mintAmount,
+        walletPublicKey
+      );
+      instructions = result.instructions;
+      tokenAccount = result.address;
+    }
     const transaction = new Transaction();
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
-    transaction.recentBlockhash = blockhash;
+    transaction.recentBlockhash = "11111111111111111111111111111111";
     transaction.feePayer = walletPublicKey;
 
     instructions.forEach(ix => transaction.add(ix));
@@ -90,17 +144,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       transaction: serializedTransaction,
-      blockhash,
-      lastValidBlockHeight,
       tokenAccount: tokenAccount.toString()
     });
 
   } catch (error: unknown) {
     console.error("Mint token error:", error);
 
-    const errorMessage = error instanceof Error
-      ? error.message
-      : "Failed to create mint transaction";
+    let errorMessage = "Failed to create mint transaction";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      if (error.message.includes("Invalid Mint")) {
+        errorMessage = "Invalid mint account. The mint may not exist or may not be properly initialized.";
+      } else if (error.message.includes("Could not determine token program")) {
+        errorMessage = "Could not determine the correct token program for this mint. Please ensure the mint exists.";
+      } else if (error.message.includes("does not exist")) {
+        errorMessage = "Mint account does not exist. Please create the token first before minting.";
+      }
+    }
 
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }

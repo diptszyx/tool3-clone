@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Transaction, PublicKey } from "@solana/web3.js";
+import { Transaction, Keypair } from "@solana/web3.js";
 import { toast } from "sonner";
 import { checkExtensionsCompatibility } from "@/utils/token/token-compatibility";
 import { checkExtensionRequiredFields } from "@/utils/token/token-validation";
@@ -120,7 +120,6 @@ export function useTokenReview(router: { push: (url: string) => void }) {
 
 
   const [isLoading, setIsLoading] = useState(true);
-  const [tokenType, setTokenType] = useState<'spl' | 'extensions'>('extensions');
   const [tokenData, setTokenData] = useState<TokenDataType | null>(null);
   const [selectedExtensions, setSelectedExtensions] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
@@ -137,11 +136,6 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         const savedData = localStorage.getItem('tokenData');
         if (savedData) {
           const parsedData = JSON.parse(savedData);
-          if (parsedData.tokenType === 'spl') {
-            setTokenType('spl');
-          } else {
-            setTokenType('extensions');
-          }
 
           setTokenData({
             name: parsedData.name,
@@ -156,7 +150,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
             discordUrl: parsedData.discordUrl || ""
           });
 
-          if (parsedData.selectedExtensions && parsedData.tokenType !== 'spl') {
+          if (parsedData.selectedExtensions) {
             const extensions = [...parsedData.selectedExtensions];
 
 
@@ -281,20 +275,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
 
     try {
       const toastId1 = toast.loading("Preparing token data...");
-      const requestData = tokenType === 'spl' ? {
-        walletPublicKey: wallet.publicKey.toString(),
-        name: tokenData.name,
-        symbol: tokenData.symbol,
-        decimals: tokenData.decimals,
-        supply: tokenData.supply,
-        description: tokenData.description || "",
-        imageUrl: imageUrl,
-        websiteUrl: tokenData.websiteUrl || "",
-        twitterUrl: tokenData.twitterUrl || "",
-        telegramUrl: tokenData.telegramUrl || "",
-        discordUrl: tokenData.discordUrl || "",
-        cluster
-      } : {
+      const requestData = {
         walletPublicKey: wallet.publicKey.toString(),
         name: tokenData.name,
         symbol: tokenData.symbol,
@@ -314,7 +295,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       console.log("TokenReview: Sending request with extensions:", selectedExtensions);
       console.log("TokenReview: Extension options:", tokenData.extensionOptions);
 
-      const response = await fetch(tokenType === 'spl' ? "/api/create-spl-token" : "/api/create-token", {
+      const response = await fetch("/api/create-token", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -326,285 +307,41 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to create token transaction");
       }
+
       const tokenTxData = await response.json();
       toast.dismiss(toastId1);
-      if (tokenType === 'spl') {
-        const toastId2 = toast.loading("Creating SPL token with Metaplex...");
-        
-        try {
-          const { 
-            Transaction, 
-            Keypair, 
-            SystemProgram, 
-            PublicKey 
-          } = await import("@solana/web3.js");
-          const {
-            createInitializeMintInstruction,
-            createMintToInstruction,
-            createAssociatedTokenAccountInstruction,
-            getAssociatedTokenAddress,
-            MINT_SIZE,
-            TOKEN_PROGRAM_ID,
-            getMinimumBalanceForRentExemptMint,
-            ASSOCIATED_TOKEN_PROGRAM_ID
-          } = await import("@solana/spl-token");
-          // const { Metaplex } = await import("@metaplex-foundation/js"); // eslint-disable-line @typescript-eslint/no-unused-vars
-          
-          if (!wallet.signTransaction) {
-            throw new Error("Wallet does not support signing transactions");
-          }
 
-          const mintKeypair = Keypair.fromSecretKey(new Uint8Array(tokenTxData.mintKeypair));
-          const mint = mintKeypair.publicKey;
-          
+      const transactionBuffer = Buffer.from(tokenTxData.transaction, "base64");
+      const originalTransaction = Transaction.from(transactionBuffer);
 
-          const associatedTokenAccount = await getAssociatedTokenAddress(
-            mint,
-            wallet.publicKey!,
-            false,
-            TOKEN_PROGRAM_ID,
-            ASSOCIATED_TOKEN_PROGRAM_ID
-          );
-          
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+
       const transaction = new Transaction();
-          const rentExemptAmount = await getMinimumBalanceForRentExemptMint(connection);
-  
-          transaction.add(
-            SystemProgram.createAccount({
-              fromPubkey: wallet.publicKey!,
-              newAccountPubkey: mint,
-              space: MINT_SIZE,
-              lamports: rentExemptAmount,
-              programId: TOKEN_PROGRAM_ID,
-            })
-          );
-          
-          transaction.add(
-            createInitializeMintInstruction(
-              mint,
-              tokenTxData.decimals,
-              wallet.publicKey!,
-              wallet.publicKey!,
-              TOKEN_PROGRAM_ID
-            )
-          );
-          transaction.add(
-            createAssociatedTokenAccountInstruction(
-              wallet.publicKey!,
-              associatedTokenAccount,
-              wallet.publicKey!,
-              mint,
-              TOKEN_PROGRAM_ID,
-              ASSOCIATED_TOKEN_PROGRAM_ID
-            )
-          );
-          
-          transaction.add(
-            createMintToInstruction(
-              mint,
-              associatedTokenAccount,
-              wallet.publicKey!,
-              Number(tokenTxData.mintAmount),
-              [],
-              TOKEN_PROGRAM_ID
-            )
-          );
-          
-          try {
-            const MetaplexPackage = await import("@metaplex-foundation/mpl-token-metadata");
-            const TOKEN_METADATA_PROGRAM_ID = MetaplexPackage.PROGRAM_ID;
-            
-            const metadataData = {
-              name: tokenTxData.tokenData.name,
-              symbol: tokenTxData.tokenData.symbol,
-              uri: tokenTxData.metadataUri,
-              sellerFeeBasisPoints: 0, 
-              creators: null, 
-              collection: null,
-              uses: null,
-            };
-            
-            const [metadataAddress] = PublicKey.findProgramAddressSync(
-              [
-                Buffer.from("metadata"),
-                TOKEN_METADATA_PROGRAM_ID.toBuffer(),
-                mint.toBuffer(),
-              ],
-              TOKEN_METADATA_PROGRAM_ID
-            );
-            
-            if (MetaplexPackage.createCreateMetadataAccountV3Instruction) {
-              transaction.add(
-                MetaplexPackage.createCreateMetadataAccountV3Instruction(
-                  {
-                    metadata: metadataAddress,
-                    mint: mint,
-                    mintAuthority: wallet.publicKey!,
-                    payer: wallet.publicKey!,
-                    updateAuthority: wallet.publicKey!,
-                  },
-                  {
-                    createMetadataAccountArgsV3: {
-                      data: metadataData,
-                      isMutable: true,
-                      collectionDetails: null,
-                    },
-                  }
-                )
-              );
-            } else {
-              console.warn("createCreateMetadataAccountV3Instruction not available");
-            }
-          } catch (metadataError) {
-            console.warn("Could not add metadata:", metadataError);
-          }
-          
-          const latestBlockhash = await connection.getLatestBlockhash("finalized");
-          transaction.recentBlockhash = latestBlockhash.blockhash;
-          transaction.feePayer = wallet.publicKey!;
+      transaction.feePayer = originalTransaction.feePayer;
+      transaction.recentBlockhash = blockhash;
 
-          transaction.partialSign(mintKeypair);
-          let signature: string;
-          if (wallet.signTransaction) {
-            const signedTransaction = await wallet.signTransaction(transaction);
-            signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-              skipPreflight: false,
-              preflightCommitment: "finalized"
-            });
-            
-            await connection.confirmTransaction({
-              signature,
-              blockhash: latestBlockhash.blockhash,
-              lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
-            }, "finalized");
-          } else {
-            throw new Error("Wallet does not support signTransaction");
-          }
-          
-          setCreatedTokenMint(tokenTxData.mint);
-          setTransactionSignature(signature);
-          setSuccess(true);
-          localStorage.removeItem('tokenData');
-          toast.dismiss(toastId2);
-          toast.success("SPL Token created successfully!");
-          return;
-          
-        } catch (splError) {
-          console.error("SPL token creation error:", splError);
-          toast.dismiss(toastId2);
-          toast.error("Failed to create SPL token");
-          return;
-        }
-      } else {
-        const transactionBuffer = Buffer.from(tokenTxData.transaction, "base64");
-        const transaction = Transaction.from(transactionBuffer);
+      originalTransaction.instructions.forEach(instruction => {
+        transaction.add(instruction);
+      });
 
-        // Get fresh blockhash to avoid "already processed" error
-        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = wallet.publicKey!;
+      if (tokenTxData.mintKeypair) {
+        const mintKeypair = Keypair.fromSecretKey(new Uint8Array(tokenTxData.mintKeypair));
+        transaction.partialSign(mintKeypair);
+      }
 
-      
-        if (tokenTxData.mintKeypair) {
-          const { Keypair } = await import("@solana/web3.js");
-          const mintKeypair = Keypair.fromSecretKey(new Uint8Array(tokenTxData.mintKeypair));
-          transaction.partialSign(mintKeypair);
-        }
-
-        const signedTransaction = await wallet.signTransaction(transaction);
-        const toastId2 = toast.loading("Creating token on blockchain...");
-
-        let signature: string;
-        try {
-          signature = await connection.sendRawTransaction(signedTransaction.serialize(), {
-            skipPreflight: false,
-            preflightCommitment: "finalized"
-          });
-
-          await connection.confirmTransaction({
-            blockhash,
-            lastValidBlockHeight,
-            signature
-          }, 'finalized');
-
-          console.log("Token creation transaction confirmed:", signature);
-
-          // Double-check transaction was actually finalized
-          try {
-            const txStatus = await connection.getSignatureStatus(signature);
-            console.log("Transaction status:", txStatus);
-            if (txStatus.value?.err) {
-              throw new Error(`Transaction failed with error: ${JSON.stringify(txStatus.value.err)}`);
-            }
-          } catch (statusError) {
-            console.error("Error checking transaction status:", statusError);
-          }
-
-        } catch (sendError: unknown) {
-          // Handle SendTransactionError specifically
-          console.error("Send transaction error:", sendError);
-
-          const err = sendError as { message?: string; getLogs?: () => string[] };
-
-          if (err.message?.includes("already been processed")) {
-            throw new Error("Transaction already processed. Please try again with a fresh transaction.");
-          } else if (typeof err.getLogs === "function") {
-            const logs = err.getLogs();
-            console.error("Transaction logs:", logs);
-
-            // Check for specific error patterns in logs
-            const logString = logs.join(" ");
-            if (logString.includes("Invalid Mint")) {
-              throw new Error("Invalid mint account. The token creation failed. Please try again.");
-            } else if (logString.includes("custom program error: 0x2")) {
-              throw new Error("Token program error. This may be due to invalid parameters or insufficient funds.");
-            }
-
-            throw new Error(`Transaction failed: ${err.message}. Check console for detailed logs.`);
-          }
-          throw sendError;
-        }
+      const signedTransaction = await wallet.signTransaction(transaction);
+      const toastId2 = toast.loading("Creating token on blockchain...");
+      const signature = await connection.sendRawTransaction(signedTransaction.serialize());
+      await connection.confirmTransaction({
+        blockhash,
+        lastValidBlockHeight,
+        signature
+      }, 'confirmed');
 
       const mintAddress = tokenTxData.mint;
       setCreatedTokenMint(mintAddress);
       setTransactionSignature(signature);
       toast.dismiss(toastId2);
-
-      console.log("Verifying mint account creation...");
-      let mintVerified = false;
-      let attempts = 0;
-      const maxAttempts = 10;
-
-      while (!mintVerified && attempts < maxAttempts) {
-        try {
-          const mintInfo = await connection.getAccountInfo(new PublicKey(mintAddress));
-          if (mintInfo) {
-            console.log("Mint account verified successfully");
-            console.log("Mint owner:", mintInfo.owner.toString());
-            console.log("Mint data length:", mintInfo.data.length);
-            mintVerified = true;
-          } else {
-            attempts++;
-            console.log(`Mint verification attempt ${attempts}/${maxAttempts} failed, retrying...`);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-          }
-        } catch (verifyError) {
-          attempts++;
-          console.error(`Mint verification attempt ${attempts}/${maxAttempts} error:`, verifyError);
-          if (attempts >= maxAttempts) {
-            throw new Error("Token creation failed: Mint account not found after multiple attempts");
-          }
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        }
-      }
-
-      if (!mintVerified) {
-        throw new Error("Token creation failed: Could not verify mint account creation");
-      }
-
-      console.log("Mint account verified successfully, proceeding to mint tokens...");
-
-      // Với Token Extensions flow, cần bước mint riêng
       const toastId3 = toast.loading("Minting tokens to your wallet...");
       const mintRequestData = {
         walletPublicKey: wallet.publicKey.toString(),
@@ -614,6 +351,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         useToken2022: tokenTxData.useToken2022,
         cluster
       };
+
       const mintResponse = await fetch("/api/create-token/mint", {
         method: "POST",
         headers: {
@@ -621,50 +359,27 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         },
         body: JSON.stringify(mintRequestData),
       });
+
       if (!mintResponse.ok) {
         const mintErrorData = await mintResponse.json();
-        console.error("Mint API error:", mintErrorData);
-
-        let errorMessage = mintErrorData.error || "Failed to mint tokens";
-        if (errorMessage.includes("does not exist")) {
-          errorMessage = "Token mint was not created properly. Please try creating the token again.";
-        }
-        throw new Error(errorMessage);
+        throw new Error(mintErrorData.error || "Failed to mint tokens");
       }
       const mintTxData = await mintResponse.json();
       const mintTransactionBuffer = Buffer.from(mintTxData.transaction, "base64");
       const mintTransaction = Transaction.from(mintTransactionBuffer);
-      const { blockhash: mintBlockhash, lastValidBlockHeight: mintLastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
+
+      const { blockhash: mintBlockhash, lastValidBlockHeight: mintLastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
       mintTransaction.recentBlockhash = mintBlockhash;
+
       const signedMintTransaction = await wallet.signTransaction(mintTransaction);
+      const mintSignature = await connection.sendRawTransaction(signedMintTransaction.serialize());
 
-      try {
-        const mintSignature = await connection.sendRawTransaction(signedMintTransaction.serialize(), {
-          skipPreflight: false,
-          preflightCommitment: "finalized"
-        });
+      await connection.confirmTransaction({
+        blockhash: mintBlockhash,
+        lastValidBlockHeight: mintLastValidBlockHeight,
+        signature: mintSignature
+      }, 'confirmed');
 
-        await connection.confirmTransaction({
-          blockhash: mintBlockhash,
-          lastValidBlockHeight: mintLastValidBlockHeight,
-          signature: mintSignature
-        }, 'confirmed');
-      } catch (mintError: unknown) {
-        console.error("Mint transaction error:", mintError);
-
-        const err = mintError as { message?: string; getLogs?: () => string[] };
-
-        if (err.message?.includes("already been processed")) {
-          throw new Error("Mint transaction already processed. Please try again.");
-        } else if (err.message?.includes("Invalid Mint") || err.message?.includes("custom program error: 0x2")) {
-          throw new Error("Invalid mint account detected. This usually means:\n1. The mint account wasn't created properly\n2. Wrong token program is being used\n3. Network congestion caused incomplete transaction\n\nPlease try creating the token again.");
-        } else if (typeof err.getLogs === "function") {
-          const logs = err.getLogs();
-          console.error("Mint transaction logs:", logs);
-          throw new Error(`Mint transaction failed: ${err.message}. Check console for detailed logs.`);
-        }
-        throw mintError;
-      }
       toast.dismiss(toastId3);
 
       toast.success("Token created and minted successfully!");
@@ -673,7 +388,6 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       setSuccess(true);
 
       localStorage.removeItem('tokenData');
-      }
     } catch (error: Error | unknown) {
       console.error("Detailed token creation error:", error);
 

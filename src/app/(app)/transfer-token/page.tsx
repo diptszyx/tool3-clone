@@ -34,9 +34,8 @@ import {
 
 
 
-// Hằng số cho phí và địa chỉ nhận phí
-const FEE_PER_RECIPIENT = 0.0016; // 0.0016 SOL per recipient
-const MAX_TOTAL_FEE = 0.025; // Maximum fee regardless of recipient count
+const FEE_PER_RECIPIENT = 0.0016; 
+const MAX_TOTAL_FEE = 0.025; 
 const FEE_RECIPIENT_ADDRESS = "4UWS2QEhNT9hyAnvRikAXtDhvvgJGGT8fHhLzoq5KhEa";
 
 interface Recipient {
@@ -139,7 +138,7 @@ export default function TransferTokenPage() {
     setRecipients(newRecipients);
   };
 
-  // Xử lý import CSV
+
   const processCsvInput = (text: string) => {
     if (!text.trim()) {
       setParsedCsvRecipients([]);
@@ -153,7 +152,7 @@ export default function TransferTokenPage() {
     for (const line of lines) {
       if (!line.trim()) continue;
 
-      // Kiểm tra xem dòng đầu có phải là header không
+  
       if (skipHeader) {
         const lowerLine = line.toLowerCase().trim();
         if (lowerLine.includes('address') && lowerLine.includes('amount')) {
@@ -163,7 +162,7 @@ export default function TransferTokenPage() {
         skipHeader = false;
       }
 
-      // Phân tích dòng CSV
+  
       const parts = line.split(',').map(part => part.trim());
       if (parts.length < 2) {
         newRecipients.push({
@@ -178,10 +177,10 @@ export default function TransferTokenPage() {
       const address = parts[0];
       const amount = parts[1];
 
-      // Kiểm tra địa chỉ
+  
       const isValidAddress = /^[\w]{32,44}$/.test(address);
       
-      // Kiểm tra số lượng
+  
       const parsedAmount = parseFloat(amount);
       const isValidAmount = !isNaN(parsedAmount) && parsedAmount > 0;
 
@@ -212,7 +211,7 @@ export default function TransferTokenPage() {
   };
 
   const importCsvData = () => {
-    // Lọc các recipient hợp lệ
+
     const validRecipients = parsedCsvRecipients.filter(r => r.valid);
     
     if (validRecipients.length === 0) {
@@ -220,14 +219,14 @@ export default function TransferTokenPage() {
       return;
     }
 
-    // Cập nhật danh sách recipients
+
     setRecipients(validRecipients);
     
-    // Tính tổng số lượng để cập nhật tokenAmount
+
     const totalAmount = validRecipients.reduce((sum, r) => sum + parseFloat(r.amount || '0'), 0);
     setTokenAmount(totalAmount.toString());
     
-    // Đóng dialog và thông báo
+
     setCsvDialogOpen(false);
     toast.success(`Imported ${validRecipients.length} recipients from CSV`);
   };
@@ -322,15 +321,13 @@ export default function TransferTokenPage() {
 
       toastId = toast.loading("Preparing transfer...");
 
-      // Kiểm tra nếu token đang chuyển là SOL
+
       const isSOL = selectedToken.symbol === "SOL" ||
         selectedToken.address === "NativeSOL" ||
         selectedToken.address === "11111111111111111111111111111111";
 
       if (isSOL) {
-        // Xử lý chuyển SOL
         if (validRecipients.length === 1) {
-          // Chuyển SOL cho một người nhận
           const recipient = validRecipients[0];
 
           const result = await transferSol(
@@ -364,7 +361,6 @@ export default function TransferTokenPage() {
             setTransferSuccess(true);
           }
         } else {
-          // Chuyển SOL cho nhiều người nhận
           const transferParams = validRecipients.map(recipient => ({
             recipientAddress: recipient.address,
             amount: recipient.amount
@@ -399,9 +395,7 @@ export default function TransferTokenPage() {
           }
         }
       } else {
-        // Xử lý chuyển token (logic cũ)
         if (validRecipients.length === 1) {
-          // Chuyển cho một người nhận
           const recipient = validRecipients[0];
 
           const result = await transferToken(
@@ -437,7 +431,6 @@ export default function TransferTokenPage() {
             setTransferSuccess(true);
           }
         } else {
-          // Chuyển cho nhiều người nhận
           const transferParams = validRecipients.map(recipient => ({
             mintAddress: selectedToken.address,
             recipientAddress: recipient.address,
@@ -484,18 +477,13 @@ export default function TransferTokenPage() {
     }
   };
 
-  // Cập nhật total amount khi recipient thay đổi
   useEffect(() => {
-    // Nếu cập nhật đến từ SelectToken thì bỏ qua
     if (isUpdatingFromSelectToken) return;
 
-    // Tính tổng số token từ tất cả recipient
     const totalAmount = recipients.reduce((sum, recipient) => {
       const amount = parseFloat(recipient.amount) || 0;
       return sum + amount;
     }, 0);
-
-    // Cập nhật tokenAmount để hiển thị trong SelectToken
     if (!isNaN(totalAmount)) {
       setTokenAmount(totalAmount.toString());
     }
@@ -509,28 +497,23 @@ export default function TransferTokenPage() {
 
     if (count === 0) return;
 
-    // Đánh dấu để tránh useEffect tính lại tổng số lượng
     setIsUpdatingFromSelectToken(true);
 
     const amountPerRecipient = (balance / count).toFixed(selectedToken.decimals || 6);
 
-    // Cập nhật số lượng cho mỗi recipient
     setRecipients(recipients.map(r => ({
       ...r,
       amount: amountPerRecipient
     })));
 
-    // Cập nhật luôn tokenAmount để hiển thị đúng trong SelectToken
     setTokenAmount(balance.toString());
 
-    // Reset flag
     setTimeout(() => setIsUpdatingFromSelectToken(false), 0);
   };
 
   const handleMaxAmount = (index: number) => {
     if (!selectedToken) return;
 
-    // Đánh dấu để tránh useEffect tính lại tổng số lượng
     setIsUpdatingFromSelectToken(true);
 
     const totalOtherAmount = recipients.reduce((sum, r, i) => {
@@ -554,11 +537,9 @@ export default function TransferTokenPage() {
 
     setRecipients(newRecipients);
 
-    // Cập nhật tổng số lượng trong SelectToken
     const totalAmount = newRecipients.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
     setTokenAmount(totalAmount.toString());
 
-    // Reset flag
     setTimeout(() => setIsUpdatingFromSelectToken(false), 0);
   };
 
@@ -566,13 +547,11 @@ export default function TransferTokenPage() {
     return recipients.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0);
   };
 
-  // Tính tổng phí dựa trên số lượng người nhận
   const calculateTotalFee = (): number => {
     const validRecipients = recipients.filter(r => r.address && r.amount);
-    // Tính phí cho cả mainnet và devnet
     if (validRecipients.length > 1) {
-      const calculatedFee = FEE_PER_RECIPIENT * (validRecipients.length - 1); // Miễn phí cho địa chỉ đầu tiên
-      return Math.min(calculatedFee, MAX_TOTAL_FEE); // Áp dụng giới hạn tối đa
+      const calculatedFee = FEE_PER_RECIPIENT * (validRecipients.length - 1); 
+      return Math.min(calculatedFee, MAX_TOTAL_FEE); 
     }
     return 0;
   };
@@ -584,18 +563,14 @@ export default function TransferTokenPage() {
     setMemo("");
   };
 
-  // Thêm một hàm xử lý upload file CSV
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Kiểm tra định dạng file
     if (file.type !== 'text/csv' && !file.name.endsWith('.csv')) {
       toast.error('Please upload a valid CSV file');
       return;
     }
-
-    // Đọc file
     const reader = new FileReader();
     reader.onload = (event) => {
       const text = event.target?.result as string;
@@ -608,7 +583,6 @@ export default function TransferTokenPage() {
     reader.readAsText(file);
   };
 
-  // Hàm tạo và tải xuống mẫu CSV
   const downloadCsvTemplate = () => {
     const template = "address,amount\n9ZNTfG4NyQgxy2SWjSiQoUyBPEvXT2xo7fKc5hPYYJ7b,0.1\nHxFLKUAmAMLz1jtT3hbvCMELwH5H9tpM2QugP8sKyfhc,0.5";
     const blob = new Blob([template], { type: 'text/csv' });

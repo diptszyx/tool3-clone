@@ -231,6 +231,22 @@ export async function POST(req: NextRequest) {
         additionalMetadata
       );
       metadataAdded = true;
+    } else {
+      try {
+        // @ts-expect-error - Access to private property
+        if (Array.isArray(tokenBuilder.extensions)) {
+          // @ts-expect-error - Remove MetadataPointer extension from the list
+          tokenBuilder.extensions = tokenBuilder.extensions.filter(
+            ext => ext !== 16 // ExtensionType.MetadataPointer from @solana/spl-token
+          );
+          // @ts-expect-error - Clear tokenMetadata if it has been set
+          tokenBuilder.tokenMetadata = undefined;
+          // @ts-expect-error - Clear metadata if it has been set
+          tokenBuilder.metadata = undefined;
+        }
+      } catch (e) {
+        console.error("Could not remove metadata extension:", e);
+      }
     }
 
     for (const extensionId of body.selectedExtensions) {
@@ -240,7 +256,7 @@ export async function POST(req: NextRequest) {
 
       if (extensionId === "transfer-fees" && body.extensionOptions?.["transfer-fees"]) {
         const feePercentage = parseFloat(body.extensionOptions["transfer-fees"]["fee-percentage"] || "1");
-        const feeBasisPoints = Math.floor(feePercentage * 100);
+        const feeBasisPoints = feePercentage * 100;
 
         let maxFeeValue: bigint;
         if (body.extensionOptions["transfer-fees"]["max-fee"]) {
@@ -250,8 +266,6 @@ export async function POST(req: NextRequest) {
         } else {
           maxFeeValue = BigInt(Math.pow(10, decimals));
         }
-
-        console.log(`Adding transfer fee: ${feeBasisPoints} basis points, max fee: ${maxFeeValue}`);
 
         tokenBuilder.addTransferFee(
           feeBasisPoints,
@@ -264,15 +278,8 @@ export async function POST(req: NextRequest) {
         tokenBuilder.addNonTransferable();
       }
       else if (extensionId === "permanent-delegate" && body.extensionOptions?.["permanent-delegate"]) {
-        const delegateAddressStr = body.extensionOptions["permanent-delegate"]["delegate-address"] || body.walletPublicKey;
-        try {
-          const delegateAddress = new PublicKey(delegateAddressStr);
-          console.log(`Adding permanent delegate: ${delegateAddress.toString()}`);
-          tokenBuilder.addPermanentDelegate(delegateAddress);
-        } catch (delegateError) {
-          console.error("Invalid delegate address:", delegateAddressStr, delegateError);
-          throw new Error("Invalid permanent delegate address");
-        }
+        const delegateAddress = new PublicKey(body.extensionOptions["permanent-delegate"]["delegate-address"] || body.walletPublicKey);
+        tokenBuilder.addPermanentDelegate(delegateAddress);
       }
       else if (extensionId === "interest-bearing" && body.extensionOptions?.["interest-bearing"]) {
         const rate = parseFloat(body.extensionOptions["interest-bearing"]["interest-rate"] || "5");
@@ -297,38 +304,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    console.log("Creating token instructions with extensions:", body.selectedExtensions);
-    console.log("Extension options:", body.extensionOptions);
-
-    let createInstructions, signers, mint;
-    try {
-      const result = await tokenBuilder.createTokenInstructions(walletPublicKey);
-      createInstructions = result.instructions;
-      signers = result.signers;
-      mint = result.mint;
-    } catch (builderError) {
-      console.error("TokenBuilder error:", builderError);
-      throw new Error(`Failed to create token instructions: ${builderError instanceof Error ? builderError.message : 'Unknown error'}`);
-    }
+    const { instructions: createInstructions, signers, mint } =
+      await tokenBuilder.createTokenInstructions(walletPublicKey);
 
     console.log(`Token created with mint: ${mint.toString()}, metadata: ${metadataAdded ? "yes" : "no"}`);
-    console.log(`Number of instructions: ${createInstructions.length}`);
-    console.log(`Number of signers: ${signers.length}`);
-
-    // Validate that we have the necessary components
-    if (!createInstructions || createInstructions.length === 0) {
-      throw new Error("No instructions generated for token creation");
-    }
-
-    if (!signers || signers.length === 0) {
-      throw new Error("No signers generated for token creation");
-    }
 
     const createTransaction = new Transaction();
+
     createTransaction.recentBlockhash = "11111111111111111111111111111111";
     createTransaction.feePayer = walletPublicKey;
 
-    // Add instructions in the correct order
     createInstructions.forEach(ix => createTransaction.add(ix));
 
     const serializedTransaction = createTransaction
@@ -354,19 +339,9 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     console.error("Create token error:", error);
 
-    let errorMessage = "Failed to create token transaction";
-    if (error instanceof Error) {
-      errorMessage = error.message;
-
-      // Provide more specific error messages
-      if (error.message.includes("Invalid")) {
-        errorMessage = `Invalid parameter: ${error.message}`;
-      } else if (error.message.includes("insufficient")) {
-        errorMessage = "Insufficient funds to create token";
-      } else if (error.message.includes("blockhash")) {
-        errorMessage = "Network error: Please try again";
-      }
-    }
+    const errorMessage = error instanceof Error
+      ? error.message
+      : "Failed to create token transaction";
 
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
