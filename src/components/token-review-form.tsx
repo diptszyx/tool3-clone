@@ -8,9 +8,12 @@ import { useTokenReview, tokenExtensionsMap, getExtensionDetails } from "@/servi
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { useNetwork } from "@/context/NetworkContext";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const TokenReviewForm = () => {
   const router = useRouter();
+  const { network } = useNetwork();
   const {
     isLoading,
     tokenData,
@@ -72,10 +75,11 @@ const TokenReviewForm = () => {
 
               <Button
                 onClick={() => {
-                  window.open(
-                    `https://explorer.solana.com/address/${createdTokenMint}?cluster=devnet`,
-                    "_blank"
-                  );
+                  const isDevnet = network === WalletAdapterNetwork.Devnet;
+                  const explorerUrl = isDevnet
+                    ? `https://explorer.solana.com/address/${createdTokenMint}?cluster=devnet`
+                    : `https://birdeye.so/token/${createdTokenMint}?chain=solana`;
+                  window.open(explorerUrl, "_blank");
                 }}
               >
                 View on Explorer <ExternalLink className="ml-2 h-4 w-4" />

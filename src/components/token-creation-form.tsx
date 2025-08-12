@@ -312,13 +312,13 @@ export const TokenCreationForm = () => {
 
                 <TokenBasicFields
                       control={form.control}
-  tokenType={tokenType}
-  imagePreview={imagePreview}
-  setImagePreview={setImagePreview}
-  uploadingImage={uploadingImage}
-  formErrors={formErrors as Record<string, string | undefined>}
-  onImageUpload={handleImageUpload}
-/>
+        tokenType={tokenType}
+        imagePreview={imagePreview}
+        setImagePreview={setImagePreview}
+        uploadingImage={uploadingImage}
+        formErrors={formErrors as Record<string, string | undefined>}
+        onImageUpload={handleImageUpload}
+      />
 
                   <SocialLinksFields form={form} />
 

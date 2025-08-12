@@ -29,6 +29,8 @@ import { Transaction } from "@solana/web3.js";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { debounce } from "lodash";
 import { Loader } from "@nsmr/pixelart-react";
+import { useNetwork } from "@/context/NetworkContext";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const formatRemainingTime = (seconds: number): string => {
   if (seconds <= 0) return "Locked";
@@ -63,6 +65,7 @@ const formSchema = z.object({
 
 export default function Withdraw() {
   const isMobile = useIsMobile();
+  const { network } = useNetwork();
   const [loading, setLoading] = useState(false);
   const [userLpBalance, setUserLpBalance] = useState("0.00");
   const { publicKey, signTransaction } = useWallet();
@@ -197,11 +200,13 @@ export default function Withdraw() {
             description: `You have withdrawn ${values.amount} LP tokens`,
             action: {
               label: "View Transaction",
-              onClick: () =>
-                window.open(
-                  `https://solscan.io/tx/${sendTxData.txId}?cluster=devnet`,
-                  "_blank"
-                ),
+              onClick: () => {
+                const isDevnet = network === WalletAdapterNetwork.Devnet;
+                const explorerUrl = isDevnet
+                  ? `https://solscan.io/tx/${sendTxData.txId}?cluster=devnet`
+                  : `https://solscan.io/tx/${sendTxData.txId}`;
+                window.open(explorerUrl, "_blank");
+              },
             },
           });
         } catch (error: unknown) {
