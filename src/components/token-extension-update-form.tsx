@@ -22,6 +22,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Spinner } from "./ui/spinner";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNetwork } from "@/context/NetworkContext";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const formSchema = z.object({
   mintAddress: z.string().min(1, { message: "Token mint address is required" }),
@@ -29,6 +31,7 @@ const formSchema = z.object({
 
 const TokenExtensionUpdateForm = () => {
   const isMobile = useIsMobile();
+  const { network } = useNetwork();
   const {
     isLoading,
     selectedExtensions,
@@ -73,7 +76,8 @@ const TokenExtensionUpdateForm = () => {
   };
 
   const onUpdateExtensions = () => {
-    handleUpdateExtensions();
+    const networkType = network === WalletAdapterNetwork.Devnet ? 'devnet' : 'mainnet';
+    handleUpdateExtensions(networkType);
   };
 
   // Reset form when update is successful

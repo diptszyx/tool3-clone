@@ -13,6 +13,8 @@ import SelectToken from "@/components/transfer/select-token";
 import React from "react";
 import { UserToken } from "@/hooks/useUserTokens";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNetwork } from "@/context/NetworkContext";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 const Alert = ({ className, children }: { className?: string, children: React.ReactNode }) => (
   <div className={`p-4 rounded-md ${className}`}>{children}</div>
@@ -35,6 +37,7 @@ export function BurnForm({ }: BurnFormProps) {
   const { connected } = wallet;
   const { connection } = useConnection();
   const isMobile = useIsMobile();
+  const { network } = useNetwork();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedToken, setSelectedToken] = useState<UserToken | null>(null);
   const [amount, setAmount] = useState("");
@@ -49,9 +52,9 @@ export function BurnForm({ }: BurnFormProps) {
   };
 
   useEffect(() => {
-    const urlCluster = window.location.href.includes('cluster=devnet') ? 'devnet' : 'mainnet';
-    setCluster(urlCluster);
-  }, []);
+    const networkType = network === WalletAdapterNetwork.Devnet ? 'devnet' : 'mainnet';
+    setCluster(networkType);
+  }, [network]);
 
   const handleAmountChange = (amount: string) => {
     setAmount(amount);
@@ -183,10 +186,11 @@ export function BurnForm({ }: BurnFormProps) {
 
             <Button
               onClick={() => {
-                window.open(
-                  `https://explorer.solana.com/tx/${burnResult.signature}?cluster=devnet`,
-                  "_blank"
-                );
+                const isDevnet = network === WalletAdapterNetwork.Devnet;
+                const explorerUrl = isDevnet
+                  ? `https://explorer.solana.com/tx/${burnResult.signature}?cluster=devnet`
+                  : `https://explorer.solana.com/tx/${burnResult.signature}`;
+                window.open(explorerUrl, "_blank");
               }}
             >
               View on Explorer <ExternalLink className="ml-2 h-4 w-4" />

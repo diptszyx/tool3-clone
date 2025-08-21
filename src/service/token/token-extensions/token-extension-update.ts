@@ -207,14 +207,9 @@ export function useTokenExtensionUpdate() {
     return true;
   };
 
-  const handleUpdateExtensions = async () => {
-    if (!wallet.connected || !connection) {
-      toast.error("Please connect your wallet first");
-      return;
-    }
-
+  const handleUpdateExtensions = async (network: 'mainnet' | 'devnet') => {
     if (!wallet.publicKey) {
-      toast.error("Wallet public key not available");
+      toast.error("Please connect your wallet first");
       return;
     }
 
@@ -287,9 +282,15 @@ export function useTokenExtensionUpdate() {
         TOKEN_2022_PROGRAM_ID
       );
       
+      // Tạo explorer links dựa trên network
+      const isDevnet = network === 'devnet';
       setExplorerLinks({
-        transaction: `https://explorer.solana.com/tx/${signature}?cluster=devnet`,
-        tokenAccount: `https://explorer.solana.com/address/${tokenAccount.toString()}?cluster=devnet`
+        transaction: isDevnet
+          ? `https://explorer.solana.com/tx/${signature}?cluster=devnet`
+          : `https://explorer.solana.com/tx/${signature}`,
+        tokenAccount: isDevnet
+          ? `https://explorer.solana.com/address/${tokenAccount.toString()}?cluster=devnet`
+          : `https://birdeye.so/token/${mintAddress}?chain=solana`
       });
       
     } catch (error) {

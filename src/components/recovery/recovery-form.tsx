@@ -17,6 +17,8 @@ import { PublicKey } from "@solana/web3.js";
 import React from "react";
 import { UserToken } from "@/hooks/useUserTokens";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useNetwork } from "@/context/NetworkContext";
+import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 
 export interface RecoveryFormProps {
   [key: string]: never;
@@ -27,6 +29,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
   const { connected } = wallet;
   const { connection } = useConnection();
   const isMobile = useIsMobile();
+  const { network } = useNetwork();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedToken, setSelectedToken] = useState<UserToken | null>(null);
   const [cluster, setCluster] = useState<"mainnet" | "devnet">("mainnet");
@@ -44,9 +47,9 @@ export function RecoveryForm({ }: RecoveryFormProps) {
 
 
   useEffect(() => {
-    const urlCluster = window.location.href.includes('cluster=devnet') ? 'devnet' : 'mainnet';
-    setCluster(urlCluster);
-  }, []);
+    const networkType = network === WalletAdapterNetwork.Devnet ? 'devnet' : 'mainnet';
+    setCluster(networkType);
+  }, [network]);
 
   const handleTokensLoaded = () => {
     setIsLoading(false);
@@ -251,10 +254,11 @@ export function RecoveryForm({ }: RecoveryFormProps) {
 
             <Button
               onClick={() => {
-                window.open(
-                  `https://explorer.solana.com/tx/${recoveryResult.signature}?cluster=devnet`,
-                  "_blank"
-                );
+                const isDevnet = network === WalletAdapterNetwork.Devnet;
+                const explorerUrl = isDevnet
+                  ? `https://explorer.solana.com/tx/${recoveryResult.signature}?cluster=devnet`
+                  : `https://explorer.solana.com/tx/${recoveryResult.signature}`;
+                window.open(explorerUrl, "_blank");
               }}
             >
               View on Explorer <ExternalLink className="ml-2 h-4 w-4" />
