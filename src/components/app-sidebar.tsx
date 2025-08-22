@@ -47,7 +47,9 @@ export const route = {
     "/create",
     "/create/review",
     "/update-extensions",
-    "/transfer-token",
+    "/solana-multisender",
+    "/solana-batch-transfer",
+    "/solana-token-transfer",
   ],
   mainnet: [
     {
@@ -105,8 +107,8 @@ export const route = {
           url: "/update-extensions",
         },
         {
-          title: "Transfer Token",
-          url: "/transfer-token",
+          title: "Multisender",
+          url: "/solana-multisender",
         },
         {
           title: "Burn Token",
@@ -155,8 +157,8 @@ export const route = {
           url: "/update-extensions?cluster=devnet",
         },
         {
-          title: "Transfer Token",
-          url: "/transfer-token?cluster=devnet",
+          title: "Multisender",
+          url: "/solana-multisender?cluster=devnet",
         },
         {
           title: "Burn Token",

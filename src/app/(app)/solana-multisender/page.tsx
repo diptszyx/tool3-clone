@@ -45,6 +45,8 @@ interface Recipient {
   error?: string;
 }
 
+
+
 export default function TransferTokenPage() {
   const isMobile = useIsMobile();
   const wallet = useWallet();
@@ -674,7 +676,7 @@ export default function TransferTokenPage() {
         <SuspenseLayout>
           <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
             <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
-              Transfer Token Extensions
+              Multisender
             </h1>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="px-[4px] space-y-6">
