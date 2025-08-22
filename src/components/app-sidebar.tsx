@@ -80,6 +80,10 @@ export const route = {
           title: "Close account",
           url: "/close-account",
         },
+        {
+          title: "Multisender",
+          url: "/solana-multisender",
+        },
       ],
     },
     {
@@ -105,10 +109,6 @@ export const route = {
         {
           title: "Update Extensions",
           url: "/update-extensions",
-        },
-        {
-          title: "Multisender",
-          url: "/solana-multisender",
         },
         {
           title: "Burn Token",
@@ -145,6 +145,11 @@ export const route = {
       url: "/withdraw-lp?cluster=devnet",
     },
     {
+      title: "Multisender",
+      icon: CreditCard,
+      url: "/solana-multisender?cluster=devnet",
+    },
+    {
       title: "Token",
       icon: Coin,
       submenu: [
@@ -155,10 +160,6 @@ export const route = {
         {
           title: "Update Extensions",
           url: "/update-extensions?cluster=devnet",
-        },
-        {
-          title: "Multisender",
-          url: "/solana-multisender?cluster=devnet",
         },
         {
           title: "Burn Token",
