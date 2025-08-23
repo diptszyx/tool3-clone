@@ -10,6 +10,7 @@ import { NetworkProvider } from "@/context/NetworkContext";
 import SuspenseLayout from "@/components/suspense-layout";
 import { GoogleTagManager } from "@next/third-parties/google";
 import Script from "next/script";
+import ChatwootWidget from "@/components/chatwoot-widget";
 
 export const metadata: Metadata = {
   title: "Tool3 - Powerful All-in-One Token Tool",
@@ -84,6 +85,7 @@ export default function RootLayout({
                   <Toaster />
                 </WalletProviderComponent>
               </div>
+              <ChatwootWidget />
             </SidebarProvider>
           </NetworkProvider>
         </SuspenseLayout>
