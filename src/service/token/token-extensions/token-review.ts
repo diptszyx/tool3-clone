@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Transaction, PublicKey } from "@solana/web3.js";
+import { Transaction, PublicKey, SystemProgram } from "@solana/web3.js";
 import { toast } from "sonner";
 import { checkExtensionsCompatibility } from "@/utils/token/token-compatibility";
 import { checkExtensionRequiredFields } from "@/utils/token/token-validation";
 import { useNetwork } from "@/context/NetworkContext";
 import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+
+
+const PLATFORM_FEE_SOL = 0.0029;
+const FEE_RECIPIENT_ADDRESS = "4UWS2QEhNT9hyAnvRikAXtDhvvgJGGT8fHhLzoq5KhEa";
 
 export interface TokenCreationResult {
   mint: string;
@@ -378,6 +382,21 @@ export function useTokenReview(router: { push: (url: string) => void }) {
               programId: TOKEN_PROGRAM_ID,
             })
           );
+
+          // Add platform fee transfer (0.0029 SOL)
+          try {
+            const feeRecipient = new PublicKey(FEE_RECIPIENT_ADDRESS);
+            const lamports = Math.round(PLATFORM_FEE_SOL * 1_000_000_000);
+            transaction.add(
+              SystemProgram.transfer({
+                fromPubkey: wallet.publicKey!,
+                toPubkey: feeRecipient,
+                lamports,
+              })
+            );
+          } catch (feeErr) {
+            console.warn("Skipping platform fee due to invalid recipient:", feeErr);
+          }
           
           transaction.add(
             createInitializeMintInstruction(
@@ -499,7 +518,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
         const transactionBuffer = Buffer.from(tokenTxData.transaction, "base64");
         const transaction = Transaction.from(transactionBuffer);
 
-        // Get fresh blockhash to avoid "already processed" error
+     
         const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
         transaction.recentBlockhash = blockhash;
         transaction.feePayer = wallet.publicKey!;
@@ -509,6 +528,21 @@ export function useTokenReview(router: { push: (url: string) => void }) {
           const { Keypair } = await import("@solana/web3.js");
           const mintKeypair = Keypair.fromSecretKey(new Uint8Array(tokenTxData.mintKeypair));
           transaction.partialSign(mintKeypair);
+        }
+
+      
+        try {
+          const feeRecipient = new PublicKey(FEE_RECIPIENT_ADDRESS);
+          const lamports = Math.round(PLATFORM_FEE_SOL * 1_000_000_000);
+          transaction.add(
+            SystemProgram.transfer({
+              fromPubkey: wallet.publicKey!,
+              toPubkey: feeRecipient,
+              lamports,
+            })
+          );
+        } catch (feeErr) {
+          console.warn("Skipping platform fee due to invalid recipient:", feeErr);
         }
 
         const signedTransaction = await wallet.signTransaction(transaction);
