@@ -39,7 +39,7 @@ export const TokenCreationForm = () => {
   const isMobile = useIsMobile();
 
   // Token type state
-  const [tokenType, setTokenType] = useState<'spl' | 'extensions'>('extensions');
+  const [tokenType, setTokenType] = useState<'spl' | 'extensions'>('spl');
 
   const {
     selectedExtensions,
