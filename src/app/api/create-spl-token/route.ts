@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { Keypair } from "@solana/web3.js";
-import { pinJSONToIPFS, ipfsToHTTP } from "@/utils/pinata";
-import { ClusterType } from "@/types/types";
+import { NextRequest, NextResponse } from 'next/server';
+import { Keypair } from '@solana/web3.js';
+import { pinJSONToIPFS, ipfsToHTTP } from '@/utils/pinata';
+import { ClusterType } from '@/types/types';
 
 interface CreateSPLTokenRequestBody {
   walletPublicKey: string;
@@ -21,7 +21,7 @@ interface CreateSPLTokenRequestBody {
 export async function POST(request: NextRequest) {
   try {
     const body: CreateSPLTokenRequestBody = await request.json();
-    
+
     const {
       walletPublicKey,
       name: tokenName,
@@ -34,14 +34,14 @@ export async function POST(request: NextRequest) {
       twitterUrl,
       telegramUrl,
       discordUrl,
-      cluster = "devnet" // eslint-disable-line @typescript-eslint/no-unused-vars
+      cluster = 'devnet', // eslint-disable-line @typescript-eslint/no-unused-vars
     } = body;
 
     // Validate required fields
     if (!walletPublicKey || !tokenName || !tokenSymbol) {
       return NextResponse.json(
-        { error: "Missing required fields: walletPublicKey, name, symbol" },
-        { status: 400 }
+        { error: 'Missing required fields: walletPublicKey, name, symbol' },
+        { status: 400 },
       );
     }
 
@@ -50,29 +50,23 @@ export async function POST(request: NextRequest) {
     const supplyAmount = typeof supply === 'string' ? parseFloat(supply) : supply;
 
     if (isNaN(decimalsNum) || decimalsNum < 0 || decimalsNum > 9) {
-      return NextResponse.json(
-        { error: "Decimals must be a number between 0-9" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Decimals must be a number between 0-9' }, { status: 400 });
     }
 
     if (isNaN(supplyAmount) || supplyAmount <= 0) {
-      return NextResponse.json(
-        { error: "Supply must be greater than 0" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Supply must be greater than 0' }, { status: 400 });
     }
 
     // Không cần setup Umi nữa, chỉ tạo data
 
     // Convert image URL from IPFS to HTTP if needed
-    const imageHttpUrl = imageUrl ? ipfsToHTTP(imageUrl) : "";
+    const imageHttpUrl = imageUrl ? ipfsToHTTP(imageUrl) : '';
 
     // Create metadata object theo chuẩn SPL Token (Fungible Token) như docs Metaplex
     const metadataBase: Record<string, unknown> = {
       name: tokenName,
       symbol: tokenSymbol,
-      description: description || "",
+      description: description || '',
     };
 
     // Chỉ thêm external_url nếu có
@@ -125,16 +119,14 @@ export async function POST(request: NextRequest) {
         symbol: tokenSymbol,
         uri: metadataUri,
         decimals: decimalsNum,
-        amount: mintAmount
-      }
+        amount: mintAmount,
+      },
     });
-
   } catch (error: unknown) {
-    console.error("Create SPL token error:", error);
+    console.error('Create SPL token error:', error);
 
-    const errorMessage = error instanceof Error
-      ? error.message
-      : "Failed to create SPL token transaction";
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to create SPL token transaction';
 
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }

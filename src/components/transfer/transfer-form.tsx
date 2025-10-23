@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
 import {
   Form,
   FormControl,
@@ -12,25 +12,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { Transaction } from "@solana/web3.js";
-import SelectToken from "./select-token";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useWatch } from "react-hook-form";
-import { UserToken } from "@/hooks/useUserTokens";
-import { WSOL_MINT } from "@/utils/constants";
-import { getTokenFeeFromUsd } from "@/service/jupiter/calculate-fee";
-import { connectionMainnet } from "../../service/solana/connection";
-import { isWhitelisted } from "@/utils/whitelist";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Transaction } from '@solana/web3.js';
+import SelectToken from './select-token';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useWatch } from 'react-hook-form';
+import { UserToken } from '@/hooks/useUserTokens';
+import { WSOL_MINT } from '@/utils/constants';
+import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
+import { connectionMainnet } from '../../service/solana/connection';
+import { isWhitelisted } from '@/utils/whitelist';
 
 const formSchema = z.object({
   recipient: z
     .string()
-    .min(1, { message: "Recipient address is required" })
-    .regex(/^[\w]{32,44}$/, { message: "Invalid Solana address" }),
+    .min(1, { message: 'Recipient address is required' })
+    .regex(/^[\w]{32,44}$/, { message: 'Invalid Solana address' }),
   amount: z.string(),
 });
 
@@ -46,21 +46,21 @@ export default function TransferForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      recipient: "",
-      amount: "",
+      recipient: '',
+      amount: '',
     },
   });
 
-  const recipient = useWatch({ control: form.control, name: "recipient" });
+  const recipient = useWatch({ control: form.control, name: 'recipient' });
 
   useEffect(() => {
     const checkFee = async () => {
       if (recipient && selectedToken && recipient.length >= 32) {
         setFeeLoading(true);
         try {
-          const response = await fetch("/api/calculate-fee", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+          const response = await fetch('/api/calculate-fee', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               recipientAddress: recipient,
               tokenMint: selectedToken.address,
@@ -69,7 +69,7 @@ export default function TransferForm() {
           const data = await response.json();
           setEstimatedFee(data.fee || 0.25);
         } catch (error) {
-          console.error("Error checking fee:", error);
+          console.error('Error checking fee:', error);
           setEstimatedFee(0.25);
         }
         setFeeLoading(false);
@@ -89,13 +89,10 @@ export default function TransferForm() {
           return;
         }
         try {
-          const tokenFeeAmount = await getTokenFeeFromUsd(
-            selectedToken.address,
-            estimatedFee
-          );
+          const tokenFeeAmount = await getTokenFeeFromUsd(selectedToken.address, estimatedFee);
           setTokenFee(tokenFeeAmount);
         } catch {
-          toast.error("Insufficient liquidity, unable to pay fee.");
+          toast.error('Insufficient liquidity, unable to pay fee.');
           setTokenFee(0);
         }
       } else {
@@ -111,24 +108,24 @@ export default function TransferForm() {
       setLoading(true);
 
       if (!publicKey || !signTransaction) {
-        toast.error("Please connect your wallet first");
+        toast.error('Please connect your wallet first');
         return;
       }
 
       if (!selectedToken) {
-        toast.error("Please select a token");
+        toast.error('Please select a token');
         return;
       }
 
       const amountValue = parseFloat(values.amount);
 
       if (amountValue > parseFloat(selectedToken.balance)) {
-        toast.error("Insufficient balance");
+        toast.error('Insufficient balance');
         return;
       }
 
       if (amountValue <= 0 || Number.isNaN(amountValue)) {
-        toast.error("Amount must be greater than 0");
+        toast.error('Amount must be greater than 0');
         return;
       }
 
@@ -139,61 +136,48 @@ export default function TransferForm() {
         tokenMint: selectedToken.address,
       };
 
-      const prepareResponse = await fetch("/api/transfer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const prepareResponse = await fetch('/api/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(prepareData),
       });
 
       const prepareResult = await prepareResponse.json();
 
       if (!prepareResponse.ok) {
-        throw new Error(prepareResult.error || "Failed to prepare transaction");
+        throw new Error(prepareResult.error || 'Failed to prepare transaction');
       }
 
-      const transaction = Transaction.from(
-        Buffer.from(prepareResult.transaction, "base64")
-      );
+      const transaction = Transaction.from(Buffer.from(prepareResult.transaction, 'base64'));
       const signedTx = await signTransaction(transaction);
 
-      const signature = await connectionMainnet.sendRawTransaction(
-        signedTx.serialize(),
-        {
-          skipPreflight: false,
-          preflightCommitment: "confirmed",
-          maxRetries: 3,
-        }
-      );
+      const signature = await connectionMainnet.sendRawTransaction(signedTx.serialize(), {
+        skipPreflight: false,
+        preflightCommitment: 'confirmed',
+        maxRetries: 3,
+      });
 
-      const confirmation = await connectionMainnet.confirmTransaction(
-        signature
-      );
+      const confirmation = await connectionMainnet.confirmTransaction(signature);
 
       if (confirmation.value.err) {
-        throw new Error(
-          `Transaction failed: ${JSON.stringify(confirmation.value.err)}`
-        );
+        throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
       }
 
-      toast.success("🎉 Gasless Transfer Successful!", {
+      toast.success('🎉 Gasless Transfer Successful!', {
         description: `Transferred ${values.amount} ${
           selectedToken.symbol || selectedToken.name
         } to ${values.recipient.slice(0, 8)}...${values.recipient.slice(-8)}`,
         action: {
-          label: "View Transaction",
-          onClick: () =>
-            window.open(`https://solscan.io/tx/${signature}`, "_blank"),
+          label: 'View Transaction',
+          onClick: () => window.open(`https://solscan.io/tx/${signature}`, '_blank'),
         },
       });
 
       form.reset();
       setSelectedToken(null);
     } catch (error: unknown) {
-      console.error("Transfer error:", error);
-      const message =
-        error instanceof Error
-          ? error.message
-          : "Transfer failed. Please try again.";
+      console.error('Transfer error:', error);
+      const message = error instanceof Error ? error.message : 'Transfer failed. Please try again.';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -203,7 +187,7 @@ export default function TransferForm() {
   return (
     <div
       className={`md:p-2 max-w-[550px] mx-auto my-2 flex flex-col items-center ${
-        !isMobile && "border-gear"
+        !isMobile && 'border-gear'
       }`}
     >
       <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
@@ -212,13 +196,11 @@ export default function TransferForm() {
 
       <div className="mb-2 p-[8px] bg-blue-50 border-gear-blue w-[calc(100%-10px)]">
         <p className="text-sm text-blue-800">
-          💰 <strong>Estimated Fee:</strong>{" "}
+          💰 <strong>Estimated Fee:</strong>{' '}
           {feeLoading ? (
             <span className="text-gray-600">Calculating...</span>
           ) : (
-            <span className="font-semibold">
-              ${estimatedFee.toFixed(3)} USDT
-            </span>
+            <span className="font-semibold">${estimatedFee.toFixed(3)} USDT</span>
           )}
         </p>
       </div>
@@ -230,19 +212,14 @@ export default function TransferForm() {
       </div>
 
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6 w-full"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 w-full">
           <div className="px-[5px] space-y-6">
             <FormField
               control={form.control}
               name="recipient"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-900">
-                    Recipient Address
-                  </FormLabel>
+                  <FormLabel className="text-gray-900">Recipient Address</FormLabel>
                   <FormControl>
                     <Input
                       className="border-gear-gray bg-white text-gray-900 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 rounded-lg !h-[30px] mt-1"
@@ -260,10 +237,10 @@ export default function TransferForm() {
               selectedToken={selectedToken}
               setSelectedToken={setSelectedToken}
               onAmountChange={(value) => {
-                form.setValue("amount", value);
+                form.setValue('amount', value);
               }}
-              amount={form.watch("amount")}
-              excludeToken={["NativeSOL", WSOL_MINT]}
+              amount={form.watch('amount')}
+              excludeToken={['NativeSOL', WSOL_MINT]}
               tokenFee={tokenFee}
             />
           </div>
@@ -274,7 +251,7 @@ export default function TransferForm() {
             variant="default"
             disabled={loading || !selectedToken || !publicKey}
           >
-            {loading ? "Processing..." : "🚀Transfer"}
+            {loading ? 'Processing...' : '🚀Transfer'}
           </Button>
         </form>
       </Form>

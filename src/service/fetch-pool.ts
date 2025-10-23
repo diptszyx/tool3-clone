@@ -1,2 +1,2 @@
-import { fetchLpMintAndBalanceFromRaydium } from "@/service/raydium-sdk";
+import { fetchLpMintAndBalanceFromRaydium } from '@/service/raydium-sdk';
 export const fetchLpMintAndBalance = fetchLpMintAndBalanceFromRaydium;

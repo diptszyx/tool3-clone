@@ -1,9 +1,9 @@
-import { BN } from "@coral-xyz/anchor";
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
-import { program } from "./program";
-import { findUserLockPda } from "./pda";
-import { getAccount } from "@solana/spl-token";
-import { connectionDevnet } from "./connection";
+import { BN } from '@coral-xyz/anchor';
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
+import { program } from './program';
+import { findUserLockPda } from './pda';
+import { getAccount } from '@solana/spl-token';
+import { connectionDevnet } from './connection';
 
 export const initializeVault = async ({
   publicKey,
@@ -208,9 +208,7 @@ export interface UserPoolInfo {
   vault1Address?: PublicKey;
 }
 
-export async function getUserLockedPools(
-  userPublicKey: PublicKey
-): Promise<UserPoolInfo[]> {
+export async function getUserLockedPools(userPublicKey: PublicKey): Promise<UserPoolInfo[]> {
   try {
     const userLockAccounts = await program.account.userLock.all([
       {
@@ -233,32 +231,24 @@ export async function getUserLockedPools(
         const vault = vaultAccount.account;
         const vaultAddress = vaultAccount.publicKey;
 
-        const [expectedUserLockPda] = findUserLockPda(
-          vaultAddress,
-          userPublicKey
-        );
+        const [expectedUserLockPda] = findUserLockPda(vaultAddress, userPublicKey);
         if (expectedUserLockPda.equals(userLockPubkey)) {
-          const poolStateAccount = await program.account.poolState.fetch(
-            vault.poolState
-          );
+          const poolStateAccount = await program.account.poolState.fetch(vault.poolState);
 
           const token0VaultAccount = await getAccount(
             connectionDevnet,
-            poolStateAccount.token0Vault
+            poolStateAccount.token0Vault,
           );
           const token1VaultAccount = await getAccount(
             connectionDevnet,
-            poolStateAccount.token1Vault
+            poolStateAccount.token1Vault,
           );
 
           const vault0Amount = token0VaultAccount.amount.toString();
           const vault1Amount = token1VaultAccount.amount.toString();
 
           const lpSupply = BigInt(poolStateAccount.lpSupply.toString());
-          const lpRatio =
-            lpSupply > 0
-              ? (Number(userLockData.amount) / Number(lpSupply)) * 100
-              : 0;
+          const lpRatio = lpSupply > 0 ? (Number(userLockData.amount) / Number(lpSupply)) * 100 : 0;
 
           userPoolInfos.push({
             vaultAddress,
@@ -282,7 +272,7 @@ export async function getUserLockedPools(
 
     return userPoolInfos;
   } catch (error) {
-    console.error("Error fetching user locked pools:", error);
+    console.error('Error fetching user locked pools:', error);
     throw error;
   }
 }

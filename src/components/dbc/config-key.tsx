@@ -1,28 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Info } from "lucide-react";
-import Image from "next/image";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+} from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Info } from 'lucide-react';
+import Image from 'next/image';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 const USDCLogo = () => (
   <Image
@@ -45,59 +41,54 @@ const SOLLogo = () => (
 );
 
 export default function TokenConfigForm() {
-  const [quoteMint, setQuoteMint] = useState("USDC");
-  const [activationType, setActivationType] = useState("Slot");
-  const [collectFeeMode, setCollectFeeMode] = useState("Quote");
-  const [migrationOption, setMigrationOption] = useState("DAMM V2");
-  const [migrationFeeOption, setMigrationFeeOption] = useState("0.25%");
-  const [tokenUpdateAuthority, setTokenUpdateAuthority] = useState("Immutable");
+  const [quoteMint, setQuoteMint] = useState('USDC');
+  const [activationType, setActivationType] = useState('Slot');
+  const [collectFeeMode, setCollectFeeMode] = useState('Quote');
+  const [migrationOption, setMigrationOption] = useState('DAMM V2');
+  const [migrationFeeOption, setMigrationFeeOption] = useState('0.25%');
+  const [tokenUpdateAuthority, setTokenUpdateAuthority] = useState('Immutable');
   const [dynamicFees] = useState(false);
   const [antiSniperSuite, setAntiSniperSuite] = useState(false);
   const [lockedVesting, setLockedVesting] = useState(false);
 
-  const [feeClaimer, setFeeClaimer] = useState("");
-  const [leftoverReceiver, setLeftoverReceiver] = useState("");
+  const [feeClaimer, setFeeClaimer] = useState('');
+  const [leftoverReceiver, setLeftoverReceiver] = useState('');
 
-  const [totalTokenSupply, setTotalTokenSupply] = useState("1,000,000,000");
-  const [leftover, setLeftover] = useState("0");
-  const [tokenType, setTokenType] = useState("SPL");
-  const [initialMarketCap, setInitialMarketCap] = useState("30");
-  const [migrationMarketCap, setMigrationMarketCap] = useState("550");
-  const [baseMintDecimal, setBaseMintDecimal] = useState("6");
-  const [quoteMintDecimal, setQuoteMintDecimal] = useState("6");
-  const [migrationFeePercentage, setMigrationFeePercentage] = useState("0");
-  const [creatorMigrationFeePercentage, setCreatorMigrationFeePercentage] =
-    useState("0");
-  const [partnerLPPercentage, setPartnerLPPercentage] = useState("0");
-  const [partnerLockedLPPercentage, setPartnerLockedLPPercentage] =
-    useState("100");
-  const [creatorLPPercentage, setCreatorLPPercentage] = useState("0");
-  const [creatorLockedLPPercentage, setCreatorLockedLPPercentage] =
-    useState("0");
-  const [baseFeeBps, setBaseFeeBps] = useState("100");
-  const [creatorTradingFeePercentage, setCreatorTradingFeePercentage] =
-    useState("0");
-  const [startingFeeBps, setStartingFeeBps] = useState("100");
-  const [endingFeeBps, setEndingFeeBps] = useState("100");
-  const [numberOfPeriod, setNumberOfPeriod] = useState("0");
-  const [totalDuration, setTotalDuration] = useState("0");
-  const [sniperSuiteType, setSniperSuiteType] = useState("Linear");
+  const [totalTokenSupply, setTotalTokenSupply] = useState('1,000,000,000');
+  const [leftover, setLeftover] = useState('0');
+  const [tokenType, setTokenType] = useState('SPL');
+  const [initialMarketCap, setInitialMarketCap] = useState('30');
+  const [migrationMarketCap, setMigrationMarketCap] = useState('550');
+  const [baseMintDecimal, setBaseMintDecimal] = useState('6');
+  const [quoteMintDecimal, setQuoteMintDecimal] = useState('6');
+  const [migrationFeePercentage, setMigrationFeePercentage] = useState('0');
+  const [creatorMigrationFeePercentage, setCreatorMigrationFeePercentage] = useState('0');
+  const [partnerLPPercentage, setPartnerLPPercentage] = useState('0');
+  const [partnerLockedLPPercentage, setPartnerLockedLPPercentage] = useState('100');
+  const [creatorLPPercentage, setCreatorLPPercentage] = useState('0');
+  const [creatorLockedLPPercentage, setCreatorLockedLPPercentage] = useState('0');
+  const [baseFeeBps, setBaseFeeBps] = useState('100');
+  const [creatorTradingFeePercentage, setCreatorTradingFeePercentage] = useState('0');
+  const [startingFeeBps, setStartingFeeBps] = useState('100');
+  const [endingFeeBps, setEndingFeeBps] = useState('100');
+  const [numberOfPeriod, setNumberOfPeriod] = useState('0');
+  const [totalDuration, setTotalDuration] = useState('0');
+  const [sniperSuiteType, setSniperSuiteType] = useState('Linear');
 
-  const [totalVestingAmount, setTotalVestingAmount] = useState("0");
-  const [numberOfVestingPeriod, setNumberOfVestingPeriod] = useState("0");
-  const [totalVestingDuration, setTotalVestingDuration] = useState("0");
-  const [cliffDurationFromMigration, setCliffDurationFromMigration] =
-    useState("0");
-  const [cliffUnlockAmount, setCliffUnlockAmount] = useState("0");
-  const [baseFeeBpsSniper, setBaseFeeBpsSniper] = useState("0");
-  const [feeIncrementBps, setFeeIncrementBps] = useState("0");
-  const [referenceAmount, setReferenceAmount] = useState("0");
-  const [maxLimiterDuration, setMaxLimiterDuration] = useState("0");
+  const [totalVestingAmount, setTotalVestingAmount] = useState('0');
+  const [numberOfVestingPeriod, setNumberOfVestingPeriod] = useState('0');
+  const [totalVestingDuration, setTotalVestingDuration] = useState('0');
+  const [cliffDurationFromMigration, setCliffDurationFromMigration] = useState('0');
+  const [cliffUnlockAmount, setCliffUnlockAmount] = useState('0');
+  const [baseFeeBpsSniper, setBaseFeeBpsSniper] = useState('0');
+  const [feeIncrementBps, setFeeIncrementBps] = useState('0');
+  const [referenceAmount, setReferenceAmount] = useState('0');
+  const [maxLimiterDuration, setMaxLimiterDuration] = useState('0');
 
   const getQuoteMintAddress = (symbol: string) => {
     const addresses: { [key: string]: string } = {
-      USDC: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      SOL: "So11111111111111111111111111111111111111112",
+      USDC: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      SOL: 'So11111111111111111111111111111111111111112',
     };
     return addresses[symbol];
   };
@@ -114,12 +105,8 @@ export default function TokenConfigForm() {
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-4xl mx-auto max-h-[calc(100vh-140px)] overflow-y-auto ">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Token Configuration
-          </h1>
-          <p className="text-gray-600">
-            Configure your token parameters and settings
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Token Configuration</h1>
+          <p className="text-gray-600">Configure your token parameters and settings</p>
         </div>
 
         <Card className="bg-white border border-gray-200 shadow-lg">
@@ -135,10 +122,7 @@ export default function TokenConfigForm() {
                         <Info className="h-4 w-4 text-gray-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>
-                          The wallet address that will collect all the bonding
-                          curve fees.
-                        </p>
+                        <p>The wallet address that will collect all the bonding curve fees.</p>
                       </TooltipContent>
                     </Tooltip>
                   </Label>
@@ -158,8 +142,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The wallet address that will be able to claim the
-                          bonding curve leftover tokens.
+                          The wallet address that will be able to claim the bonding curve leftover
+                          tokens.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -186,10 +170,7 @@ export default function TokenConfigForm() {
                       <Info className="h-4 w-4 text-gray-400" />
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>
-                        The quote mint that your base mint token will be paired
-                        with.
-                      </p>
+                      <p>The quote mint that your base mint token will be paired with.</p>
                     </TooltipContent>
                   </Tooltip>
                 </Label>
@@ -269,9 +250,7 @@ export default function TokenConfigForm() {
                         <Info className="h-4 w-4 text-gray-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>
-                          The total number of base mint tokens to be launched.
-                        </p>
+                        <p>The total number of base mint tokens to be launched.</p>
                       </TooltipContent>
                     </Tooltip>
                   </Label>
@@ -298,8 +277,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The amount of base mint tokens that will be leftover
-                          in the bonding curve after token graduation.
+                          The amount of base mint tokens that will be leftover in the bonding curve
+                          after token graduation.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -342,9 +321,9 @@ export default function TokenConfigForm() {
                     <Badge
                       variant="secondary"
                       className={
-                        quoteMint === "SOL"
-                          ? "bg-green-50 text-green-700 border border-green-200"
-                          : "bg-blue-50 text-blue-700 border border-blue-200"
+                        quoteMint === 'SOL'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
                       }
                     >
                       {quoteMint}
@@ -372,9 +351,9 @@ export default function TokenConfigForm() {
                     <Badge
                       variant="secondary"
                       className={
-                        quoteMint === "SOL"
-                          ? "bg-green-50 text-green-700 border border-green-200"
-                          : "bg-blue-50 text-blue-700 border border-blue-200"
+                        quoteMint === 'SOL'
+                          ? 'bg-green-50 text-green-700 border border-green-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
                       }
                     >
                       {quoteMint}
@@ -399,9 +378,7 @@ export default function TokenConfigForm() {
                           <Info className="h-4 w-4 text-gray-400" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>
-                            The number of decimals for your base mint token.
-                          </p>
+                          <p>The number of decimals for your base mint token.</p>
                         </TooltipContent>
                       </Tooltip>
                     </Label>
@@ -438,9 +415,7 @@ export default function TokenConfigForm() {
                           <Info className="h-4 w-4 text-gray-400" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>
-                            The number of decimals for your quote mint token.
-                          </p>
+                          <p>The number of decimals for your quote mint token.</p>
                         </TooltipContent>
                       </Tooltip>
                     </Label>
@@ -478,8 +453,8 @@ export default function TokenConfigForm() {
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            Choose whether the token metadata update authority
-                            is immutable or mutable
+                            Choose whether the token metadata update authority is immutable or
+                            mutable
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -525,8 +500,7 @@ export default function TokenConfigForm() {
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            Slot = 400ms, Timestamp = 1s. Only affect Fee
-                            Scheduler or Rate Limiter.
+                            Slot = 400ms, Timestamp = 1s. Only affect Fee Scheduler or Rate Limiter.
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -565,8 +539,8 @@ export default function TokenConfigForm() {
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            QuoteOnly = Fees collected only in quote mint, Quote
-                            + Base = Fees collected in both quote and base mint.
+                            QuoteOnly = Fees collected only in quote mint, Quote + Base = Fees
+                            collected in both quote and base mint.
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -604,11 +578,7 @@ export default function TokenConfigForm() {
 
                 {/* Dynamic Fees Toggle */}
                 <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <Checkbox
-                    id="dynamic-fees"
-                    checked={dynamicFees}
-                    className="border-blue-400"
-                  />
+                  <Checkbox id="dynamic-fees" checked={dynamicFees} className="border-blue-400" />
                   <Label
                     htmlFor="dynamic-fees"
                     className="text-gray-700 font-medium flex items-center gap-2"
@@ -620,8 +590,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          Automatically adjust fees based on token volatility.
-                          Capped at 20% of base fee.
+                          Automatically adjust fees based on token volatility. Capped at 20% of base
+                          fee.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -643,8 +613,8 @@ export default function TokenConfigForm() {
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            The type of DAMM pool that DBC pool will be migrated
-                            to upon curve completion.
+                            The type of DAMM pool that DBC pool will be migrated to upon curve
+                            completion.
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -683,8 +653,8 @@ export default function TokenConfigForm() {
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>
-                            The amount of fees that will be charged in the
-                            graduated DAMM pool after migration.
+                            The amount of fees that will be charged in the graduated DAMM pool after
+                            migration.
                           </p>
                         </TooltipContent>
                       </Tooltip>
@@ -747,8 +717,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The percentage of quote token fee from the migration
-                          quote threshold that will be taken upon migration.
+                          The percentage of quote token fee from the migration quote threshold that
+                          will be taken upon migration.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -756,9 +726,7 @@ export default function TokenConfigForm() {
                   <div className="flex items-center gap-2">
                     <Input
                       value={migrationFeePercentage}
-                      onChange={(e) =>
-                        setMigrationFeePercentage(e.target.value)
-                      }
+                      onChange={(e) => setMigrationFeePercentage(e.target.value)}
                       className="border-gray-300 focus:border-black focus:ring-black flex-1"
                     />
                     <span className="text-gray-600 font-medium">%</span>
@@ -773,9 +741,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The percentage of quote token fee from the migration
-                          fee that will be fee shared with the token pool
-                          creator.
+                          The percentage of quote token fee from the migration fee that will be fee
+                          shared with the token pool creator.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -783,9 +750,7 @@ export default function TokenConfigForm() {
                   <div className="flex items-center gap-2">
                     <Input
                       value={creatorMigrationFeePercentage}
-                      onChange={(e) =>
-                        setCreatorMigrationFeePercentage(e.target.value)
-                      }
+                      onChange={(e) => setCreatorMigrationFeePercentage(e.target.value)}
                       className="border-gray-300 focus:border-black focus:ring-black flex-1"
                     />
                     <span className="text-gray-600 font-medium">%</span>
@@ -803,8 +768,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The percentage of transferrable LP tokens that will go
-                          to the partner immediately.
+                          The percentage of transferrable LP tokens that will go to the partner
+                          immediately.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -827,8 +792,7 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The percentage of LP tokens that go to the partner but
-                          are locked forever.
+                          The percentage of LP tokens that go to the partner but are locked forever.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -836,9 +800,7 @@ export default function TokenConfigForm() {
                   <div className="flex items-center gap-2">
                     <Input
                       value={partnerLockedLPPercentage}
-                      onChange={(e) =>
-                        setPartnerLockedLPPercentage(e.target.value)
-                      }
+                      onChange={(e) => setPartnerLockedLPPercentage(e.target.value)}
                       className="border-gray-300 focus:border-black focus:ring-black flex-1"
                     />
                     <span className="text-gray-600 font-medium">%</span>
@@ -856,8 +818,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The percentage of transferrable LP tokens that will go
-                          to the creator immediately.
+                          The percentage of transferrable LP tokens that will go to the creator
+                          immediately.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -880,8 +842,7 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The percentage of LP tokens that go to the creator but
-                          are locked forever.
+                          The percentage of LP tokens that go to the creator but are locked forever.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -889,9 +850,7 @@ export default function TokenConfigForm() {
                   <div className="flex items-center gap-2">
                     <Input
                       value={creatorLockedLPPercentage}
-                      onChange={(e) =>
-                        setCreatorLockedLPPercentage(e.target.value)
-                      }
+                      onChange={(e) => setCreatorLockedLPPercentage(e.target.value)}
                       className="border-gray-300 focus:border-black focus:ring-black flex-1"
                     />
                     <span className="text-gray-600 font-medium">%</span>
@@ -935,8 +894,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          The percentage of bonding curve fee that will be fee
-                          shared with the token pool creator.
+                          The percentage of bonding curve fee that will be fee shared with the token
+                          pool creator.
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -944,9 +903,7 @@ export default function TokenConfigForm() {
                   <div className="flex items-center gap-2">
                     <Input
                       value={creatorTradingFeePercentage}
-                      onChange={(e) =>
-                        setCreatorTradingFeePercentage(e.target.value)
-                      }
+                      onChange={(e) => setCreatorTradingFeePercentage(e.target.value)}
                       className="border-gray-300 focus:border-black focus:ring-black flex-1"
                     />
                     <span className="text-gray-600 font-medium">%</span>
@@ -981,9 +938,7 @@ export default function TokenConfigForm() {
                         <Info className="h-4 w-4 text-gray-400" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>
-                          Enable Fee Scheduler or Rate Limiter to deter snipers.
-                        </p>
+                        <p>Enable Fee Scheduler or Rate Limiter to deter snipers.</p>
                       </TooltipContent>
                     </Tooltip>
                   </Label>
@@ -1030,8 +985,7 @@ export default function TokenConfigForm() {
                     {/* Configuration Fields */}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {(sniperSuiteType === "Linear" ||
-                        sniperSuiteType === "Exponential") && (
+                      {(sniperSuiteType === 'Linear' || sniperSuiteType === 'Exponential') && (
                         <>
                           <div className="space-y-2">
                             <Label className="text-gray-700 font-medium flex items-center gap-2">
@@ -1048,9 +1002,7 @@ export default function TokenConfigForm() {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={startingFeeBps}
-                                onChange={(e) =>
-                                  setStartingFeeBps(e.target.value)
-                                }
+                                onChange={(e) => setStartingFeeBps(e.target.value)}
                                 className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1071,9 +1023,8 @@ export default function TokenConfigForm() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>
-                                    The ending fee for the boding curve. Will
-                                    aslo be the base fee after the fee scheduler
-                                    ends.
+                                    The ending fee for the boding curve. Will aslo be the base fee
+                                    after the fee scheduler ends.
                                   </p>
                                 </TooltipContent>
                               </Tooltip>
@@ -1081,9 +1032,7 @@ export default function TokenConfigForm() {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={endingFeeBps}
-                                onChange={(e) =>
-                                  setEndingFeeBps(e.target.value)
-                                }
+                                onChange={(e) => setEndingFeeBps(e.target.value)}
                                 className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1104,8 +1053,7 @@ export default function TokenConfigForm() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>
-                                    The total number of periods over which the
-                                    fee reduction occurs.
+                                    The total number of periods over which the fee reduction occurs.
                                   </p>
                                 </TooltipContent>
                               </Tooltip>
@@ -1113,9 +1061,7 @@ export default function TokenConfigForm() {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={numberOfPeriod}
-                                onChange={(e) =>
-                                  setNumberOfPeriod(e.target.value)
-                                }
+                                onChange={(e) => setNumberOfPeriod(e.target.value)}
                                 className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1135,18 +1081,14 @@ export default function TokenConfigForm() {
                                   <Info className="h-4 w-4 text-gray-400" />
                                 </TooltipTrigger>
                                 <TooltipContent>
-                                  <p>
-                                    The total duration of the fee scheduler.
-                                  </p>
+                                  <p>The total duration of the fee scheduler.</p>
                                 </TooltipContent>
                               </Tooltip>
                             </Label>
                             <div className="flex items-center gap-2">
                               <Input
                                 value={totalDuration}
-                                onChange={(e) =>
-                                  setTotalDuration(e.target.value)
-                                }
+                                onChange={(e) => setTotalDuration(e.target.value)}
                                 className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1161,7 +1103,7 @@ export default function TokenConfigForm() {
                       )}
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {sniperSuiteType === "Rate Limiter" && (
+                      {sniperSuiteType === 'Rate Limiter' && (
                         <>
                           <div className="space-y-2">
                             <Label className="text-gray-700 font-medium flex items-center gap-2">
@@ -1178,9 +1120,7 @@ export default function TokenConfigForm() {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={baseFeeBpsSniper}
-                                onChange={(e) =>
-                                  setBaseFeeBpsSniper(e.target.value)
-                                }
+                                onChange={(e) => setBaseFeeBpsSniper(e.target.value)}
                                 className="border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1201,8 +1141,8 @@ export default function TokenConfigForm() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>
-                                    The rate at which the fees increase based on
-                                    the reference amount.
+                                    The rate at which the fees increase based on the reference
+                                    amount.
                                   </p>
                                 </TooltipContent>
                               </Tooltip>
@@ -1210,9 +1150,7 @@ export default function TokenConfigForm() {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={feeIncrementBps}
-                                onChange={(e) =>
-                                  setFeeIncrementBps(e.target.value)
-                                }
+                                onChange={(e) => setFeeIncrementBps(e.target.value)}
                                 className="border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1233,8 +1171,8 @@ export default function TokenConfigForm() {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <p>
-                                    The amount of quote mint tokens that is
-                                    referenced to calculate the fee increment.
+                                    The amount of quote mint tokens that is referenced to calculate
+                                    the fee increment.
                                   </p>
                                 </TooltipContent>
                               </Tooltip>
@@ -1242,9 +1180,7 @@ export default function TokenConfigForm() {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={referenceAmount}
-                                onChange={(e) =>
-                                  setReferenceAmount(e.target.value)
-                                }
+                                onChange={(e) => setReferenceAmount(e.target.value)}
                                 className="border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1271,9 +1207,7 @@ export default function TokenConfigForm() {
                             <div className="flex items-center gap-2">
                               <Input
                                 value={maxLimiterDuration}
-                                onChange={(e) =>
-                                  setMaxLimiterDuration(e.target.value)
-                                }
+                                onChange={(e) => setMaxLimiterDuration(e.target.value)}
                                 className="border-gray-300 focus:border-black focus:ring-black flex-1"
                               />
                               <Badge
@@ -1308,9 +1242,8 @@ export default function TokenConfigForm() {
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>
-                          Locked vesting of base mint tokens for creator upon
-                          token migration (tokens will be migrated to
-                          https://lock.jup.ag).
+                          Locked vesting of base mint tokens for creator upon token migration
+                          (tokens will be migrated to https://lock.jup.ag).
                         </p>
                       </TooltipContent>
                     </Tooltip>
@@ -1329,19 +1262,14 @@ export default function TokenConfigForm() {
                               <Info className="h-4 w-4 text-gray-400" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>
-                                The total amount of base mint tokens to be
-                                vested.
-                              </p>
+                              <p>The total amount of base mint tokens to be vested.</p>
                             </TooltipContent>
                           </Tooltip>
                         </Label>
                         <div className="flex items-center gap-2">
                           <Input
                             value={totalVestingAmount}
-                            onChange={(e) =>
-                              setTotalVestingAmount(e.target.value)
-                            }
+                            onChange={(e) => setTotalVestingAmount(e.target.value)}
                             className="border-gray-300 focus:border-black focus:ring-black flex-1"
                           />
                           <Badge
@@ -1368,9 +1296,7 @@ export default function TokenConfigForm() {
                         <div className="flex items-center gap-2">
                           <Input
                             value={numberOfVestingPeriod}
-                            onChange={(e) =>
-                              setNumberOfVestingPeriod(e.target.value)
-                            }
+                            onChange={(e) => setNumberOfVestingPeriod(e.target.value)}
                             className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                           />
                           <Badge
@@ -1397,9 +1323,7 @@ export default function TokenConfigForm() {
                         <div className="flex items-center gap-2">
                           <Input
                             value={totalVestingDuration}
-                            onChange={(e) =>
-                              setTotalVestingDuration(e.target.value)
-                            }
+                            onChange={(e) => setTotalVestingDuration(e.target.value)}
                             className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                           />
                           <Badge
@@ -1419,19 +1343,14 @@ export default function TokenConfigForm() {
                               <Info className="h-4 w-4 text-gray-400" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>
-                                The duration to start the vesting from migration
-                                time.
-                              </p>
+                              <p>The duration to start the vesting from migration time.</p>
                             </TooltipContent>
                           </Tooltip>
                         </Label>
                         <div className="flex items-center gap-2">
                           <Input
                             value={cliffDurationFromMigration}
-                            onChange={(e) =>
-                              setCliffDurationFromMigration(e.target.value)
-                            }
+                            onChange={(e) => setCliffDurationFromMigration(e.target.value)}
                             className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                           />
                           <Badge
@@ -1452,9 +1371,8 @@ export default function TokenConfigForm() {
                             </TooltipTrigger>
                             <TooltipContent>
                               <p>
-                                The amount of base mint tokens that unlock
-                                immediately when the cliff duration from
-                                migration time ends.
+                                The amount of base mint tokens that unlock immediately when the
+                                cliff duration from migration time ends.
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -1462,9 +1380,7 @@ export default function TokenConfigForm() {
                         <div className="flex items-center gap-2">
                           <Input
                             value={cliffUnlockAmount}
-                            onChange={(e) =>
-                              setCliffUnlockAmount(e.target.value)
-                            }
+                            onChange={(e) => setCliffUnlockAmount(e.target.value)}
                             className=" border-gray-300 focus:border-black focus:ring-black flex-1"
                           />
                           <Badge

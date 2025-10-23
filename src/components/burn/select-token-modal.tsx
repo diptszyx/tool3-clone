@@ -1,12 +1,12 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
-import Image from "next/image";
-import { UserToken } from "@/hooks/useUserTokens";
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import Image from 'next/image';
+import { UserToken } from '@/hooks/useUserTokens';
 
 interface SelectTokenModalProps {
   open: boolean;
@@ -23,7 +23,7 @@ export function SelectTokenModal({
   onSelect,
   isLoading = false,
 }: SelectTokenModalProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredTokens = tokens.filter(
     (token) =>
@@ -85,15 +85,15 @@ export function SelectTokenModal({
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white text-[16px] font-bold pt-[1px]">
-                        <div className="ml-[3px] mt-[3px]">{token.name?.charAt(0) || "T"}</div>
+                        <div className="ml-[3px] mt-[3px]">{token.name?.charAt(0) || 'T'}</div>
                       </div>
                     )}
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="font-medium text-gray-900">{token.symbol || "UNKNOWN"}</span>
+                      <span className="font-medium text-gray-900">{token.symbol || 'UNKNOWN'}</span>
                     </div>
-                    <div className="text-sm text-gray-600">{token.name || "Unknown Token"}</div>
+                    <div className="text-sm text-gray-600">{token.name || 'Unknown Token'}</div>
                     <div className="text-xs text-gray-400">{shortenAddress(token.address)}</div>
                   </div>
                 </div>
@@ -115,4 +115,4 @@ export function SelectTokenModal({
       </DialogContent>
     </Dialog>
   );
-} 
+}

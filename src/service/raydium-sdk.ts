@@ -3,20 +3,20 @@ import {
   CpmmKeys,
   ApiV3PoolInfoStandardItemCpmm,
   TxVersion,
-} from "@raydium-io/raydium-sdk-v2";
+} from '@raydium-io/raydium-sdk-v2';
 
-import { adminKeypair } from "@/config";
-import { Connection, PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { adminKeypair } from '@/config';
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import {
   createAssociatedTokenAccountInstruction,
   getAssociatedTokenAddress,
   getAssociatedTokenAddressSync,
-} from "@solana/spl-token";
-import { connectionDevnet } from "./solana/connection";
+} from '@solana/spl-token';
+import { connectionDevnet } from './solana/connection';
 
 export const txVersion = TxVersion.V0;
 
-const cluster = "devnet";
+const cluster = 'devnet';
 
 export const owner = adminKeypair;
 
@@ -25,18 +25,18 @@ let cachedRaydium: Raydium | null = null;
 export const initSdk = async (connection: Connection): Promise<Raydium> => {
   if (cachedRaydium) return cachedRaydium;
 
-  console.log("Initializing Raydium SDK...");
+  console.log('Initializing Raydium SDK...');
   try {
     cachedRaydium = await Raydium.load({
       owner,
       connection,
       cluster,
       disableFeatureCheck: true,
-      blockhashCommitment: "finalized",
+      blockhashCommitment: 'finalized',
     });
     return cachedRaydium;
   } catch (error) {
-    console.error("Error initializing SDK:", error);
+    console.error('Error initializing SDK:', error);
     throw error;
   }
 };
@@ -45,7 +45,7 @@ export const createAtaIfMissing = async (
   connection: Connection,
   payer: PublicKey,
   owner: PublicKey,
-  mint: PublicKey
+  mint: PublicKey,
 ): Promise<{ ata: PublicKey; instructions: TransactionInstruction[] }> => {
   const ata = await getAssociatedTokenAddress(mint, owner);
   const accountInfo = await connection.getAccountInfo(ata);
@@ -54,7 +54,7 @@ export const createAtaIfMissing = async (
       payer, // funding payer
       ata, // ATA address
       owner, // token account owner
-      mint // token mint
+      mint, // token mint
     );
     return { ata, instructions: [instruction] };
   }
@@ -63,14 +63,14 @@ export const createAtaIfMissing = async (
 };
 
 const getPoolInfoById = async (
-  poolId: string
+  poolId: string,
 ): Promise<{
   poolInfo: ApiV3PoolInfoStandardItemCpmm;
   poolKeys?: CpmmKeys;
 }> => {
   const raydium = await initSdk(connectionDevnet);
 
-  if (raydium.cluster === "mainnet") {
+  if (raydium.cluster === 'mainnet') {
     const data = await raydium.api.fetchPoolById({ ids: poolId });
     const poolInfo = data[0] as ApiV3PoolInfoStandardItemCpmm;
     return { poolInfo };
@@ -90,7 +90,7 @@ export interface LpTokenData {
 
 export const fetchLpMintAndBalanceFromRaydium = async (
   poolId: string,
-  userPublicKey?: string
+  userPublicKey?: string,
 ): Promise<LpTokenData | null> => {
   try {
     const { poolKeys } = await getPoolInfoById(poolId);
@@ -106,15 +106,13 @@ export const fetchLpMintAndBalanceFromRaydium = async (
       try {
         const lpTokenAccount = getAssociatedTokenAddressSync(
           new PublicKey(lpMint),
-          new PublicKey(userPublicKey)
+          new PublicKey(userPublicKey),
         );
 
-        const balanceInfo = await connectionDevnet.getTokenAccountBalance(
-          lpTokenAccount
-        );
+        const balanceInfo = await connectionDevnet.getTokenAccountBalance(lpTokenAccount);
         balance = balanceInfo.value.uiAmount ?? 0;
       } catch (error) {
-        console.warn("Unable to get LP token balance:", error);
+        console.warn('Unable to get LP token balance:', error);
       }
     }
 

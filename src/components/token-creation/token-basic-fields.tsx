@@ -1,20 +1,14 @@
-"use client";
+'use client';
 
-import { useRef } from "react";
-import { Control } from "react-hook-form";
-import { Upload } from "lucide-react";
-import Image from "next/image";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useRef } from 'react';
+import { Control } from 'react-hook-form';
+import { Upload } from 'lucide-react';
+import Image from 'next/image';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
-import type { TokenFormValues } from "./types";
+import type { TokenFormValues } from './types';
 
 interface TokenBasicFieldsProps {
   control: Control<TokenFormValues>;
@@ -33,7 +27,7 @@ export const TokenBasicFields = ({
   setImagePreview,
   uploadingImage,
   formErrors,
-  onImageUpload
+  onImageUpload,
 }: TokenBasicFieldsProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -45,8 +39,7 @@ export const TokenBasicFields = ({
         setImagePreview(event.target?.result as string);
       };
       reader.readAsDataURL(file);
-      
-   
+
       if (typeof onImageUpload === 'function') {
         onImageUpload(file);
       } else {
@@ -54,7 +47,7 @@ export const TokenBasicFields = ({
       }
     }
   };
-  
+
   const handleImageClick = () => {
     if (fileInputRef.current && !uploadingImage) {
       fileInputRef.current.click();
@@ -71,7 +64,11 @@ export const TokenBasicFields = ({
             <FormItem>
               <FormLabel>Token Name {tokenType === 'spl' ? '*' : ''}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. Moon Token" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input
+                  placeholder="e.g. Moon Token"
+                  {...field}
+                  className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -85,7 +82,11 @@ export const TokenBasicFields = ({
             <FormItem>
               <FormLabel>Token Symbol {tokenType === 'spl' ? '*' : ''}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g. MOON" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input
+                  placeholder="e.g. MOON"
+                  {...field}
+                  className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,7 +102,13 @@ export const TokenBasicFields = ({
             <FormItem>
               <FormLabel>Decimals</FormLabel>
               <FormControl>
-                <Input type="number" min="0" max="9" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input
+                  type="number"
+                  min="0"
+                  max="9"
+                  {...field}
+                  className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -115,7 +122,12 @@ export const TokenBasicFields = ({
             <FormItem>
               <FormLabel>Initial Supply</FormLabel>
               <FormControl>
-                <Input type="text" placeholder="e.g. 1000000" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+                <Input
+                  type="text"
+                  placeholder="e.g. 1000000"
+                  {...field}
+                  className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -130,7 +142,11 @@ export const TokenBasicFields = ({
           <FormItem>
             <FormLabel>Token Description (Optional)</FormLabel>
             <FormControl>
-              <Textarea placeholder="A brief description of your token" {...field} className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1" />
+              <Textarea
+                placeholder="A brief description of your token"
+                {...field}
+                className="w-[calc(100%-8px)] border-gear-gray !h-[28px] ml-1 mt-1"
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -140,12 +156,18 @@ export const TokenBasicFields = ({
       <div className="space-y-2">
         <FormLabel>Token Image {tokenType === 'spl' ? '*' : ''}</FormLabel>
         <div className="flex items-start gap-4">
-          <div 
+          <div
             className="w-24 h-24 border border-gear-gray rounded-lg flex items-center justify-center overflow-hidden cursor-pointer"
             onClick={handleImageClick}
           >
             {imagePreview ? (
-              <Image src={imagePreview} alt="Token preview" width={96} height={96} className="w-full h-full object-cover" />
+              <Image
+                src={imagePreview}
+                alt="Token preview"
+                width={96}
+                height={96}
+                className="w-full h-full object-cover"
+              />
             ) : (
               <Upload className="w-8 h-8 text-gray-400" />
             )}
@@ -173,9 +195,7 @@ export const TokenBasicFields = ({
             <p className="text-sm text-gray-500">
               Upload a square image (recommended size: 256x256 pixels)
             </p>
-            {formErrors.image && (
-              <p className="text-sm text-red-500 mt-1">{formErrors.image}</p>
-            )}
+            {formErrors.image && <p className="text-sm text-red-500 mt-1">{formErrors.image}</p>}
           </div>
         </div>
       </div>

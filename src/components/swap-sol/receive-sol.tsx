@@ -1,10 +1,10 @@
-import React from "react";
-import { FormControl, FormField } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import { Loader } from "@nsmr/pixelart-react";
-import { UseFormReturn } from "react-hook-form";
-import { FormSwapSol } from "./swap-sol";
+import React from 'react';
+import { FormControl, FormField } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import Image from 'next/image';
+import { Loader } from '@nsmr/pixelart-react';
+import { UseFormReturn } from 'react-hook-form';
+import { FormSwapSol } from './swap-sol';
 
 interface ReceiveSolMainnetProps {
   form: UseFormReturn<FormSwapSol>;
@@ -53,7 +53,7 @@ const ReceiveSolMainnet: React.FC<ReceiveSolMainnetProps> = ({
                     {...field}
                     onChange={(e) => {
                       let value = e.target.value;
-                      if (parseFloat(value) < 0) value = "0";
+                      if (parseFloat(value) < 0) value = '0';
                       field.onChange(value);
                       if (allowEdit) {
                         onAmountChange(value);

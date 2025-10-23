@@ -1,26 +1,17 @@
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UseFormReturn } from "react-hook-form";
-import { FormData, QUANTITY_OPTIONS } from "@/lib/increase/types";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UseFormReturn } from 'react-hook-form';
+import { FormData, QUANTITY_OPTIONS } from '@/lib/increase/types';
 
 interface QuantitySelectorProps {
   form: UseFormReturn<FormData>;
   disabled?: boolean;
 }
 
-export const QuantitySelector = ({
-  form,
-  disabled = false,
-}: QuantitySelectorProps) => {
-  const customQuantity = form.watch("customQuantity");
+export const QuantitySelector = ({ form, disabled = false }: QuantitySelectorProps) => {
+  const customQuantity = form.watch('customQuantity');
 
   return (
     <Card>
@@ -40,16 +31,12 @@ export const QuantitySelector = ({
                     {QUANTITY_OPTIONS.map((qty) => (
                       <Button
                         key={qty}
-                        variant={field.value === qty ? "default" : "outline"}
+                        variant={field.value === qty ? 'default' : 'outline'}
                         size="sm"
                         type="button"
                         disabled={disabled || !!customQuantity}
                         onClick={() => field.onChange(qty)}
-                        className={
-                          field.value === qty
-                            ? "bg-black hover:bg-gray-600"
-                            : ""
-                        }
+                        className={field.value === qty ? 'bg-black hover:bg-gray-600' : ''}
                       >
                         {qty}
                       </Button>
@@ -68,11 +55,7 @@ export const QuantitySelector = ({
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input
-                  placeholder="Custom quantity"
-                  disabled={disabled}
-                  {...field}
-                />
+                <Input placeholder="Custom quantity" disabled={disabled} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

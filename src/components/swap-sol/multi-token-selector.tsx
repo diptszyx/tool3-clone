@@ -1,20 +1,15 @@
-"use client";
+'use client';
 
-import type React from "react";
-import { useState, useEffect, useCallback } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import Image from "next/image";
-import { Wallet } from "lucide-react";
-import { useUserTokens, type UserToken } from "@/hooks/useUserTokens";
-import { ClusterType } from "@/types/types";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import type React from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import Image from 'next/image';
+import { Wallet } from 'lucide-react';
+import { useUserTokens, type UserToken } from '@/hooks/useUserTokens';
+import { ClusterType } from '@/types/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SelectedTokenData {
   token: UserToken;
@@ -33,11 +28,11 @@ function MultiTokenSelector({
   selectedTokens,
   onTokensChange,
   excludeToken,
-  cluster = "mainnet",
+  cluster = 'mainnet',
   disabled = false,
 }: MultiTokenSelectorProps) {
   const { tokens } = useUserTokens(cluster, excludeToken);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [, setPriceLoading] = useState<Record<string, boolean>>({});
   const [didAutoSelect, setDidAutoSelect] = useState(false);
   const [canSwapMap, setCanSwapMap] = useState<Record<string, boolean>>({});
@@ -45,55 +40,48 @@ function MultiTokenSelector({
   const filteredTokens = tokens.filter(
     (token) =>
       token.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      token.symbol?.toLowerCase().includes(searchTerm.toLowerCase())
+      token.symbol?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const isTokenSelected = (tokenAddress: string) => {
-    return selectedTokens.some(
-      (selected) => selected.token.address === tokenAddress
-    );
+    return selectedTokens.some((selected) => selected.token.address === tokenAddress);
   };
 
-  const fetchSwapQuote = useCallback(
-    async (token: UserToken, amount: string) => {
-      if (!amount || Number(amount) === 0) {
+  const fetchSwapQuote = useCallback(async (token: UserToken, amount: string) => {
+    if (!amount || Number(amount) === 0) {
+      setCanSwapMap((prev) => ({ ...prev, [token.address]: false }));
+      return '0';
+    }
+
+    try {
+      setPriceLoading((prev) => ({ ...prev, [token.address]: true }));
+
+      const inputAmountInLamports = Math.round(Number(amount) * Math.pow(10, token.decimals || 0));
+
+      const response = await fetch(
+        `https://lite-api.jup.ag/swap/v1/quote?inputMint=${token.address}&outputMint=So11111111111111111111111111111111111111112&amount=${inputAmountInLamports}&slippageBps=100&swapMode=ExactIn`,
+      );
+
+      if (!response.ok) {
         setCanSwapMap((prev) => ({ ...prev, [token.address]: false }));
-        return "0";
+        return '0';
       }
 
-      try {
-        setPriceLoading((prev) => ({ ...prev, [token.address]: true }));
+      const quote = await response.json();
+      const solAmount = Number.parseFloat(quote.outAmount) / Math.pow(10, 9);
 
-        const inputAmountInLamports = Math.round(
-          Number(amount) * Math.pow(10, token.decimals || 0)
-        );
+      const canSwap = solAmount > 0;
+      setCanSwapMap((prev) => ({ ...prev, [token.address]: canSwap }));
 
-        const response = await fetch(
-          `https://lite-api.jup.ag/swap/v1/quote?inputMint=${token.address}&outputMint=So11111111111111111111111111111111111111112&amount=${inputAmountInLamports}&slippageBps=100&swapMode=ExactIn`
-        );
-
-        if (!response.ok) {
-          setCanSwapMap((prev) => ({ ...prev, [token.address]: false }));
-          return "0";
-        }
-
-        const quote = await response.json();
-        const solAmount = Number.parseFloat(quote.outAmount) / Math.pow(10, 9);
-
-        const canSwap = solAmount > 0;
-        setCanSwapMap((prev) => ({ ...prev, [token.address]: canSwap }));
-
-        return solAmount.toFixed(6);
-      } catch (error) {
-        console.error("Failed to fetch swap quote:", error);
-        setCanSwapMap((prev) => ({ ...prev, [token.address]: false }));
-        return "0";
-      } finally {
-        setPriceLoading((prev) => ({ ...prev, [token.address]: false }));
-      }
-    },
-    []
-  );
+      return solAmount.toFixed(6);
+    } catch (error) {
+      console.error('Failed to fetch swap quote:', error);
+      setCanSwapMap((prev) => ({ ...prev, [token.address]: false }));
+      return '0';
+    } finally {
+      setPriceLoading((prev) => ({ ...prev, [token.address]: false }));
+    }
+  }, []);
 
   const handleTokenToggle = async (token: UserToken, checked: boolean) => {
     if (disabled) return;
@@ -108,21 +96,13 @@ function MultiTokenSelector({
 
       onTokensChange([...selectedTokens, newTokenData]);
     } else {
-      onTokensChange(
-        selectedTokens.filter(
-          (selected) => selected.token.address !== token.address
-        )
-      );
+      onTokensChange(selectedTokens.filter((selected) => selected.token.address !== token.address));
     }
   };
 
   const getTotalEstimatedSol = () => {
     return selectedTokens
-      .reduce(
-        (total, selected) =>
-          total + Number.parseFloat(selected.estimatedSol || "0"),
-        0
-      )
+      .reduce((total, selected) => total + Number.parseFloat(selected.estimatedSol || '0'), 0)
       .toFixed(6);
   };
 
@@ -134,7 +114,7 @@ function MultiTokenSelector({
             const estimatedSol = await fetchSwapQuote(token, token.balance);
             if (Number(estimatedSol) === 0) return null;
             return { token, estimatedSol };
-          })
+          }),
         );
         onTokensChange(updated.filter(Boolean) as SelectedTokenData[]);
         setDidAutoSelect(true);
@@ -150,16 +130,14 @@ function MultiTokenSelector({
           <h3 className="text-base font-semibold">Select Tokens to Swap</h3>
           <div className="text-sm text-gray-600">
             {selectedTokens.length} token
-            {selectedTokens.length !== 1 ? "s" : ""} selected
+            {selectedTokens.length !== 1 ? 's' : ''} selected
           </div>
         </div>
 
         {selectedTokens.length > 0 && (
           <div className="px-3 py-2 bg-blue-50 border-gear-blue w-[calc(100%-10px)]">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-blue-800">
-                Total Estimated SOL:
-              </span>
+              <span className="text-sm font-medium text-blue-800">Total Estimated SOL:</span>
               <div className="flex items-center gap-2">
                 <span className="text-lg font-bold text-blue-900 mt-[2px]">
                   {getTotalEstimatedSol()}
@@ -192,22 +170,19 @@ function MultiTokenSelector({
               return (
                 <div
                   key={token.address}
-                  className={`border rounded-lg transition-colors px-1 py-1 ${isSelected
-                    ? "bg-blue-50 border-gear-blue"
-                    : "bg-white border-gear-gray"
-                    }`}
+                  className={`border rounded-lg transition-colors px-1 py-1 ${
+                    isSelected ? 'bg-blue-50 border-gear-blue' : 'bg-white border-gear-gray'
+                  }`}
                 >
                   <div className="flex items-center space-x-3">
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={(checked) =>
-                        handleTokenToggle(token, checked as boolean)
-                      }
+                      onCheckedChange={(checked) => handleTokenToggle(token, checked as boolean)}
                       disabled={disabled || !canSwap}
                     />
 
                     <Image
-                      src={token.logoURI || "/image/none-icon.webp"}
+                      src={token.logoURI || '/image/none-icon.webp'}
                       alt={token.name}
                       width={32}
                       height={32}
@@ -220,9 +195,7 @@ function MultiTokenSelector({
                           <p className="font-medium text-gray-900 truncate">
                             {token.symbol || token.name}
                           </p>
-                          <p className="text-sm text-gray-500 truncate">
-                            {token.name}
-                          </p>
+                          <p className="text-sm text-gray-500 truncate">{token.name}</p>
                           {!canSwap && (
                             <TooltipProvider>
                               <Tooltip>
@@ -232,8 +205,7 @@ function MultiTokenSelector({
                                   </p>
                                 </TooltipTrigger>
                                 <TooltipContent side="right">
-                                  Jupiter doesn’t support swapping this token to
-                                  SOL.
+                                  Jupiter doesn’t support swapping this token to SOL.
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>

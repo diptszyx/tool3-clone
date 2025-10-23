@@ -1,16 +1,11 @@
-"use client";
+'use client';
 
-import * as React from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import Image from "next/image";
-import { ExternalLink } from "lucide-react";
+import * as React from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { ExternalLink } from 'lucide-react';
 
 export interface TokenInfo {
   id: string;
@@ -30,12 +25,8 @@ interface TokenSearchModalProps {
   onSelect?: (token: TokenInfo) => void;
 }
 
-export default function TokenSearchModal({
-  open,
-  onClose,
-  onSelect,
-}: TokenSearchModalProps) {
-  const [query, setQuery] = React.useState("");
+export default function TokenSearchModal({ open, onClose, onSelect }: TokenSearchModalProps) {
+  const [query, setQuery] = React.useState('');
   const [results, setResults] = React.useState<TokenInfo[]>([]);
   const [loading, setLoading] = React.useState(false);
 
@@ -58,10 +49,10 @@ export default function TokenSearchModal({
           }
 
           const tokens: TokenInfo[] = data.map((item) => ({
-            id: item.id ?? "",
-            name: item.name ?? "",
-            symbol: item.symbol ?? "",
-            icon: item.icon ?? "",
+            id: item.id ?? '',
+            name: item.name ?? '',
+            symbol: item.symbol ?? '',
+            icon: item.icon ?? '',
             decimals: item.decimals ?? 0,
             usdPrice: item.usdPrice ?? 0,
             mcap: item.mcap ?? 0,
@@ -104,7 +95,7 @@ export default function TokenSearchModal({
               const iconSrc =
                 token.icon && token.icon.trim().length > 0
                   ? token.icon
-                  : "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png";
+                  : 'https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png';
 
               return (
                 <button
@@ -127,9 +118,7 @@ export default function TokenSearchModal({
                     </div>
                     <div className="text-left">
                       <div className="font-medium">{token.name}</div>
-                      <div className="text-xs text-gray-500">
-                        {token.symbol}
-                      </div>
+                      <div className="text-xs text-gray-500">{token.symbol}</div>
                     </div>
                   </div>
 

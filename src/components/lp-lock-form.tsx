@@ -1,13 +1,13 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Info, Wallet } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { Info, Wallet } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -15,44 +15,39 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { toast } from "sonner";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { Transaction } from "@solana/web3.js";
-import { add, format, fromUnixTime } from "date-fns";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { debounce } from "lodash";
+} from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { Transaction } from '@solana/web3.js';
+import { add, format, fromUnixTime } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { debounce } from 'lodash';
 
 const formSchema = z.object({
   poolId: z.string().min(1, {
-    message: "Pool ID is required",
+    message: 'Pool ID is required',
   }),
   lockPeriod: z.string().min(1, {
-    message: "Lock period is required",
+    message: 'Lock period is required',
   }),
   amount: z.string().min(1, {
-    message: "Amount is required",
+    message: 'Amount is required',
   }),
 });
 
 export default function LpLockForm() {
   const isMobile = useIsMobile();
-  const [userLpBalance, setUserLpBalance] = useState("0.00");
-  const [tokenMint, setTokenMint] = useState("");
+  const [userLpBalance, setUserLpBalance] = useState('0.00');
+  const [tokenMint, setTokenMint] = useState('');
   const [loading, setLoading] = useState(false);
   const { publicKey, signTransaction } = useWallet();
   const searchParams = useSearchParams();
@@ -62,16 +57,16 @@ export default function LpLockForm() {
     let unlockDate: Date;
 
     switch (period) {
-      case "6months":
+      case '6months':
         unlockDate = add(now, { minutes: 5 });
         break;
-      case "1year":
+      case '1year':
         unlockDate = add(now, { years: 1 });
         break;
-      case "2years":
+      case '2years':
         unlockDate = add(now, { years: 2 });
         break;
-      case "3years":
+      case '3years':
         unlockDate = add(now, { years: 3 });
         break;
       default:
@@ -84,27 +79,27 @@ export default function LpLockForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      poolId: "",
-      lockPeriod: "",
-      amount: "",
+      poolId: '',
+      lockPeriod: '',
+      amount: '',
     },
   });
 
   const fetchPoolInfo = useCallback(
     async (poolId: string) => {
       if (!publicKey) {
-        toast.error("Please connect your wallet before fetching pool info");
+        toast.error('Please connect your wallet before fetching pool info');
         return;
       }
       if (!poolId) {
-        toast.error("Please enter a Pool ID");
+        toast.error('Please enter a Pool ID');
         return;
       }
       try {
         setLoading(true);
-        const response = await fetch("/api/fetch-lp", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+        const response = await fetch('/api/fetch-lp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             poolId,
             userPublicKey: publicKey.toString(),
@@ -115,21 +110,21 @@ export default function LpLockForm() {
           setUserLpBalance(result.balance.toFixed(3));
           setTokenMint(result.lpMint);
         } else {
-          throw new Error(result.error || "Pool information not found");
+          throw new Error(result.error || 'Pool information not found');
         }
       } catch (error: unknown) {
         const message =
           error instanceof Error
             ? error.message
-            : "Cannot get pool information. Please check Pool ID.";
+            : 'Cannot get pool information. Please check Pool ID.';
         toast.error(message);
-        setUserLpBalance("0.00");
-        setTokenMint("");
+        setUserLpBalance('0.00');
+        setTokenMint('');
       } finally {
         setLoading(false);
       }
     },
-    [publicKey]
+    [publicKey],
   );
 
   const debouncedFetchPoolInfo = useMemo(() => {
@@ -142,23 +137,23 @@ export default function LpLockForm() {
     try {
       setLoading(true);
       if (!publicKey || !signTransaction) {
-        toast.error("Please connect your wallet first");
+        toast.error('Please connect your wallet first');
         return;
       }
 
       if (parseFloat(values.amount) > parseFloat(userLpBalance)) {
-        toast.error("Insufficient balance");
+        toast.error('Insufficient balance');
         return;
       }
 
       if (!tokenMint) {
-        toast.error("Token information not found");
+        toast.error('Token information not found');
         return;
       }
 
       const unlockTimestamp = getLockTimestamp(values.lockPeriod);
       if (unlockTimestamp === 0) {
-        toast.error("Invalid lock period");
+        toast.error('Invalid lock period');
         return;
       }
 
@@ -170,10 +165,10 @@ export default function LpLockForm() {
         tokenMint,
       };
 
-      const response = await fetch("/api/deposit", {
-        method: "POST",
+      const response = await fetch('/api/deposit', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(depositData),
       });
@@ -181,60 +176,54 @@ export default function LpLockForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Lock token failed");
+        throw new Error(data.error || 'Lock token failed');
       }
 
       if (data.success && data.transaction) {
         try {
-          const transaction = Transaction.from(
-            Buffer.from(data.transaction, "base64")
-          );
+          const transaction = Transaction.from(Buffer.from(data.transaction, 'base64'));
 
           const signedTx = await signTransaction(transaction);
 
-          const sendTxResponse = await fetch("/api/send-transaction", {
-            method: "POST",
+          const sendTxResponse = await fetch('/api/send-transaction', {
+            method: 'POST',
             headers: {
-              "Content-Type": "application/json",
+              'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              transaction: Buffer.from(signedTx.serialize()).toString("base64"),
+              transaction: Buffer.from(signedTx.serialize()).toString('base64'),
               blockhash: data.blockhash,
               lastValidBlockHeight: data.lastValidBlockHeight,
-              cluster: "devnet"
+              cluster: 'devnet',
             }),
           });
 
           const sendTxData = await sendTxResponse.json();
 
           if (!sendTxResponse.ok) {
-            throw new Error(sendTxData.error || "Failed to send transaction");
+            throw new Error(sendTxData.error || 'Failed to send transaction');
           }
 
-          toast.success("Lock LP token successful", {
-            description: `You have locked ${values.amount
-              } LP tokens for ${" "} ${values.lockPeriod}`,
+          toast.success('Lock LP token successful', {
+            description: `You have locked ${
+              values.amount
+            } LP tokens for ${' '} ${values.lockPeriod}`,
             action: {
-              label: "View Transaction",
+              label: 'View Transaction',
               onClick: () =>
-                window.open(
-                  `https://solscan.io/tx/${sendTxData.txId}?cluster=devnet`,
-                  "_blank"
-                ),
+                window.open(`https://solscan.io/tx/${sendTxData.txId}?cluster=devnet`, '_blank'),
             },
           });
         } catch (error: unknown) {
-          console.error("Transaction error:", error);
-          throw new Error("Cannot sign or send transaction");
+          console.error('Transaction error:', error);
+          throw new Error('Cannot sign or send transaction');
         }
       } else {
-        throw new Error("No transaction received from API");
+        throw new Error('No transaction received from API');
       }
     } catch (error: unknown) {
       const message =
-        error instanceof Error
-          ? error.message
-          : "Lock token failed. Please try again.";
+        error instanceof Error ? error.message : 'Lock token failed. Please try again.';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -242,31 +231,28 @@ export default function LpLockForm() {
   };
 
   const handlePoolIdChange = (value: string) => {
-    form.setValue("poolId", value);
+    form.setValue('poolId', value);
     debouncedFetchPoolInfo(value);
   };
 
   const setHalf = () => {
     const halfAmount = (Number.parseFloat(userLpBalance) / 2).toFixed(3);
-    form.setValue("amount", halfAmount);
+    form.setValue('amount', halfAmount);
   };
 
   const setMax = () => {
-    form.setValue("amount", userLpBalance);
+    form.setValue('amount', userLpBalance);
   };
 
   useEffect(() => {
-    const poolId = searchParams.get("poolId");
+    const poolId = searchParams.get('poolId');
     if (poolId && publicKey) {
-      form.setValue("poolId", poolId);
+      form.setValue('poolId', poolId);
       fetchPoolInfo(poolId);
     }
   }, [searchParams, publicKey, fetchPoolInfo, form]);
   return (
-    <div
-      className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear"
-        }`}
-    >
+    <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
         Lock LP Tokens
       </h1>
@@ -286,9 +272,7 @@ export default function LpLockForm() {
                           <Info className="ml-2 h-4 w-4 text-gray-500 mb-[3px]" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>
-                            Enter the unique identifier for the liquidity pool
-                          </p>
+                          <p>Enter the unique identifier for the liquidity pool</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -374,9 +358,7 @@ export default function LpLockForm() {
                           <Info className="h-4 w-4 text-gray-500 mb-[1px]" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>
-                            Select the duration you want to lock your LP tokens
-                          </p>
+                          <p>Select the duration you want to lock your LP tokens</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -419,7 +401,7 @@ export default function LpLockForm() {
                     <span className="text-gray-700">Your LP Balance</span>
                   </div>
                   <div className="font-medium text-gray-900">
-                    {loading ? "Loading..." : `${userLpBalance} LP`}
+                    {loading ? 'Loading...' : `${userLpBalance} LP`}
                   </div>
                 </div>
               </CardContent>
@@ -428,12 +410,9 @@ export default function LpLockForm() {
             <div className="border-gear-gray bg-white p-4 !mt-6 py-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">Unlock Date</span>
-                {form.watch("lockPeriod")
-                  ? format(
-                    fromUnixTime(getLockTimestamp(form.watch("lockPeriod"))),
-                    "dd/MM/yyyy"
-                  )
-                  : "--"}
+                {form.watch('lockPeriod')
+                  ? format(fromUnixTime(getLockTimestamp(form.watch('lockPeriod'))), 'dd/MM/yyyy')
+                  : '--'}
               </div>
             </div>
           </div>

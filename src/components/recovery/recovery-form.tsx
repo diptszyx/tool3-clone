@@ -1,30 +1,40 @@
-"use client";
+'use client';
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from 'react';
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { toast } from "sonner";
-import { Check, ExternalLink, Loader2, Info } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { permanentDelegateRecovery, PermanentDelegateRecoveryResult } from "@/service/token/token-extensions/tool/permanent-delegate-recovery";
-import { Separator } from "@/components/ui/separator";
-import SelectToken from "@/components/transfer/select-token";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { PublicKey } from "@solana/web3.js";
-import React from "react";
-import { UserToken } from "@/hooks/useUserTokens";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useNetwork } from "@/context/NetworkContext";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { toast } from 'sonner';
+import { Check, ExternalLink, Loader2, Info } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  permanentDelegateRecovery,
+  PermanentDelegateRecoveryResult,
+} from '@/service/token/token-extensions/tool/permanent-delegate-recovery';
+import { Separator } from '@/components/ui/separator';
+import SelectToken from '@/components/transfer/select-token';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { PublicKey } from '@solana/web3.js';
+import React from 'react';
+import { UserToken } from '@/hooks/useUserTokens';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNetwork } from '@/context/NetworkContext';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 export interface RecoveryFormProps {
   [key: string]: never;
 }
 
-export function RecoveryForm({ }: RecoveryFormProps) {
+export function RecoveryForm({}: RecoveryFormProps) {
   const wallet = useWallet();
   const { connected } = wallet;
   const { connection } = useConnection();
@@ -32,19 +42,20 @@ export function RecoveryForm({ }: RecoveryFormProps) {
   const { network } = useNetwork();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedToken, setSelectedToken] = useState<UserToken | null>(null);
-  const [cluster, setCluster] = useState<"mainnet" | "devnet">("mainnet");
+  const [cluster, setCluster] = useState<'mainnet' | 'devnet'>('mainnet');
 
-  const [sourceWalletAddress, setSourceWalletAddress] = useState<string>("");
-  const [sourceTokenAccount, setSourceTokenAccount] = useState<string>("");
+  const [sourceWalletAddress, setSourceWalletAddress] = useState<string>('');
+  const [sourceTokenAccount, setSourceTokenAccount] = useState<string>('');
   const [calculatingSource, setCalculatingSource] = useState<boolean>(false);
 
-  const [amount, setAmount] = useState<string>("");
-  const [memo, setMemo] = useState<string>("");
+  const [amount, setAmount] = useState<string>('');
+  const [memo, setMemo] = useState<string>('');
   const [recoveryInProgress, setRecoveryInProgress] = useState(false);
   const [recoverySuccess, setRecoverySuccess] = useState(false);
-  const [recoveryResult, setRecoveryResult] = useState<PermanentDelegateRecoveryResult | null>(null);
+  const [recoveryResult, setRecoveryResult] = useState<PermanentDelegateRecoveryResult | null>(
+    null,
+  );
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-
 
   useEffect(() => {
     const networkType = network === WalletAdapterNetwork.Devnet ? 'devnet' : 'mainnet';
@@ -60,53 +71,56 @@ export function RecoveryForm({ }: RecoveryFormProps) {
   };
 
   // Calculate token account address from wallet address
-  const calculateTokenAccount = useCallback(async (walletAddress: string, mintAddress: string) => {
-    if (!walletAddress || !mintAddress || !connection) return;
+  const calculateTokenAccount = useCallback(
+    async (walletAddress: string, mintAddress: string) => {
+      if (!walletAddress || !mintAddress || !connection) return;
 
-    try {
-      // Validate wallet address
       try {
-        new PublicKey(walletAddress);
-        new PublicKey(mintAddress);
+        // Validate wallet address
+        try {
+          new PublicKey(walletAddress);
+          new PublicKey(mintAddress);
+        } catch {
+          toast.error('Invalid wallet or mint address');
+          setSourceTokenAccount('');
+          return;
+        }
+
+        setCalculatingSource(true);
+
+        // Fetch token account using API
+        const response = await fetch('/api/token-account', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            walletAddress: walletAddress,
+            mintAddress: mintAddress,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get token account');
+        }
+
+        const data = await response.json();
+
+        if (data.tokenAccount) {
+          setSourceTokenAccount(data.tokenAccount);
+        } else {
+          toast.warning('Token account does not exist for this wallet and token');
+          setSourceTokenAccount('');
+        }
       } catch {
-        toast.error("Invalid wallet or mint address");
-        setSourceTokenAccount("");
-        return;
+        toast.error('Failed to calculate token account');
+        setSourceTokenAccount('');
+      } finally {
+        setCalculatingSource(false);
       }
-
-      setCalculatingSource(true);
-
-      // Fetch token account using API
-      const response = await fetch("/api/token-account", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          walletAddress: walletAddress,
-          mintAddress: mintAddress
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get token account");
-      }
-
-      const data = await response.json();
-
-      if (data.tokenAccount) {
-        setSourceTokenAccount(data.tokenAccount);
-      } else {
-        toast.warning("Token account does not exist for this wallet and token");
-        setSourceTokenAccount("");
-      }
-    } catch {
-      toast.error("Failed to calculate token account");
-      setSourceTokenAccount("");
-    } finally {
-      setCalculatingSource(false);
-    }
-  }, [connection, setSourceTokenAccount, setCalculatingSource]);
+    },
+    [connection, setSourceTokenAccount, setCalculatingSource],
+  );
 
   // Calculate token account when source wallet address changes
   useEffect(() => {
@@ -118,29 +132,29 @@ export function RecoveryForm({ }: RecoveryFormProps) {
   // Reset source address when token changes
   useEffect(() => {
     if (selectedToken) {
-      setSourceWalletAddress("");
-      setSourceTokenAccount("");
+      setSourceWalletAddress('');
+      setSourceTokenAccount('');
     }
   }, [selectedToken]);
 
   const openConfirmDialog = () => {
     if (!connected) {
-      toast.error("Please connect your wallet first");
+      toast.error('Please connect your wallet first');
       return;
     }
 
     if (!selectedToken) {
-      toast.error("Please select a token");
+      toast.error('Please select a token');
       return;
     }
 
     if (!sourceWalletAddress) {
-      toast.error("Please enter a source wallet address");
+      toast.error('Please enter a source wallet address');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error('Please enter a valid amount');
       return;
     }
 
@@ -149,7 +163,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
 
   const handleRecovery = async () => {
     if (!connected || !selectedToken || !amount || !sourceWalletAddress) {
-      toast.error("Please fill in all required information");
+      toast.error('Please fill in all required information');
       return;
     }
 
@@ -159,7 +173,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
     let toastId: string | number | undefined;
 
     try {
-      toastId = toast.loading("Processing recovery transaction...");
+      toastId = toast.loading('Processing recovery transaction...');
 
       const result = await permanentDelegateRecovery(
         connection,
@@ -168,32 +182,32 @@ export function RecoveryForm({ }: RecoveryFormProps) {
           sourceWalletAddress: sourceWalletAddress,
           mintAddress: selectedToken.address,
           amount: amount,
-          decimals: selectedToken.decimals || 0
+          decimals: selectedToken.decimals || 0,
         },
         {
           memo: memo,
-          onStart: () => { },
+          onStart: () => {},
           onSuccess: () => {
             toast.dismiss(toastId);
-            toast.success("Token recovery successful!");
+            toast.success('Token recovery successful!');
           },
           onError: (err) => {
             toast.dismiss(toastId);
             toast.error(`Recovery failed: ${err.message}`);
           },
-          onFinish: () => setRecoveryInProgress(false)
-        }
+          onFinish: () => setRecoveryInProgress(false),
+        },
       );
 
       if (result) {
-        console.log("Transaction signature:", result.signature);
+        console.log('Transaction signature:', result.signature);
         toast.dismiss(toastId);
         setRecoveryResult(result);
         setRecoverySuccess(true);
         // Reloading will happen automatically through parent components
       }
     } catch (error: unknown) {
-      console.error("Error in recovery:", error);
+      console.error('Error in recovery:', error);
       if (toastId) toast.dismiss(toastId);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -205,17 +219,15 @@ export function RecoveryForm({ }: RecoveryFormProps) {
   const handleCloseRecoveryDialog = () => {
     setRecoverySuccess(false);
     setRecoveryResult(null);
-    setAmount("");
-    setSourceWalletAddress("");
-    setSourceTokenAccount("");
-    setMemo("");
+    setAmount('');
+    setSourceWalletAddress('');
+    setSourceTokenAccount('');
+    setMemo('');
   };
-
-
 
   if (recoverySuccess && recoveryResult) {
     return (
-      <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
+      <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
         <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
           Recovery Successful!
         </h1>
@@ -225,7 +237,9 @@ export function RecoveryForm({ }: RecoveryFormProps) {
               <Check className="h-8 w-8 text-green-600" />
             </div>
           </div>
-          <p className="text-gray-500 mb-6">Tokens have been successfully recovered using permanent delegate authority</p>
+          <p className="text-gray-500 mb-6">
+            Tokens have been successfully recovered using permanent delegate authority
+          </p>
 
           <div className="space-y-4 mb-8">
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -235,7 +249,9 @@ export function RecoveryForm({ }: RecoveryFormProps) {
 
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm font-medium text-gray-500">Amount Recovered</p>
-              <p className="text-base font-mono">{recoveryResult.amount} {selectedToken?.symbol || ""}</p>
+              <p className="text-base font-mono">
+                {recoveryResult.amount} {selectedToken?.symbol || ''}
+              </p>
             </div>
 
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -245,10 +261,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              variant="outline"
-              onClick={handleCloseRecoveryDialog}
-            >
+            <Button variant="outline" onClick={handleCloseRecoveryDialog}>
               Recover More Tokens
             </Button>
 
@@ -258,7 +271,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
                 const explorerUrl = isDevnet
                   ? `https://explorer.solana.com/tx/${recoveryResult.signature}?cluster=devnet`
                   : `https://explorer.solana.com/tx/${recoveryResult.signature}`;
-                window.open(explorerUrl, "_blank");
+                window.open(explorerUrl, '_blank');
               }}
             >
               View on Explorer <ExternalLink className="ml-2 h-4 w-4" />
@@ -270,7 +283,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
   }
 
   return (
-    <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
+    <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
         Permanent Delegate Recovery
       </h1>
@@ -282,12 +295,19 @@ export function RecoveryForm({ }: RecoveryFormProps) {
           <Info className="h-4 w-4 text-purple-500" />
           <AlertTitle>About Permanent Delegate Recovery</AlertTitle>
           <AlertDescription>
-            If you are the permanent delegate for a token, you can use this tool to recover tokens from any wallet.
-            This is useful for retrieving tokens that were sent to the wrong address.
+            If you are the permanent delegate for a token, you can use this tool to recover tokens
+            from any wallet. This is useful for retrieving tokens that were sent to the wrong
+            address.
           </AlertDescription>
         </Alert>
 
-        <form onSubmit={(e) => { e.preventDefault(); openConfirmDialog(); }} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            openConfirmDialog();
+          }}
+          className="space-y-6"
+        >
           <div className="space-y-3">
             <Label htmlFor="token">Select Token</Label>
             <div className="w-[calc(100%-8px)] ml-1">
@@ -325,9 +345,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label htmlFor="source-token-account">Token Account (Calculated)</Label>
-              {calculatingSource && (
-                <Loader2 className="h-3 w-3 animate-spin text-blue-400" />
-              )}
+              {calculatingSource && <Loader2 className="h-3 w-3 animate-spin text-blue-400" />}
             </div>
             <Input
               id="source-token-account"
@@ -364,7 +382,14 @@ export function RecoveryForm({ }: RecoveryFormProps) {
           <Button
             type="submit"
             className="w-full bg-purple-600 hover:bg-purple-700 text-white cursor-pointer"
-            disabled={isLoading || !connected || !selectedToken || recoveryInProgress || !sourceWalletAddress || !amount}
+            disabled={
+              isLoading ||
+              !connected ||
+              !selectedToken ||
+              recoveryInProgress ||
+              !sourceWalletAddress ||
+              !amount
+            }
           >
             {recoveryInProgress ? (
               <>
@@ -372,7 +397,7 @@ export function RecoveryForm({ }: RecoveryFormProps) {
                 Processing...
               </>
             ) : (
-              "Recover Tokens"
+              'Recover Tokens'
             )}
           </Button>
         </form>
@@ -391,15 +416,22 @@ export function RecoveryForm({ }: RecoveryFormProps) {
             <div className="space-y-3 py-2">
               <div className="flex justify-between">
                 <span className="text-gray-500">Token:</span>
-                <span className="font-medium">{selectedToken.name} ({selectedToken.symbol})</span>
+                <span className="font-medium">
+                  {selectedToken.name} ({selectedToken.symbol})
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Source Wallet:</span>
-                <span className="font-medium">{sourceWalletAddress.substring(0, 6)}...{sourceWalletAddress.substring(sourceWalletAddress.length - 4)}</span>
+                <span className="font-medium">
+                  {sourceWalletAddress.substring(0, 6)}...
+                  {sourceWalletAddress.substring(sourceWalletAddress.length - 4)}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Amount to Recover:</span>
-                <span className="font-medium">{amount} {selectedToken.symbol}</span>
+                <span className="font-medium">
+                  {amount} {selectedToken.symbol}
+                </span>
               </div>
               <Separator className="bg-gray-200" />
               <div className="flex justify-between text-purple-500">
@@ -410,16 +442,10 @@ export function RecoveryForm({ }: RecoveryFormProps) {
           )}
 
           <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirmDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleRecovery}
-              className="bg-purple-600 hover:bg-purple-700"
-            >
+            <Button onClick={handleRecovery} className="bg-purple-600 hover:bg-purple-700">
               Confirm Recovery
             </Button>
           </DialogFooter>
@@ -427,4 +453,4 @@ export function RecoveryForm({ }: RecoveryFormProps) {
       </Dialog>
     </div>
   );
-} 
+}

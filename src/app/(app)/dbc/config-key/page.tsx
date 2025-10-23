@@ -1,11 +1,11 @@
-import ConfigKeyForm from "@/components/dbc/config-key";
-import SuspenseLayout from "@/components/suspense-layout";
-import { Metadata } from "next";
+import ConfigKeyForm from '@/components/dbc/config-key';
+import SuspenseLayout from '@/components/suspense-layout';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Lock Your LP Tokens Securely and Easily",
+  title: 'Lock Your LP Tokens Securely and Easily',
   description:
-    "Securely lock your liquidity provider (LP) tokens with ease using our simple and trusted interface. Protect your assets and manage your positions confidently.",
+    'Securely lock your liquidity provider (LP) tokens with ease using our simple and trusted interface. Protect your assets and manage your positions confidently.',
 };
 
 export default function ConfigKey() {

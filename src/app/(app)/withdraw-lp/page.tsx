@@ -1,11 +1,11 @@
-import SuspenseLayout from "@/components/suspense-layout";
-import Withdraw from "@/components/withdraw-form";
-import { Metadata } from "next";
+import SuspenseLayout from '@/components/suspense-layout';
+import Withdraw from '@/components/withdraw-form';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Securely Withdraw Your LP Tokens Easily",
+  title: 'Securely Withdraw Your LP Tokens Easily',
   description:
-    "Withdraw your liquidity provider (LP) tokens quickly and securely using our intuitive interface.",
+    'Withdraw your liquidity provider (LP) tokens quickly and securely using our intuitive interface.',
 };
 
 export default function WithdrawLP() {
@@ -15,7 +15,6 @@ export default function WithdrawLP() {
         <SuspenseLayout>
           <Withdraw />
         </SuspenseLayout>
-
       </div>
     </div>
   );

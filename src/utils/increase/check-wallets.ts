@@ -1,6 +1,6 @@
-import { Connection, PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
-import { WalletInfo } from "../create-wallets";
+import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { WalletInfo } from '../create-wallets';
 
 export interface SimpleTokenBalance {
   mint: string;
@@ -15,7 +15,7 @@ export async function fetchSolAndTokenBalancesBatched(
   wallets: WalletInfo[],
   connection: Connection,
   batchSize = 10,
-  delayMs = 300
+  delayMs = 300,
 ): Promise<
   (WalletInfo & {
     solAmount: number;
@@ -37,21 +37,16 @@ export async function fetchSolAndTokenBalancesBatched(
           const solLamports = await connection.getBalance(pubkey);
           const solAmount = solLamports / LAMPORTS_PER_SOL;
 
-          const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-            pubkey,
-            {
-              programId: TOKEN_PROGRAM_ID,
-            }
-          );
+          const tokenAccounts = await connection.getParsedTokenAccountsByOwner(pubkey, {
+            programId: TOKEN_PROGRAM_ID,
+          });
 
-          const tokenBalances: SimpleTokenBalance[] = tokenAccounts.value.map(
-            (acc) => {
-              const info = acc.account.data.parsed.info;
-              const mint = info.mint;
-              const amount = parseFloat(info.tokenAmount.uiAmountString || "0");
-              return { mint, amount };
-            }
-          );
+          const tokenBalances: SimpleTokenBalance[] = tokenAccounts.value.map((acc) => {
+            const info = acc.account.data.parsed.info;
+            const mint = info.mint;
+            const amount = parseFloat(info.tokenAmount.uiAmountString || '0');
+            return { mint, amount };
+          });
 
           return {
             ...wallet,
@@ -66,19 +61,19 @@ export async function fetchSolAndTokenBalancesBatched(
             tokenBalances: [],
           };
         }
-      })
+      }),
     );
 
     results.push(
       ...batchResults.map((res, idx) =>
-        res.status === "fulfilled"
+        res.status === 'fulfilled'
           ? res.value
           : {
               ...batch[idx],
               solAmount: 0,
               tokenBalances: [],
-            }
-      )
+            },
+      ),
     );
 
     if (i + batchSize < wallets.length) {

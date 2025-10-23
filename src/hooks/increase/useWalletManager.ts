@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from 'react';
 import {
   generateSolanaWallets,
   saveWalletsToLocalStorage,
   loadWalletsFromLocalStorage,
   removeWalletsFromLocalStorage,
-} from "@/utils/create-wallets";
-import { WalletInfo } from "@/lib/increase/types";
+} from '@/utils/create-wallets';
+import { WalletInfo } from '@/lib/increase/types';
 
 export const useWalletManager = () => {
   const [wallets, setWallets] = useState<WalletInfo[] | null>(null);
@@ -20,20 +20,20 @@ export const useWalletManager = () => {
   const generateWallets = useCallback(
     (
       quantity: number,
-      mode: "fixed" | "random",
+      mode: 'fixed' | 'random',
       fixedAmount?: number,
       minAmount?: number,
-      maxAmount?: number
+      maxAmount?: number,
     ): WalletInfo[] => {
       const newWallets =
-        mode === "fixed"
-          ? generateSolanaWallets(quantity, "fixed", fixedAmount!)
-          : generateSolanaWallets(quantity, "random", minAmount!, maxAmount!);
+        mode === 'fixed'
+          ? generateSolanaWallets(quantity, 'fixed', fixedAmount!)
+          : generateSolanaWallets(quantity, 'random', minAmount!, maxAmount!);
 
       setWallets(newWallets);
       return newWallets;
     },
-    []
+    [],
   );
 
   const saveWallets = useCallback((walletsToSave: WalletInfo[]) => {

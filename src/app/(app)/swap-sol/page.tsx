@@ -1,10 +1,10 @@
-import SwapSolForm from "@/components/swap-sol/swap-sol";
-import { Metadata } from "next";
+import SwapSolForm from '@/components/swap-sol/swap-sol';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Swap Tokens to SOL Without Holding SOL",
+  title: 'Swap Tokens to SOL Without Holding SOL',
   description:
-    "Easily swap your tokens to SOL without needing SOL in your wallet first. Fast, secure token swaps designed for seamless Web3 user experience.",
+    'Easily swap your tokens to SOL without needing SOL in your wallet first. Fast, secure token swaps designed for seamless Web3 user experience.',
 };
 export default function SwapSol() {
   return (

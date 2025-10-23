@@ -1,5 +1,5 @@
-import { Connection } from "@solana/web3.js";
-import { connectionDevnet } from "@/service/solana/connection";
+import { Connection } from '@solana/web3.js';
+import { connectionDevnet } from '@/service/solana/connection';
 
 export interface RPCStatus {
   latency: number;
@@ -11,7 +11,7 @@ export async function checkRPCSpeed(rpcUrl: string): Promise<RPCStatus> {
   const startTime = Date.now();
 
   try {
-    const connection = new Connection(rpcUrl, "confirmed");
+    const connection = new Connection(rpcUrl, 'confirmed');
     await connection.getSlot();
 
     const latency = Date.now() - startTime;
@@ -24,7 +24,7 @@ export async function checkRPCSpeed(rpcUrl: string): Promise<RPCStatus> {
     return {
       latency: -1,
       isValid: false,
-      error: error instanceof Error ? error.message : "Invalid RPC",
+      error: error instanceof Error ? error.message : 'Invalid RPC',
     };
   }
 }
@@ -32,7 +32,7 @@ export async function checkRPCSpeed(rpcUrl: string): Promise<RPCStatus> {
 export function createConnection(userRpcUrl?: string): Connection {
   if (userRpcUrl && userRpcUrl.trim()) {
     try {
-      return new Connection(userRpcUrl, "confirmed");
+      return new Connection(userRpcUrl, 'confirmed');
     } catch {
       return connectionDevnet;
     }

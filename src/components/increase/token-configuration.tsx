@@ -1,16 +1,11 @@
-import {
-  FormField,
-  FormItem,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, CheckCircle, XCircle } from "lucide-react";
-import Image from "next/image";
-import { UseFormReturn } from "react-hook-form";
-import { TokenInfo, FormData } from "@/lib/increase/types";
-import { useRPCValidation } from "@/hooks/increase/useRPCValidation";
+import { FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Clock, CheckCircle, XCircle } from 'lucide-react';
+import Image from 'next/image';
+import { UseFormReturn } from 'react-hook-form';
+import { TokenInfo, FormData } from '@/lib/increase/types';
+import { useRPCValidation } from '@/hooks/increase/useRPCValidation';
 
 interface TokenConfigurationProps {
   selectedToken: TokenInfo | null;
@@ -25,7 +20,7 @@ export const TokenConfiguration = ({
   form,
   disabled = false,
 }: TokenConfigurationProps) => {
-  const rpcUrl = form.watch("rpcUrl");
+  const rpcUrl = form.watch('rpcUrl');
   const { status: rpcStatus, isChecking } = useRPCValidation(rpcUrl);
 
   return (
@@ -54,9 +49,7 @@ export const TokenConfiguration = ({
               onClick={onSelectToken}
               disabled={disabled}
               className={`w-full flex items-center gap-2 p-3 border rounded-lg h-11 ${
-                disabled
-                  ? "bg-gray-200 cursor-not-allowed"
-                  : "bg-gray-50 hover:bg-gray-100"
+                disabled ? 'bg-gray-200 cursor-not-allowed' : 'bg-gray-50 hover:bg-gray-100'
               }`}
             >
               {selectedToken ? (
@@ -68,9 +61,7 @@ export const TokenConfiguration = ({
                     height={20}
                     className="rounded-full"
                   />
-                  <span className="font-medium truncate">
-                    {selectedToken.symbol}
-                  </span>
+                  <span className="font-medium truncate">{selectedToken.symbol}</span>
                 </>
               ) : (
                 <span className="text-gray-400">Select token</span>
@@ -93,9 +84,7 @@ export const TokenConfiguration = ({
                         {...field}
                       />
                       <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
-                        {isChecking && (
-                          <Clock className="h-4 w-4 text-gray-400 animate-spin" />
-                        )}
+                        {isChecking && <Clock className="h-4 w-4 text-gray-400 animate-spin" />}
                         {rpcStatus && !isChecking && (
                           <>
                             {rpcStatus.isValid ? (
@@ -105,14 +94,10 @@ export const TokenConfiguration = ({
                             )}
                             <span
                               className={`text-xs font-mono ${
-                                rpcStatus.isValid
-                                  ? "text-green-600"
-                                  : "text-red-600"
+                                rpcStatus.isValid ? 'text-green-600' : 'text-red-600'
                               }`}
                             >
-                              {rpcStatus.isValid
-                                ? `${rpcStatus.latency}ms`
-                                : "Error"}
+                              {rpcStatus.isValid ? `${rpcStatus.latency}ms` : 'Error'}
                             </span>
                           </>
                         )}

@@ -8,9 +8,7 @@ export const openWalletApp = (walletName: string) => {
 
   const deeplinks: Record<string, string> = {
     Phantom: `https://phantom.app/ul/browse/${encodeURIComponent(currentUrl)}`,
-    Solflare: `https://solflare.com/ul/v1/browse/${encodeURIComponent(
-      currentUrl
-    )}`,
+    Solflare: `https://solflare.com/ul/v1/browse/${encodeURIComponent(currentUrl)}`,
   };
 
   if (deeplinks[walletName]) {

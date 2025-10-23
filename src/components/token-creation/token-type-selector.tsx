@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import React from "react";
+import React from 'react';
 
 interface TokenTypeSelectorProps {
   tokenType: 'spl' | 'extensions';
@@ -9,7 +9,7 @@ interface TokenTypeSelectorProps {
 
 export const TokenTypeSelector: React.FC<TokenTypeSelectorProps> = ({
   tokenType,
-  onTokenTypeChange
+  onTokenTypeChange,
 }) => {
   return (
     <div className="flex space-x-2 mb-6">

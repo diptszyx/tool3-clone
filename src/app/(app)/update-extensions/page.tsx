@@ -1,5 +1,5 @@
-import TokenExtensionUpdateForm from "@/components/token-extension-update-form"
-import SuspenseLayout from "@/components/suspense-layout";
+import TokenExtensionUpdateForm from '@/components/token-extension-update-form';
+import SuspenseLayout from '@/components/suspense-layout';
 
 export default function UpdateExtensionsPage() {
   return (
@@ -10,5 +10,5 @@ export default function UpdateExtensionsPage() {
         </SuspenseLayout>
       </div>
     </div>
-  )
-} 
+  );
+}

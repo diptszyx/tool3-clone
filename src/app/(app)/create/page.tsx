@@ -1,8 +1,7 @@
-"use client"
-import { TokenCreationForm } from "@/components/token-creation-form"
-import SuspenseLayout from "@/components/suspense-layout"
-import { ScrollArea } from "@/components/ui/scroll-area"
-
+'use client';
+import { TokenCreationForm } from '@/components/token-creation-form';
+import SuspenseLayout from '@/components/suspense-layout';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function CreateToken() {
   return (
@@ -16,4 +15,4 @@ export default function CreateToken() {
       </div>
     </div>
   );
-} 
+}

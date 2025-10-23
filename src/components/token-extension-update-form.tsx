@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { ChevronRight, Check, X, Search, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { useEffect, useState } from 'react';
+import { ChevronRight, Check, X, Search, ExternalLink } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Form,
   FormControl,
@@ -11,22 +11,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
-import { useTokenExtensionUpdate, updatableTokenExtensions } from "@/service/token/token-extensions/token-extension-update";
-import { TextOptionType, SliderOptionType } from "@/service/token/token-extensions/token-creation";
-import { cn } from "@/lib/utils";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Spinner } from "./ui/spinner";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useNetwork } from "@/context/NetworkContext";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
+import {
+  useTokenExtensionUpdate,
+  updatableTokenExtensions,
+} from '@/service/token/token-extensions/token-extension-update';
+import { TextOptionType, SliderOptionType } from '@/service/token/token-extensions/token-creation';
+import { cn } from '@/lib/utils';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Spinner } from './ui/spinner';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNetwork } from '@/context/NetworkContext';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 const formSchema = z.object({
-  mintAddress: z.string().min(1, { message: "Token mint address is required" }),
+  mintAddress: z.string().min(1, { message: 'Token mint address is required' }),
 });
 
 const TokenExtensionUpdateForm = () => {
@@ -46,7 +49,7 @@ const TokenExtensionUpdateForm = () => {
     toggleExtension,
     updateExtensionOption,
     validateMintAddress,
-    handleUpdateExtensions
+    handleUpdateExtensions,
   } = useTokenExtensionUpdate();
 
   const [openExtensions, setOpenExtensions] = useState<Record<string, boolean>>({});
@@ -55,14 +58,14 @@ const TokenExtensionUpdateForm = () => {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      mintAddress: "",
+      mintAddress: '',
     },
   });
 
   const toggleExtensionOpen = (extId: string) => {
-    setOpenExtensions(prev => ({
+    setOpenExtensions((prev) => ({
       ...prev,
-      [extId]: !prev[extId]
+      [extId]: !prev[extId],
     }));
   };
 
@@ -91,7 +94,7 @@ const TokenExtensionUpdateForm = () => {
   // Nếu cập nhật thành công, chỉ hiển thị thông báo thành công
   if (updateSuccess && explorerLinks.transaction) {
     return (
-      <div className={`md:p-3 max-w-[800px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
+      <div className={`md:p-3 max-w-[800px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
         <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
           Extensions Updated Successfully
         </h1>
@@ -102,31 +105,38 @@ const TokenExtensionUpdateForm = () => {
                 <Check className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <p className="text-gray-500 mb-6">The extensions have been added to your token account and are now ready to use</p>
+            <p className="text-gray-500 mb-6">
+              The extensions have been added to your token account and are now ready to use
+            </p>
 
             <div className="space-y-4 mb-8">
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm font-medium text-gray-500">Token Account</p>
-                <p className="text-base font-mono break-all">{explorerLinks.tokenAccount?.replace('https://explorer.solana.com/address/', '').replace('?cluster=devnet', '')}</p>
+                <p className="text-base font-mono break-all">
+                  {explorerLinks.tokenAccount
+                    ?.replace('https://explorer.solana.com/address/', '')
+                    .replace('?cluster=devnet', '')}
+                </p>
               </div>
 
               <div className="p-4 bg-gray-50 rounded-lg">
                 <p className="text-sm font-medium text-gray-500">Transaction</p>
-                <p className="text-base font-mono break-all">{explorerLinks.transaction?.replace('https://explorer.solana.com/tx/', '').replace('?cluster=devnet', '')}</p>
+                <p className="text-base font-mono break-all">
+                  {explorerLinks.transaction
+                    ?.replace('https://explorer.solana.com/tx/', '')
+                    .replace('?cluster=devnet', '')}
+                </p>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                variant="outline"
-                onClick={() => window.location.href = '/'}
-              >
+              <Button variant="outline" onClick={() => (window.location.href = '/')}>
                 Return to Home
               </Button>
 
               <Button
                 onClick={() => {
-                  window.open(explorerLinks.tokenAccount || undefined, "_blank");
+                  window.open(explorerLinks.tokenAccount || undefined, '_blank');
                 }}
               >
                 View on Explorer <ExternalLink className="ml-2 h-4 w-4" />
@@ -139,15 +149,17 @@ const TokenExtensionUpdateForm = () => {
   }
 
   return (
-    <div className={`md:p-3 max-w-[1000px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
+    <div className={`md:p-3 max-w-[1000px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
         Update Token Extensions
       </h1>
       <div className="pb-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className={`${tokenInfo || isLoading ? "md:col-span-2" : "md:col-span-3"}`}>
+          <div className={`${tokenInfo || isLoading ? 'md:col-span-2' : 'md:col-span-3'}`}>
             <div>
-              <div className={`${tokenInfo ? "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm p-6" : ""}`}>
+              <div
+                className={`${tokenInfo ? 'bg-card text-card-foreground flex flex-col gap-6 rounded-xl border shadow-sm p-6' : ''}`}
+              >
                 <Form {...form}>
                   <form onSubmit={form.handleSubmit(onSubmitMintAddress)} className="space-y-4">
                     <FormField
@@ -208,13 +220,14 @@ const TokenExtensionUpdateForm = () => {
                 <CardContent className="">
                   <h2 className="text-xl font-medium mb-4">Update Extensions</h2>
                   <p className="text-sm text-gray-500 mb-4">
-                    Select the extensions you want to add to your token. Note that not all extensions can be added after token creation.
+                    Select the extensions you want to add to your token. Note that not all
+                    extensions can be added after token creation.
                   </p>
 
                   {selectedExtensions.length > 0 ? (
                     <div className="space-y-4">
-                      {selectedExtensions.map(extId => {
-                        const extension = updatableTokenExtensions.find(e => e.id === extId);
+                      {selectedExtensions.map((extId) => {
+                        const extension = updatableTokenExtensions.find((e) => e.id === extId);
                         if (!extension) return null;
 
                         return (
@@ -231,7 +244,7 @@ const TokenExtensionUpdateForm = () => {
                             </div>
 
                             <div className="space-y-4">
-                              {extension.options.map(option => {
+                              {extension.options.map((option) => {
                                 const optionValue = extensionOptions[extId]?.[option.id];
                                 const error = validationErrors[extId]?.[option.id];
 
@@ -241,16 +254,21 @@ const TokenExtensionUpdateForm = () => {
                                     <div key={option.id} className="space-y-1">
                                       <div className="flex items-center justify-between">
                                         <label className="text-sm font-medium">
-                                          {option.label}{textOption.required ? ' *' : ''}
+                                          {option.label}
+                                          {textOption.required ? ' *' : ''}
                                         </label>
-                                        {error && <span className="text-xs text-red-500">{error}</span>}
+                                        {error && (
+                                          <span className="text-xs text-red-500">{error}</span>
+                                        )}
                                       </div>
                                       <Input
                                         type="text"
                                         placeholder={textOption.placeholder}
                                         value={optionValue || ''}
-                                        onChange={(e) => updateExtensionOption(extId, option.id, e.target.value)}
-                                        className={cn(error && "border-red-500")}
+                                        onChange={(e) =>
+                                          updateExtensionOption(extId, option.id, e.target.value)
+                                        }
+                                        className={cn(error && 'border-red-500')}
                                       />
                                     </div>
                                   );
@@ -262,9 +280,12 @@ const TokenExtensionUpdateForm = () => {
                                     <div key={option.id} className="space-y-1">
                                       <div className="flex items-center justify-between">
                                         <label className="text-sm font-medium">
-                                          {option.label}: {optionValue || sliderOption.defaultValue}{option.id === 'fee-percentage' ? '%' : ''}
+                                          {option.label}: {optionValue || sliderOption.defaultValue}
+                                          {option.id === 'fee-percentage' ? '%' : ''}
                                         </label>
-                                        {error && <span className="text-xs text-red-500">{error}</span>}
+                                        {error && (
+                                          <span className="text-xs text-red-500">{error}</span>
+                                        )}
                                       </div>
                                       <input
                                         type="range"
@@ -272,7 +293,13 @@ const TokenExtensionUpdateForm = () => {
                                         max={sliderOption.max}
                                         step={sliderOption.step}
                                         value={optionValue || sliderOption.defaultValue}
-                                        onChange={(e) => updateExtensionOption(extId, option.id, parseFloat(e.target.value))}
+                                        onChange={(e) =>
+                                          updateExtensionOption(
+                                            extId,
+                                            option.id,
+                                            parseFloat(e.target.value),
+                                          )
+                                        }
                                         className="w-full"
                                       />
                                     </div>
@@ -303,7 +330,9 @@ const TokenExtensionUpdateForm = () => {
                     </div>
                   ) : (
                     <div className="p-8 text-center border rounded-lg bg-gray-50">
-                      <p className="text-gray-500">Select extensions from the panel on the right to add them to your token.</p>
+                      <p className="text-gray-500">
+                        Select extensions from the panel on the right to add them to your token.
+                      </p>
                     </div>
                   )}
                 </CardContent>
@@ -322,26 +351,29 @@ const TokenExtensionUpdateForm = () => {
                       {updatableTokenExtensions.map((extension) => {
                         const isSelected = selectedExtensions.includes(extension.id);
                         const isExpanded = openExtensions[extension.id] || false;
-                        const hasError = isSelected && validationErrors[extension.id] && Object.keys(validationErrors[extension.id]).length > 0;
+                        const hasError =
+                          isSelected &&
+                          validationErrors[extension.id] &&
+                          Object.keys(validationErrors[extension.id]).length > 0;
                         const hasOptions = extension.options && extension.options.length > 0;
 
                         return (
                           <div
                             key={extension.id}
                             className={cn(
-                              "border rounded-lg overflow-hidden transition-all duration-200",
+                              'border rounded-lg overflow-hidden transition-all duration-200',
                               isSelected
                                 ? hasError
-                                  ? "border-red-500 bg-red-50/5"
+                                  ? 'border-red-500 bg-red-50/5'
                                   : `border-${extension.color} bg-${extension.bgColor}/20`
-                                : "border-gray-200 bg-white hover:bg-gray-50",
-                              extension.disabled && "opacity-50 cursor-not-allowed"
+                                : 'border-gray-200 bg-white hover:bg-gray-50',
+                              extension.disabled && 'opacity-50 cursor-not-allowed',
                             )}
                           >
                             <div
                               className={cn(
-                                "p-3 cursor-pointer",
-                                isSelected && isExpanded && "border-b border-gray-200"
+                                'p-3 cursor-pointer',
+                                isSelected && isExpanded && 'border-b border-gray-200',
                               )}
                               onClick={() => {
                                 if (!extension.disabled) {
@@ -352,24 +384,30 @@ const TokenExtensionUpdateForm = () => {
                                     toggleExtensionOpen(extension.id);
                                   }
                                 } else {
-                                  toast.error(`Extension not available: ${extension.disabledReason}`);
+                                  toast.error(
+                                    `Extension not available: ${extension.disabledReason}`,
+                                  );
                                 }
                               }}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  {extension.icon && <extension.icon className={`w-5 h-5 ${extension.color}`} />}
+                                  {extension.icon && (
+                                    <extension.icon className={`w-5 h-5 ${extension.color}`} />
+                                  )}
                                   <span className="font-medium">{extension.name}</span>
                                   {hasError && (
-                                    <span className="text-xs text-red-500 px-2 py-0.5 bg-red-50 rounded">Required fields missing</span>
+                                    <span className="text-xs text-red-500 px-2 py-0.5 bg-red-50 rounded">
+                                      Required fields missing
+                                    </span>
                                   )}
                                 </div>
                                 <div className="flex items-center space-x-2">
                                   {isSelected && hasOptions && (
                                     <ChevronRight
                                       className={cn(
-                                        "w-4 h-4 text-gray-500 transition-transform",
-                                        isExpanded && "transform rotate-90"
+                                        'w-4 h-4 text-gray-500 transition-transform',
+                                        isExpanded && 'transform rotate-90',
                                       )}
                                     />
                                   )}
@@ -408,4 +446,4 @@ const TokenExtensionUpdateForm = () => {
   );
 };
 
-export default TokenExtensionUpdateForm; 
+export default TokenExtensionUpdateForm;

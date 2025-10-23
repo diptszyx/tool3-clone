@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useWallet } from "@solana/wallet-adapter-react";
-import MultiTokenSelector from "./multi-token-selector";
-import { useIsMobile } from "@/hooks/use-mobile";
-import type { UserToken } from "@/hooks/useUserTokens";
-import { connectionMainnet } from "@/service/solana/connection";
-import { WSOL_MINT } from "@/utils/constants";
-import { createMultiSwapToSolTransactions } from "@/lib/multi-swap-to-sol";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { useWallet } from '@solana/wallet-adapter-react';
+import MultiTokenSelector from './multi-token-selector';
+import { useIsMobile } from '@/hooks/use-mobile';
+import type { UserToken } from '@/hooks/useUserTokens';
+import { connectionMainnet } from '@/service/solana/connection';
+import { WSOL_MINT } from '@/utils/constants';
+import { createMultiSwapToSolTransactions } from '@/lib/multi-swap-to-sol';
 
 interface SelectedTokenData {
   token: UserToken;
@@ -28,12 +28,12 @@ export default function SwapAllTokenFormMulti() {
       setLoading(true);
 
       if (!publicKey || !signAllTransactions) {
-        toast.error("Please connect your wallet first");
+        toast.error('Please connect your wallet first');
         return;
       }
 
       if (selectedTokens.length === 0) {
-        toast.error("Please select at least one token to swap");
+        toast.error('Please select at least one token to swap');
         return;
       }
 
@@ -49,43 +49,29 @@ export default function SwapAllTokenFormMulti() {
         inputTokenMint: selectedToken.token.address,
       }));
 
-      const result = await createMultiSwapToSolTransactions(
-        publicKey,
-        swapData,
-        3
-      );
+      const result = await createMultiSwapToSolTransactions(publicKey, swapData, 3);
 
-      const transactions = result.transactions.map(
-        (txData) => txData.transaction
-      );
+      const transactions = result.transactions.map((txData) => txData.transaction);
 
       const signedTransactions = await signAllTransactions(transactions);
 
       const broadcastPromises = signedTransactions.map(async (signedTx) => {
-        const signature = await connectionMainnet.sendRawTransaction(
-          signedTx.serialize(),
-          {
-            skipPreflight: false,
-            preflightCommitment: "confirmed",
-            maxRetries: 3,
-          }
-        );
+        const signature = await connectionMainnet.sendRawTransaction(signedTx.serialize(), {
+          skipPreflight: false,
+          preflightCommitment: 'confirmed',
+          maxRetries: 3,
+        });
         return signature;
       });
 
       const signatures = await Promise.all(broadcastPromises);
 
       const confirmPromises = signatures.map(async (signature, index) => {
-        const confirmation = await connectionMainnet.confirmTransaction(
-          signature,
-          "confirmed"
-        );
+        const confirmation = await connectionMainnet.confirmTransaction(signature, 'confirmed');
 
         if (confirmation.value.err) {
           throw new Error(
-            `Transaction ${index + 1} failed: ${JSON.stringify(
-              confirmation.value.err
-            )}`
+            `Transaction ${index + 1} failed: ${JSON.stringify(confirmation.value.err)}`,
           );
         }
 
@@ -97,28 +83,25 @@ export default function SwapAllTokenFormMulti() {
 
       toast.success(
         `🎉 Successfully swapped ${selectedTokens.length} token${
-          selectedTokens.length !== 1 ? "s" : ""
+          selectedTokens.length !== 1 ? 's' : ''
         } to SOL!`,
         {
           description: `Completed in ${signatures.length} transaction${
-            signatures.length !== 1 ? "s" : ""
-          }. Estimated SOL: ${result.breakdown.totalExpectedSolOutput.toFixed(
-            6
-          )} SOL`,
+            signatures.length !== 1 ? 's' : ''
+          }. Estimated SOL: ${result.breakdown.totalExpectedSolOutput.toFixed(6)} SOL`,
           action: {
-            label: "View Last Transaction",
+            label: 'View Last Transaction',
             onClick: () => {
-              window.open(`https://solscan.io/tx/${lastSignature}`, "_blank");
+              window.open(`https://solscan.io/tx/${lastSignature}`, '_blank');
             },
           },
-        }
+        },
       );
 
       setSelectedTokens([]);
     } catch (error) {
-      console.error("Multi-swap failed:", error);
-      const message =
-        error instanceof Error ? error.message : "An unexpected error occurred";
+      console.error('Multi-swap failed:', error);
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast.error(`Multi-swap failed: ${message}`);
     } finally {
       setLoading(false);
@@ -128,12 +111,10 @@ export default function SwapAllTokenFormMulti() {
   return (
     <div
       className={`md:p-2 max-w-[550px] mx-auto my-2 flex flex-col items-center ${
-        !isMobile && "border-gear"
+        !isMobile && 'border-gear'
       }`}
     >
-      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center ">
-        Swap All Tokens To SOL
-      </h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center ">Swap All Tokens To SOL</h1>
 
       <div className="mb-4 p-[8px] bg-green-50 border-gear-green-200 text-center w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">⚡ Just $0.25 per transaction!</p>
@@ -143,7 +124,7 @@ export default function SwapAllTokenFormMulti() {
         <MultiTokenSelector
           selectedTokens={selectedTokens}
           onTokensChange={setSelectedTokens}
-          excludeToken={["NativeSOL", WSOL_MINT]}
+          excludeToken={['NativeSOL', WSOL_MINT]}
           disabled={loading}
         />
 
@@ -154,9 +135,9 @@ export default function SwapAllTokenFormMulti() {
           disabled={loading || selectedTokens.length === 0}
         >
           {loading
-            ? "Processing Multi-Swap..."
+            ? 'Processing Multi-Swap...'
             : `💫 Swap ${selectedTokens.length} Token${
-                selectedTokens.length !== 1 ? "s" : ""
+                selectedTokens.length !== 1 ? 's' : ''
               } to SOL `}
         </Button>
       </div>
