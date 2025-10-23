@@ -49,12 +49,14 @@ export default function MultiWalletPanel({
 
       for (const publicKey of publicKeys) {
         if (wallets.some((w) => w.address === publicKey)) continue;
+
         onAddWallet({
           address: publicKey,
           solBalance: 0,
           tokens: [],
           selected: false,
         });
+
         const data = await fetchWalletData(publicKey);
         if (data) {
           onAddWallet(data);
@@ -62,6 +64,33 @@ export default function MultiWalletPanel({
       }
     },
     [wallets, fetchWalletData, onAddWallet, onPasswordReceived],
+  );
+
+  const handleAddWalletsWithKeys = useCallback(
+    async (walletsData: Array<{ address: string; privateKey: string }>) => {
+      setAddWalletOpen(false);
+
+      for (const { address, privateKey } of walletsData) {
+        if (wallets.some((w) => w.address === address)) continue;
+
+        onAddWallet({
+          address,
+          solBalance: 0,
+          tokens: [],
+          selected: false,
+          privateKey,
+        });
+
+        const data = await fetchWalletData(address);
+        if (data) {
+          onAddWallet({
+            ...data,
+            privateKey,
+          });
+        }
+      }
+    },
+    [wallets, fetchWalletData, onAddWallet],
   );
 
   return (
@@ -114,6 +143,7 @@ export default function MultiWalletPanel({
         open={addWalletOpen}
         onOpenChange={setAddWalletOpen}
         onAddWallets={handleAddWallets}
+        onAddWalletsWithKeys={handleAddWalletsWithKeys}
       />
     </div>
   );

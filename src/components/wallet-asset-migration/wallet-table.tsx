@@ -1,4 +1,3 @@
-// components/wallet-asset-migration/wallet-table.tsx
 'use client';
 
 import {
@@ -15,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import TokenSelectionTable from './token-selection-table';
 import type { WalletMigration } from '@/types/types';
 import { ChevronDown, ChevronUp, Loader2, Copy } from 'lucide-react';
-import { useState, useRef, useEffect, memo } from 'react';
+import { useState, useRef, useEffect, memo, Fragment } from 'react';
 import { toast } from 'sonner';
 
 interface WalletTableProps {
@@ -91,16 +90,13 @@ const WalletTable = memo(function WalletTable({
           {wallets.map((wallet) => {
             const isLoading = loadingWallets.has(wallet.address);
             const isExpanded = expandedWallet === wallet.address;
-
-            // Calculate indeterminate state for wallet checkbox
             const selectedTokenCount = wallet.tokens.filter((t) => t.selected).length;
             const isIndeterminate =
               selectedTokenCount > 0 && selectedTokenCount < wallet.tokens.length;
 
             return (
-              <>
-                {/* Main Wallet Row */}
-                <TableRow key={wallet.address} className="hover:bg-muted/30 transition-colors">
+              <Fragment key={wallet.address}>
+                <TableRow className="hover:bg-muted/30 transition-colors">
                   <TableCell>
                     <Checkbox
                       checked={wallet.selected}
@@ -168,7 +164,6 @@ const WalletTable = memo(function WalletTable({
                   </TableCell>
                 </TableRow>
 
-                {/* Expanded Token Table - LARGER & CLEARER */}
                 {isExpanded && wallet.tokens.length > 0 && (
                   <TableRow className="bg-muted/10 hover:bg-muted/10">
                     <TableCell colSpan={5} className="p-0">
@@ -190,7 +185,7 @@ const WalletTable = memo(function WalletTable({
                     </TableCell>
                   </TableRow>
                 )}
-              </>
+              </Fragment>
             );
           })}
         </TableBody>

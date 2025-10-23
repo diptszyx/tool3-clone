@@ -6,15 +6,50 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Key } from 'lucide-react';
+import bs58 from 'bs58';
+import { Keypair } from '@solana/web3.js';
 
 interface ManualInputTabProps {
   onBack: () => void;
-  onAddWallets: (wallets: string[]) => void;
+  onAddWallets: (wallets: Array<{ address: string; privateKey: string }>) => void;
 }
 
 export default function ManualInputTab({ onBack, onAddWallets }: ManualInputTabProps) {
   const [privateKeys, setPrivateKeys] = useState('');
   const [error, setError] = useState('');
+
+  const isValidPrivateKey = (key: string): boolean => {
+    const trimmed = key.trim();
+
+    try {
+      if (trimmed.length < 80 || trimmed.length > 90) return false;
+
+      const decoded = bs58.decode(trimmed);
+
+      if (decoded.length !== 64) return false;
+
+      Keypair.fromSecretKey(decoded);
+
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const convertPrivateKey = (
+    privateKey: string,
+  ): { address: string; privateKey: string } | null => {
+    try {
+      const decoded = bs58.decode(privateKey.trim());
+      const keypair = Keypair.fromSecretKey(decoded);
+      return {
+        address: keypair.publicKey.toBase58(),
+        privateKey: privateKey.trim(),
+      };
+    } catch {
+      return null;
+    }
+  };
 
   const handleImport = () => {
     setError('');
@@ -28,13 +63,24 @@ export default function ManualInputTab({ onBack, onAddWallets }: ManualInputTabP
       return;
     }
 
-    const invalidKeys = keys.filter((key) => key.length < 32);
+    const invalidKeys = keys.filter((key) => !isValidPrivateKey(key));
     if (invalidKeys.length > 0) {
-      setError(`Found ${invalidKeys.length} invalid key(s). Keys must be at least 32 characters.`);
+      setError(
+        `Found ${invalidKeys.length} invalid Solana private key(s). Keys must be valid Base58 format (80-90 chars).`,
+      );
       return;
     }
 
-    onAddWallets(keys);
+    const walletData = keys
+      .map(convertPrivateKey)
+      .filter((data): data is { address: string; privateKey: string } => data !== null);
+
+    if (walletData.length !== keys.length) {
+      setError('Failed to convert some private keys to addresses');
+      return;
+    }
+
+    onAddWallets(walletData);
   };
 
   return (
@@ -42,15 +88,16 @@ export default function ManualInputTab({ onBack, onAddWallets }: ManualInputTabP
       <div className="rounded-lg bg-blue-50 dark:bg-blue-950 p-3 flex items-start gap-2">
         <Key className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
         <p className="text-xs text-blue-900 dark:text-blue-100">
-          Enter one private key per line. Keys will be validated and converted to public addresses.
+          Enter one Solana private key per line (Base58 format, 80-90 characters). Private keys will
+          be securely stored in memory for transaction signing.
         </p>
       </div>
 
       <div>
-        <Label htmlFor="privateKeys">Private Keys</Label>
+        <Label htmlFor="privateKeys">Solana Private Keys</Label>
         <Textarea
           id="privateKeys"
-          placeholder="5J... (Base58 private key)&#10;Enter one key per line"
+          placeholder="3hz1gCrtibL2ppspeLcqcXtvfupF4guKJ153eXkodyR2FdrdjEP...&#10;Enter one key per line"
           value={privateKeys}
           onChange={(e) => {
             setPrivateKeys(e.target.value);
@@ -77,7 +124,7 @@ export default function ManualInputTab({ onBack, onAddWallets }: ManualInputTabP
           Back
         </Button>
         <Button onClick={handleImport} disabled={!privateKeys.trim()}>
-          Import Wallets
+          Import & Fetch Wallets
         </Button>
       </div>
     </div>

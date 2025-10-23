@@ -1,4 +1,3 @@
-// password-modal.tsx
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +7,7 @@ interface PasswordModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (password: string) => void;
-  action: 'backup' | 'restore' | 'set' | 'verify' | null;
+  action: 'backup' | 'set' | 'verify' | null;
 }
 
 export default function PasswordModal({ isOpen, onClose, onSubmit, action }: PasswordModalProps) {
@@ -57,8 +56,6 @@ export default function PasswordModal({ isOpen, onClose, onSubmit, action }: Pas
         return 'Verify Password';
       case 'backup':
         return 'Backup Wallets';
-      case 'restore':
-        return 'Restore Wallets';
       default:
         return 'Enter Password';
     }
@@ -72,8 +69,6 @@ export default function PasswordModal({ isOpen, onClose, onSubmit, action }: Pas
         return 'Enter your master password to unlock and view your wallets';
       case 'backup':
         return 'Enter your password to create an encrypted backup';
-      case 'restore':
-        return 'Enter your password to restore wallets from backup';
       default:
         return 'Enter your password to continue';
     }

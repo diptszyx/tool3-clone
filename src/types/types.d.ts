@@ -35,6 +35,7 @@ export interface WalletMigration {
   solBalance: number;
   tokens: TokenMigration[];
   selected: boolean;
+  privateKey?: string;
 }
 
 export interface MigrationState {

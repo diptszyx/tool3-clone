@@ -17,9 +17,15 @@ interface AddWalletModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAddWallets: (wallets: string[], password?: string) => void;
+  onAddWalletsWithKeys?: (wallets: Array<{ address: string; privateKey: string }>) => void;
 }
 
-export default function AddWalletModal({ open, onOpenChange, onAddWallets }: AddWalletModalProps) {
+export default function AddWalletModal({
+  open,
+  onOpenChange,
+  onAddWallets,
+  onAddWalletsWithKeys,
+}: AddWalletModalProps) {
   const [selectedOption, setSelectedOption] = useState<'local' | 'manual' | null>(null);
 
   const handleOptionSelect = (option: 'local' | 'manual') => {
@@ -78,12 +84,18 @@ export default function AddWalletModal({ open, onOpenChange, onAddWallets }: Add
         ) : selectedOption === 'local' ? (
           <LocalWalletPanel
             onBack={handleBack}
-            onAddWallets={(publicKeys, password) => onAddWallets(publicKeys, password)}
+            onAddWallets={(publicKeys, password) => {
+              onAddWallets(publicKeys, password);
+              handleClose();
+            }}
           />
         ) : (
           <ManualImportPanel
             onBack={handleBack}
-            onAddWallets={(publicKeys) => onAddWallets(publicKeys)}
+            onAddWallets={(wallets) => {
+              onAddWalletsWithKeys?.(wallets);
+              handleClose();
+            }}
           />
         )}
       </DialogContent>

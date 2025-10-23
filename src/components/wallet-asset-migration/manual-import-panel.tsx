@@ -6,7 +6,7 @@ import FileImportTab from './file-import-tab';
 
 interface ManualImportPanelProps {
   onBack: () => void;
-  onAddWallets: (wallets: string[]) => void;
+  onAddWallets: (wallets: Array<{ address: string; privateKey: string }>) => void;
 }
 
 export default function ManualImportPanel({ onBack, onAddWallets }: ManualImportPanelProps) {
@@ -14,14 +14,14 @@ export default function ManualImportPanel({ onBack, onAddWallets }: ManualImport
     <Tabs defaultValue="manual" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="manual">Manual Input</TabsTrigger>
-        <TabsTrigger value="file">Import File</TabsTrigger>
+        <TabsTrigger value="file">File Import</TabsTrigger>
       </TabsList>
 
-      <TabsContent value="manual" className="space-y-4">
+      <TabsContent value="manual">
         <ManualInputTab onBack={onBack} onAddWallets={onAddWallets} />
       </TabsContent>
 
-      <TabsContent value="file" className="space-y-4">
+      <TabsContent value="file">
         <FileImportTab onBack={onBack} onAddWallets={onAddWallets} />
       </TabsContent>
     </Tabs>
