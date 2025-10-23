@@ -1,9 +1,9 @@
-import TransferForm from "@/components/transfer/transfer-form";
-import { Metadata } from "next";
+import TransferForm from '@/components/transfer/transfer-form';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Solana Gasless Token Transfer",
-  description: "Easily transfer tokens without requiring SOL in your wallet.",
+  title: 'Solana Gasless Token Transfer',
+  description: 'Easily transfer tokens without requiring SOL in your wallet.',
 };
 
 export default function Home() {

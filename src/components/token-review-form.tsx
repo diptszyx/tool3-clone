@@ -1,15 +1,19 @@
-"use client";
+'use client';
 
-import { ArrowLeft, Check, ExternalLink, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { useTokenReview, tokenExtensionsMap, getExtensionDetails } from "@/service/token/token-extensions/token-review";
-import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { useNetwork } from "@/context/NetworkContext";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { ArrowLeft, Check, ExternalLink, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import {
+  useTokenReview,
+  tokenExtensionsMap,
+  getExtensionDetails,
+} from '@/service/token/token-extensions/token-review';
+import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
+import { useNetwork } from '@/context/NetworkContext';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 const TokenReviewForm = () => {
   const router = useRouter();
@@ -26,7 +30,7 @@ const TokenReviewForm = () => {
     creationError,
     handleConfirmCreate,
     handleBack,
-    goToHome
+    goToHome,
   } = useTokenReview(router);
 
   if (isLoading) {
@@ -49,7 +53,9 @@ const TokenReviewForm = () => {
               </div>
             </div>
             <h2 className="text-2xl font-bold mb-2">Token Created Successfully!</h2>
-            <p className="text-gray-500 mb-6">Your token has been created and is now ready to use</p>
+            <p className="text-gray-500 mb-6">
+              Your token has been created and is now ready to use
+            </p>
 
             <div className="space-y-4 mb-8">
               <div className="p-4 bg-gray-50 rounded-lg">
@@ -66,10 +72,7 @@ const TokenReviewForm = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                variant="outline"
-                onClick={goToHome}
-              >
+              <Button variant="outline" onClick={goToHome}>
                 Return to Home
               </Button>
 
@@ -79,7 +82,7 @@ const TokenReviewForm = () => {
                   const explorerUrl = isDevnet
                     ? `https://explorer.solana.com/address/${createdTokenMint}?cluster=devnet`
                     : `https://birdeye.so/token/${createdTokenMint}?chain=solana`;
-                  window.open(explorerUrl, "_blank");
+                  window.open(explorerUrl, '_blank');
                 }}
               >
                 View on Explorer <ExternalLink className="ml-2 h-4 w-4" />
@@ -101,7 +104,9 @@ const TokenReviewForm = () => {
             <p className="text-gray-700 mb-6">{creationError}</p>
 
             <div className="flex gap-4">
-              <Button variant="outline" onClick={handleBack}>Go Back</Button>
+              <Button variant="outline" onClick={handleBack}>
+                Go Back
+              </Button>
               <Button onClick={() => handleConfirmCreate()}>Try Again</Button>
             </div>
           </CardContent>
@@ -130,13 +135,7 @@ const TokenReviewForm = () => {
               <div className="flex items-center space-x-4 mb-6">
                 {imageUrl && (
                   <div className="h-16 w-16 rounded-lg overflow-hidden relative">
-                    <Image
-                      src={imageUrl}
-                      alt="Token"
-                      fill
-                      className="object-cover"
-                      sizes="64px"
-                    />
+                    <Image src={imageUrl} alt="Token" fill className="object-cover" sizes="64px" />
                   </div>
                 )}
                 <div>
@@ -164,49 +163,71 @@ const TokenReviewForm = () => {
                 )}
               </div>
 
-              {(tokenData?.websiteUrl || tokenData?.twitterUrl ||
-                tokenData?.telegramUrl || tokenData?.discordUrl) && (
-                  <>
-                    <Separator className="my-4" />
-                    <div className="space-y-3">
-                      <h3 className="font-medium">Social Links</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                        {tokenData?.websiteUrl && (
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-500 mr-2">Website:</span>
-                            <a href={tokenData.websiteUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate">
-                              {tokenData.websiteUrl}
-                            </a>
-                          </div>
-                        )}
-                        {tokenData?.twitterUrl && (
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-500 mr-2">Twitter:</span>
-                            <a href={tokenData.twitterUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate">
-                              {tokenData.twitterUrl}
-                            </a>
-                          </div>
-                        )}
-                        {tokenData?.telegramUrl && (
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-500 mr-2">Telegram:</span>
-                            <a href={tokenData.telegramUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate">
-                              {tokenData.telegramUrl}
-                            </a>
-                          </div>
-                        )}
-                        {tokenData?.discordUrl && (
-                          <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-500 mr-2">Discord:</span>
-                            <a href={tokenData.discordUrl} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate">
-                              {tokenData.discordUrl}
-                            </a>
-                          </div>
-                        )}
-                      </div>
+              {(tokenData?.websiteUrl ||
+                tokenData?.twitterUrl ||
+                tokenData?.telegramUrl ||
+                tokenData?.discordUrl) && (
+                <>
+                  <Separator className="my-4" />
+                  <div className="space-y-3">
+                    <h3 className="font-medium">Social Links</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                      {tokenData?.websiteUrl && (
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium text-gray-500 mr-2">Website:</span>
+                          <a
+                            href={tokenData.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline truncate"
+                          >
+                            {tokenData.websiteUrl}
+                          </a>
+                        </div>
+                      )}
+                      {tokenData?.twitterUrl && (
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium text-gray-500 mr-2">Twitter:</span>
+                          <a
+                            href={tokenData.twitterUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline truncate"
+                          >
+                            {tokenData.twitterUrl}
+                          </a>
+                        </div>
+                      )}
+                      {tokenData?.telegramUrl && (
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium text-gray-500 mr-2">Telegram:</span>
+                          <a
+                            href={tokenData.telegramUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline truncate"
+                          >
+                            {tokenData.telegramUrl}
+                          </a>
+                        </div>
+                      )}
+                      {tokenData?.discordUrl && (
+                        <div className="flex items-center">
+                          <span className="text-sm font-medium text-gray-500 mr-2">Discord:</span>
+                          <a
+                            href={tokenData.discordUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-500 hover:underline truncate"
+                          >
+                            {tokenData.discordUrl}
+                          </a>
+                        </div>
+                      )}
                     </div>
-                  </>
-                )}
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -218,21 +239,18 @@ const TokenReviewForm = () => {
               <div className="space-y-3">
                 {selectedExtensions.map((extId) => {
                   const extension = tokenExtensionsMap[extId];
-                  const extensionDetails = tokenData?.extensionOptions?.[extId] ?
-                    getExtensionDetails(extId, tokenData.extensionOptions[extId]) : null;
+                  const extensionDetails = tokenData?.extensionOptions?.[extId]
+                    ? getExtensionDetails(extId, tokenData.extensionOptions[extId])
+                    : null;
 
                   if (!extension) return null;
 
                   return (
-                    <div
-                      key={extId}
-                      className={cn(
-                        "p-3 border rounded-lg",
-                        extension.bgColor
-                      )}
-                    >
+                    <div key={extId} className={cn('p-3 border rounded-lg', extension.bgColor)}>
                       <div className="flex items-center gap-2">
-                        {extension.icon && <extension.icon className={`w-4 h-4 ${extension.color}`} />}
+                        {extension.icon && (
+                          <extension.icon className={`w-4 h-4 ${extension.color}`} />
+                        )}
                         <span className="font-medium">{extension.name}</span>
                       </div>
 
@@ -266,7 +284,8 @@ const TokenReviewForm = () => {
             <CardContent className="pt-6">
               <h3 className="font-medium mb-4">Create Token</h3>
               <p className="text-sm text-gray-500 mb-4">
-                Once you confirm, your wallet will be prompted to sign a transaction to create the token.
+                Once you confirm, your wallet will be prompted to sign a transaction to create the
+                token.
               </p>
               <Button
                 className="w-full cursor-pointer"
@@ -278,7 +297,9 @@ const TokenReviewForm = () => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating Token...
                   </>
-                ) : "Create Token"}
+                ) : (
+                  'Create Token'
+                )}
               </Button>
             </CardContent>
           </Card>
@@ -288,4 +309,4 @@ const TokenReviewForm = () => {
   );
 };
 
-export default TokenReviewForm; 
+export default TokenReviewForm;

@@ -1,10 +1,10 @@
-import SwapAllToken from "@/components/swap-sol/swap-all-token-form";
-import { Metadata } from "next";
+import SwapAllToken from '@/components/swap-sol/swap-all-token-form';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Swap All Tokens to SOL",
+  title: 'Swap All Tokens to SOL',
   description:
-    "Swap all your SPL tokens to SOL in one click. Fast, simple, and secure — the easiest way to convert tokens and clean up your Solana wallet.",
+    'Swap all your SPL tokens to SOL in one click. Fast, simple, and secure — the easiest way to convert tokens and clean up your Solana wallet.',
 };
 export default function SwapAll() {
   return (

@@ -5,9 +5,9 @@ import {
   TableRow,
   TableBody,
   TableCell,
-} from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
-import { WalletInfo, TokenInfo } from "@/lib/increase/types";
+} from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
+import { WalletInfo, TokenInfo } from '@/lib/increase/types';
 
 interface WalletTableProps {
   wallets: WalletInfo[] | null;
@@ -42,18 +42,18 @@ export const WalletTable = ({ wallets, selectedToken }: WalletTableProps) => {
                     {wallet.publicKey}
                   </a>
                 </TableCell>
-                <TableCell>{wallet.solAmount?.toFixed(4) ?? "0"} SOL</TableCell>
+                <TableCell>{wallet.solAmount?.toFixed(4) ?? '0'} SOL</TableCell>
                 <TableCell>
                   {wallet.tokenBalances
                     ?.find((t) => t.mint === selectedToken?.id)
-                    ?.amount?.toFixed(4) ?? "-"}
+                    ?.amount?.toFixed(4) ?? '-'}
                 </TableCell>
                 <TableCell>
-                  {wallet.result === "success"
-                    ? "Success"
-                    : wallet.result === "failed"
-                    ? "Failed"
-                    : "-"}
+                  {wallet.result === 'success'
+                    ? 'Success'
+                    : wallet.result === 'failed'
+                      ? 'Failed'
+                      : '-'}
                 </TableCell>
               </TableRow>
             ))}

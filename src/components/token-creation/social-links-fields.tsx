@@ -1,15 +1,9 @@
-"use client";
+'use client';
 
-import React from "react";
-import { UseFormReturn } from "react-hook-form";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import React from 'react';
+import { UseFormReturn } from 'react-hook-form';
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 
 interface TokenFormData {
   name?: string;
@@ -31,7 +25,7 @@ export const SocialLinksFields: React.FC<SocialLinksFieldsProps> = ({ form }) =>
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">Social Links (Optional)</h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}

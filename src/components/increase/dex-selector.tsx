@@ -1,13 +1,8 @@
-import {
-  FormField,
-  FormItem,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UseFormReturn } from "react-hook-form";
-import { FormData } from "@/lib//increase/types";
+import { FormField, FormItem, FormControl, FormMessage } from '@/components/ui/form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UseFormReturn } from 'react-hook-form';
+import { FormData } from '@/lib//increase/types';
 
 interface DEXSelectorProps {
   form: UseFormReturn<FormData>;
@@ -34,7 +29,7 @@ export const DEXSelector = ({ form, disabled = false }: DEXSelectorProps) => {
                 >
                   <TabsList
                     className={`grid grid-flow-col auto-cols-max gap-2 overflow-x-auto scrollbar-hide px-1 ${
-                      disabled ? "opacity-50 pointer-events-none" : ""
+                      disabled ? 'opacity-50 pointer-events-none' : ''
                     }`}
                   >
                     <TabsTrigger
@@ -49,16 +44,10 @@ export const DEXSelector = ({ form, disabled = false }: DEXSelectorProps) => {
                     >
                       Raydium Launchpad
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="Pump.fun"
-                      className="min-w-[100px] text-sm"
-                    >
+                    <TabsTrigger value="Pump.fun" className="min-w-[100px] text-sm">
                       Pump
                     </TabsTrigger>
-                    <TabsTrigger
-                      value="Pump.fun Amm"
-                      className="min-w-[150px] text-sm"
-                    >
+                    <TabsTrigger value="Pump.fun Amm" className="min-w-[150px] text-sm">
                       PumpSwap (AMM)
                     </TabsTrigger>
                   </TabsList>

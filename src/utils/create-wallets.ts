@@ -1,5 +1,5 @@
-import { Keypair } from "@solana/web3.js";
-import bs58 from "bs58";
+import { Keypair } from '@solana/web3.js';
+import bs58 from 'bs58';
 
 export interface WalletInfo {
   keypair: Keypair;
@@ -7,7 +7,7 @@ export interface WalletInfo {
   secretKey: string;
   solAmount: number;
   transferAmount: number;
-  result?: "success" | "failed";
+  result?: 'success' | 'failed';
   tokenBalances?: {
     mint: string;
     amount: number;
@@ -16,9 +16,9 @@ export interface WalletInfo {
 
 export function generateSolanaWallets(
   qty: number,
-  mode: "fixed" | "random",
+  mode: 'fixed' | 'random',
   value1: number,
-  value2?: number
+  value2?: number,
 ): WalletInfo[] {
   const wallets: WalletInfo[] = [];
 
@@ -27,7 +27,7 @@ export function generateSolanaWallets(
 
     let amount: number;
 
-    if (mode === "fixed") {
+    if (mode === 'fixed') {
       amount = value1;
     } else {
       const min = value1;
@@ -47,7 +47,7 @@ export function generateSolanaWallets(
   return wallets;
 }
 
-const LOCAL_STORAGE_KEY = "generatedWallets";
+const LOCAL_STORAGE_KEY = 'generatedWallets';
 export function saveWalletsToLocalStorage(wallets: WalletInfo[]) {
   localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(wallets));
 }
@@ -62,7 +62,7 @@ export function loadWalletsFromLocalStorage(): WalletInfo[] | null {
   try {
     return JSON.parse(data);
   } catch (e) {
-    console.error("Failed to parse wallets from localStorage", e);
+    console.error('Failed to parse wallets from localStorage', e);
     return null;
   }
 }

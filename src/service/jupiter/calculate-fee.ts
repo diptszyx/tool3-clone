@@ -8,21 +8,19 @@ interface JupiterPriceResponse {
   };
 }
 
-const API_BASE = "https://lite-api.jup.ag";
-const USDT_MINT = "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB";
-const SOL_MINT = "So11111111111111111111111111111111111111112";
+const API_BASE = 'https://lite-api.jup.ag';
+const USDT_MINT = 'Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB';
+const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
 export async function getTokenFeeFromUsd(
   targetTokenMint: string,
-  usdAmount: number
+  usdAmount: number,
 ): Promise<number> {
   try {
-    const usdtRes = await fetch(
-      `${API_BASE}/price/v2?ids=${USDT_MINT}&vsToken=${targetTokenMint}`
-    );
+    const usdtRes = await fetch(`${API_BASE}/price/v2?ids=${USDT_MINT}&vsToken=${targetTokenMint}`);
 
     if (!usdtRes.ok) {
-      throw new Error("Jupiter API returned an error");
+      throw new Error('Jupiter API returned an error');
     }
 
     const usdtData: JupiterPriceResponse = await usdtRes.json();
@@ -36,12 +34,10 @@ export async function getTokenFeeFromUsd(
 
 export async function convertSOLToUSDT(solAmount: number): Promise<number> {
   try {
-    const response = await fetch(
-      `${API_BASE}/price/v2?ids=${SOL_MINT}&vsToken=${USDT_MINT}`
-    );
+    const response = await fetch(`${API_BASE}/price/v2?ids=${SOL_MINT}&vsToken=${USDT_MINT}`);
 
     if (!response.ok) {
-      throw new Error("API Jupiter trả về lỗi");
+      throw new Error('API Jupiter trả về lỗi');
     }
 
     const data: JupiterPriceResponse = await response.json();
@@ -49,7 +45,7 @@ export async function convertSOLToUSDT(solAmount: number): Promise<number> {
 
     return solAmount * solToUsdtRate;
   } catch (err) {
-    console.error("Lỗi khi convert SOL sang USDT:", err);
+    console.error('Lỗi khi convert SOL sang USDT:', err);
     throw err;
   }
 }

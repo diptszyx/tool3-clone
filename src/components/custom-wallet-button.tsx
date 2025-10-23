@@ -28,8 +28,7 @@ export function shortenAddress(address: string, chars = 4): string {
 }
 
 export default function WalletConnectButton() {
-  const { publicKey, select, wallets, disconnect, connecting, connected } =
-    useWallet();
+  const { publicKey, select, wallets, disconnect, connecting, connected } = useWallet();
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -109,8 +108,8 @@ export default function WalletConnectButton() {
                 {isMobileDevice
                   ? 'Choose your wallet to connect'
                   : showQR
-                  ? 'Scan QR code with your mobile wallet app'
-                  : 'Choose your preferred wallet'}
+                    ? 'Scan QR code with your mobile wallet app'
+                    : 'Choose your preferred wallet'}
               </p>
             </DialogHeader>
 
@@ -126,20 +125,14 @@ export default function WalletConnectButton() {
                 </div>
 
                 <div className="text-center space-y-2 max-w-sm">
-                  <p className="font-medium text-slate-900 text-lg">
-                    Scan with wallet app
-                  </p>
+                  <p className="font-medium text-slate-900 text-lg">Scan with wallet app</p>
                   <p className="text-sm text-slate-600">
-                    Open Phantom or Solflare app on your phone, use the browser
-                    feature and scan this QR code
+                    Open Phantom or Solflare app on your phone, use the browser feature and scan
+                    this QR code
                   </p>
                 </div>
 
-                <Button
-                  variant="outline"
-                  onClick={() => setShowQR(false)}
-                  className="w-full"
-                >
+                <Button variant="outline" onClick={() => setShowQR(false)} className="w-full">
                   ← Back to wallet list
                 </Button>
               </div>
@@ -189,17 +182,15 @@ export default function WalletConnectButton() {
                           </div>
 
                           <div className="text-left">
-                            <div className="font-medium text-base">
-                              {wallet.adapter.name}
-                            </div>
+                            <div className="font-medium text-base">{wallet.adapter.name}</div>
                             <div className="text-xs text-slate-500">
                               {isMobileDevice
                                 ? wallet.readyState === 'Installed'
                                   ? 'Tap to connect'
                                   : 'Tap to install'
                                 : wallet.readyState === 'Installed'
-                                ? 'Installed'
-                                : 'Not Installed'}
+                                  ? 'Installed'
+                                  : 'Not Installed'}
                             </div>
                           </div>
                         </div>
@@ -242,10 +233,7 @@ export default function WalletConnectButton() {
               {displayAddress}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            align="end"
-            className="bg-white border-slate-200"
-          >
+          <DropdownMenuContent align="end" className="bg-white border-slate-200">
             <DropdownMenuItem
               onClick={handleDisconnect}
               className="text-red-400 hover:text-red-300 hover:bg-red-500/10 cursor-pointer transition-colors duration-200"

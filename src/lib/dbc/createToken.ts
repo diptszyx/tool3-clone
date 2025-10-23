@@ -1,18 +1,8 @@
-import {
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  LAMPORTS_PER_SOL,
-  Transaction,
-} from "@solana/web3.js";
-import { DynamicBondingCurveClient } from "@meteora-ag/dynamic-bonding-curve-sdk";
-import { connectionMainnet } from "@/service/solana/connection";
-import {
-  uploadFileToIPFS,
-  uploadMetadataToIPFS,
-  TokenMetadata,
-} from "@/lib/dbc/metadata";
-import { isWhitelisted } from "@/utils/whitelist";
+import { Keypair, PublicKey, SystemProgram, LAMPORTS_PER_SOL, Transaction } from '@solana/web3.js';
+import { DynamicBondingCurveClient } from '@meteora-ag/dynamic-bonding-curve-sdk';
+import { connectionMainnet } from '@/service/solana/connection';
+import { uploadFileToIPFS, uploadMetadataToIPFS, TokenMetadata } from '@/lib/dbc/metadata';
+import { isWhitelisted } from '@/utils/whitelist';
 
 export interface CreateTokenParams {
   name: string;
@@ -25,44 +15,34 @@ export interface CreateTokenParams {
   userPublicKey: PublicKey;
 }
 
-export async function createTokenTransaction(
-  params: CreateTokenParams
-): Promise<{
+export async function createTokenTransaction(params: CreateTokenParams): Promise<{
   transaction: Transaction;
   baseMint: Keypair;
 }> {
-  const {
-    name,
-    symbol,
-    description,
-    socialX,
-    socialTelegram,
-    socialWebsite,
-    file,
-    userPublicKey,
-  } = params;
+  const { name, symbol, description, socialX, socialTelegram, socialWebsite, file, userPublicKey } =
+    params;
 
   const imageUrl = await uploadFileToIPFS(file);
 
   const metadata: TokenMetadata = {
     name,
     symbol,
-    description: description || "",
+    description: description || '',
     image: imageUrl,
     showName: true,
-    createdOn: "https://tool3.xyz",
-    socialX: socialX || "",
-    socialTelegram: socialTelegram || "",
-    socialWebsite: socialWebsite || "",
+    createdOn: 'https://tool3.xyz',
+    socialX: socialX || '',
+    socialTelegram: socialTelegram || '',
+    socialWebsite: socialWebsite || '',
   };
 
   const metadataUri = await uploadMetadataToIPFS(metadata);
 
-  const client = new DynamicBondingCurveClient(connectionMainnet, "confirmed");
+  const client = new DynamicBondingCurveClient(connectionMainnet, 'confirmed');
 
   const CONFIG_PUBLIC_KEY = process.env.NEXT_PUBLIC_DBC_CONFIG_MAINNET;
   if (!CONFIG_PUBLIC_KEY) {
-    throw new Error("Missing DBC_CONFIG_MAINNET in env");
+    throw new Error('Missing DBC_CONFIG_MAINNET in env');
   }
 
   const config = new PublicKey(CONFIG_PUBLIC_KEY);

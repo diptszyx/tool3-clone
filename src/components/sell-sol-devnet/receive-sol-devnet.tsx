@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { FormControl, FormField } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import Image from "next/image";
-import { Loader } from "@nsmr/pixelart-react";
-import { UseFormReturn } from "react-hook-form";
-import { FormSellSol } from "./sell-sol-devnet";
-import { Connection, PublicKey } from "@solana/web3.js";
+import React, { useEffect, useState } from 'react';
+import { FormControl, FormField } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import Image from 'next/image';
+import { Loader } from '@nsmr/pixelart-react';
+import { UseFormReturn } from 'react-hook-form';
+import { FormSellSol } from './sell-sol-devnet';
+import { Connection, PublicKey } from '@solana/web3.js';
 
 interface ReceiveSolDevnetProps {
   form: UseFormReturn<FormSellSol>;
@@ -27,14 +27,14 @@ const ReceiveSolDevnet: React.FC<ReceiveSolDevnetProps> = ({
   useEffect(() => {
     const fetchBalance = async () => {
       try {
-        const connection = new Connection("https://api.devnet.solana.com");
+        const connection = new Connection('https://api.devnet.solana.com');
         const adminKey = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
         if (!adminKey) return;
 
         const balance = await connection.getBalance(new PublicKey(adminKey));
         setMaxSol(balance / 1_000_000_000);
       } catch (err) {
-        console.error("Failed to fetch admin SOL balance:", err);
+        console.error('Failed to fetch admin SOL balance:', err);
       }
     };
 
@@ -47,9 +47,7 @@ const ReceiveSolDevnet: React.FC<ReceiveSolDevnetProps> = ({
         <div className="ml-[4px]">You Buy</div>
         <div className="flex flex-col items-end mr-1">
           <div>${USDPERSOL} per SOL Devnet</div>
-          <div className="text-xs text-gray-500">
-            Max available: {maxSol.toFixed(1)}
-          </div>
+          <div className="text-xs text-gray-500">Max available: {maxSol.toFixed(1)}</div>
         </div>
       </div>
 
@@ -84,7 +82,7 @@ const ReceiveSolDevnet: React.FC<ReceiveSolDevnetProps> = ({
                       let value = e.target.value;
                       const numValue = parseFloat(value);
 
-                      if (numValue < 0) value = "0";
+                      if (numValue < 0) value = '0';
 
                       if (numValue > maxSol) {
                         value = maxSol.toFixed(1);

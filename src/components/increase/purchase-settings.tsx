@@ -1,26 +1,17 @@
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UseFormReturn } from "react-hook-form";
-import { FormData } from "@/lib/increase/types";
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { UseFormReturn } from 'react-hook-form';
+import { FormData } from '@/lib/increase/types';
 
 interface PurchaseSettingsProps {
   form: UseFormReturn<FormData>;
   disabled?: boolean;
 }
 
-export const PurchaseSettings = ({
-  form,
-  disabled = false,
-}: PurchaseSettingsProps) => {
-  const buyAmountMode = form.watch("buyAmountMode");
+export const PurchaseSettings = ({ form, disabled = false }: PurchaseSettingsProps) => {
+  const buyAmountMode = form.watch('buyAmountMode');
 
   return (
     <Card>
@@ -42,7 +33,7 @@ export const PurchaseSettings = ({
                 >
                   <TabsList
                     className={`grid w-full grid-cols-2 ${
-                      disabled ? "opacity-50 pointer-events-none" : ""
+                      disabled ? 'opacity-50 pointer-events-none' : ''
                     }`}
                   >
                     <TabsTrigger value="fixed">Fixed Amount</TabsTrigger>
@@ -59,7 +50,7 @@ export const PurchaseSettings = ({
           control={form.control}
           name="fixedAmount"
           render={({ field }) => (
-            <FormItem className={buyAmountMode === "fixed" ? "" : "hidden"}>
+            <FormItem className={buyAmountMode === 'fixed' ? '' : 'hidden'}>
               <FormLabel>Fixed Amount (SOL)</FormLabel>
               <FormControl>
                 <Input
@@ -75,11 +66,7 @@ export const PurchaseSettings = ({
           )}
         />
 
-        <div
-          className={`grid grid-cols-2 gap-4 ${
-            buyAmountMode === "random" ? "" : "hidden"
-          }`}
-        >
+        <div className={`grid grid-cols-2 gap-4 ${buyAmountMode === 'random' ? '' : 'hidden'}`}>
           <FormField
             control={form.control}
             name="randomMin"

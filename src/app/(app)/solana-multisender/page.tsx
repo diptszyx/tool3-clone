@@ -1,20 +1,27 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { Check, ExternalLink, Loader2, Plus, Trash2, FileText, X, Upload } from "lucide-react";
-import SelectToken from "@/components/transfer/select-token";
-import { transferToken, TokenTransferResult, transferTokenToMultipleRecipients } from "@/service/token/token-extensions/tool/transfer-token-extension";
-import { transferSol, transferSolToMultipleRecipients, } from "@/service/token/token-extensions/tool/transfer-sol";
-import { UserToken } from "@/hooks/useUserTokens";
-import { useIsMobile } from "@/hooks/use-mobile";
-import SuspenseLayout from "@/components/suspense-layout";
-import { ClusterType } from "@/types/types";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { Check, ExternalLink, Loader2, Plus, Trash2, FileText, X, Upload } from 'lucide-react';
+import SelectToken from '@/components/transfer/select-token';
+import {
+  transferToken,
+  TokenTransferResult,
+  transferTokenToMultipleRecipients,
+} from '@/service/token/token-extensions/tool/transfer-token-extension';
+import {
+  transferSol,
+  transferSolToMultipleRecipients,
+} from '@/service/token/token-extensions/tool/transfer-sol';
+import { UserToken } from '@/hooks/useUserTokens';
+import { useIsMobile } from '@/hooks/use-mobile';
+import SuspenseLayout from '@/components/suspense-layout';
+import { ClusterType } from '@/types/types';
 import {
   Dialog,
   DialogContent,
@@ -22,7 +29,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 import {
   Table,
   TableBody,
@@ -30,13 +37,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 
-
-
-const FEE_PER_RECIPIENT = 0.0016; 
-const MAX_TOTAL_FEE = 0.025; 
-const FEE_RECIPIENT_ADDRESS = "4UWS2QEhNT9hyAnvRikAXtDhvvgJGGT8fHhLzoq5KhEa";
+const FEE_PER_RECIPIENT = 0.0016;
+const MAX_TOTAL_FEE = 0.025;
+const FEE_RECIPIENT_ADDRESS = '4UWS2QEhNT9hyAnvRikAXtDhvvgJGGT8fHhLzoq5KhEa';
 
 interface Recipient {
   address: string;
@@ -45,8 +50,6 @@ interface Recipient {
   error?: string;
 }
 
-
-
 export default function TransferTokenPage() {
   const isMobile = useIsMobile();
   const wallet = useWallet();
@@ -54,27 +57,28 @@ export default function TransferTokenPage() {
   const { connection } = useConnection();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedToken, setSelectedToken] = useState<UserToken | null>(null);
-  const [tokenAmount, setTokenAmount] = useState("");
-  const [recipients, setRecipients] = useState<Recipient[]>([{ address: "", amount: "" }]);
-  const [memo, setMemo] = useState("");
+  const [tokenAmount, setTokenAmount] = useState('');
+  const [recipients, setRecipients] = useState<Recipient[]>([{ address: '', amount: '' }]);
+  const [memo, setMemo] = useState('');
 
   const [transferInProgress, setTransferInProgress] = useState(false);
   const [transferSuccess, setTransferSuccess] = useState(false);
   const [transferResults, setTransferResults] = useState<TokenTransferResult[]>([]);
-  const [cluster, setCluster] = useState<ClusterType>("mainnet");
+  const [cluster, setCluster] = useState<ClusterType>('mainnet');
 
   const [isUpdatingFromSelectToken, setIsUpdatingFromSelectToken] = useState(false);
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
-  const [csvText, setCsvText] = useState("");
+  const [csvText, setCsvText] = useState('');
   const [parsedCsvRecipients, setParsedCsvRecipients] = useState<Recipient[]>([]);
 
   const handleTokensLoaded = (tokens: UserToken[]) => {
     setIsLoading(false);
     if (!selectedToken) {
-      const solToken = tokens.find(token =>
-        token.symbol === "SOL" ||
-        token.address === "11111111111111111111111111111111" ||
-        token.address === "NativeSOL"
+      const solToken = tokens.find(
+        (token) =>
+          token.symbol === 'SOL' ||
+          token.address === '11111111111111111111111111111111' ||
+          token.address === 'NativeSOL',
       );
 
       if (solToken) {
@@ -98,22 +102,26 @@ export default function TransferTokenPage() {
         const updatedRecipients = [...recipients];
         updatedRecipients[0] = {
           ...updatedRecipients[0],
-          amount
+          amount,
         };
         setRecipients(updatedRecipients);
       } else if (recipients.length > 1) {
-        const amountPerRecipient = (parseFloat(amount) / recipients.length).toFixed(selectedToken.decimals || 6);
-        setRecipients(recipients.map(r => ({
-          ...r,
-          amount: amountPerRecipient
-        })));
+        const amountPerRecipient = (parseFloat(amount) / recipients.length).toFixed(
+          selectedToken.decimals || 6,
+        );
+        setRecipients(
+          recipients.map((r) => ({
+            ...r,
+            amount: amountPerRecipient,
+          })),
+        );
       }
     }
     setTimeout(() => setIsUpdatingFromSelectToken(false), 0);
   };
 
   const addRecipient = () => {
-    setRecipients([...recipients, { address: "", amount: "" }]);
+    setRecipients([...recipients, { address: '', amount: '' }]);
   };
 
   const removeRecipient = (index: number) => {
@@ -133,13 +141,12 @@ export default function TransferTokenPage() {
 
     newRecipients[index] = {
       ...newRecipients[index],
-      [field]: value
+      [field]: value,
     };
 
     console.log(`Updated recipients:`, newRecipients);
     setRecipients(newRecipients);
   };
-
 
   const processCsvInput = (text: string) => {
     if (!text.trim()) {
@@ -154,7 +161,6 @@ export default function TransferTokenPage() {
     for (const line of lines) {
       if (!line.trim()) continue;
 
-  
       if (skipHeader) {
         const lowerLine = line.toLowerCase().trim();
         if (lowerLine.includes('address') && lowerLine.includes('amount')) {
@@ -164,14 +170,13 @@ export default function TransferTokenPage() {
         skipHeader = false;
       }
 
-  
-      const parts = line.split(',').map(part => part.trim());
+      const parts = line.split(',').map((part) => part.trim());
       if (parts.length < 2) {
         newRecipients.push({
           address: line,
           amount: '',
           valid: false,
-          error: 'Invalid format. Expected: address, amount'
+          error: 'Invalid format. Expected: address, amount',
         });
         continue;
       }
@@ -179,10 +184,8 @@ export default function TransferTokenPage() {
       const address = parts[0];
       const amount = parts[1];
 
-  
       const isValidAddress = /^[\w]{32,44}$/.test(address);
-      
-  
+
       const parsedAmount = parseFloat(amount);
       const isValidAmount = !isNaN(parsedAmount) && parsedAmount > 0;
 
@@ -190,11 +193,11 @@ export default function TransferTokenPage() {
         address,
         amount,
         valid: isValidAddress && isValidAmount,
-        error: !isValidAddress 
-          ? 'Invalid address format' 
-          : !isValidAmount 
-          ? 'Invalid amount' 
-          : undefined
+        error: !isValidAddress
+          ? 'Invalid address format'
+          : !isValidAmount
+            ? 'Invalid amount'
+            : undefined,
       });
     }
 
@@ -213,21 +216,17 @@ export default function TransferTokenPage() {
   };
 
   const importCsvData = () => {
+    const validRecipients = parsedCsvRecipients.filter((r) => r.valid);
 
-    const validRecipients = parsedCsvRecipients.filter(r => r.valid);
-    
     if (validRecipients.length === 0) {
       toast.error('No valid recipients found in CSV data');
       return;
     }
 
-
     setRecipients(validRecipients);
-    
 
     const totalAmount = validRecipients.reduce((sum, r) => sum + parseFloat(r.amount || '0'), 0);
     setTokenAmount(totalAmount.toString());
-    
 
     setCsvDialogOpen(false);
     toast.success(`Imported ${validRecipients.length} recipients from CSV`);
@@ -255,19 +254,19 @@ export default function TransferTokenPage() {
     e.preventDefault();
 
     if (!connected) {
-      toast.error("Please connect your wallet first");
+      toast.error('Please connect your wallet first');
       return;
     }
 
     if (!selectedToken) {
-      toast.error("Please select a token");
+      toast.error('Please select a token');
       return;
     }
 
     const validRecipients: Recipient[] = [];
     const invalidRecipients: string[] = [];
 
-    console.log("Checking recipients:", recipients);
+    console.log('Checking recipients:', recipients);
 
     recipients.forEach((recipient, index) => {
       if (!recipient.address && (!recipient.amount || parseFloat(recipient.amount) <= 0)) {
@@ -281,13 +280,19 @@ export default function TransferTokenPage() {
         return;
       }
 
-      if (!recipient.amount || parseFloat(recipient.amount) <= 0 || isNaN(parseFloat(recipient.amount))) {
+      if (
+        !recipient.amount ||
+        parseFloat(recipient.amount) <= 0 ||
+        isNaN(parseFloat(recipient.amount))
+      ) {
         console.log(`Recipient ${index + 1}: Invalid amount "${recipient.amount}"`);
         invalidRecipients.push(`Recipient ${index + 1}: Invalid amount`);
         return;
       }
 
-      console.log(`Recipient ${index + 1}: Valid - Address: ${recipient.address}, Amount: ${recipient.amount}`);
+      console.log(
+        `Recipient ${index + 1}: Valid - Address: ${recipient.address}, Amount: ${recipient.amount}`,
+      );
       validRecipients.push(recipient);
     });
 
@@ -300,17 +305,17 @@ export default function TransferTokenPage() {
               <li key={i}>{error}</li>
             ))}
           </ul>
-        </div>
+        </div>,
       );
       return;
     }
 
     if (validRecipients.length === 0) {
-      toast.error("Please add at least one valid recipient with amount");
+      toast.error('Please add at least one valid recipient with amount');
       return;
     }
 
-    console.log("Valid recipients:", validRecipients);
+    console.log('Valid recipients:', validRecipients);
 
     if (!validateTotalAmount()) {
       return;
@@ -321,12 +326,12 @@ export default function TransferTokenPage() {
     try {
       setTransferInProgress(true);
 
-      toastId = toast.loading("Preparing transfer...");
+      toastId = toast.loading('Preparing transfer...');
 
-
-      const isSOL = selectedToken.symbol === "SOL" ||
-        selectedToken.address === "NativeSOL" ||
-        selectedToken.address === "11111111111111111111111111111111";
+      const isSOL =
+        selectedToken.symbol === 'SOL' ||
+        selectedToken.address === 'NativeSOL' ||
+        selectedToken.address === '11111111111111111111111111111111';
 
       if (isSOL) {
         if (validRecipients.length === 1) {
@@ -337,35 +342,35 @@ export default function TransferTokenPage() {
             wallet,
             {
               recipientAddress: recipient.address,
-              amount: recipient.amount
+              amount: recipient.amount,
             },
             {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
-              onStart: () => { },
+              onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
-                toast.success("SOL transfer successful!");
+                toast.success('SOL transfer successful!');
               },
               onError: (err) => {
                 toast.dismiss(toastId);
                 toast.error(`SOL transfer failed: ${err.message}`);
               },
-              onFinish: () => setTransferInProgress(false)
-            }
+              onFinish: () => setTransferInProgress(false),
+            },
           );
 
           if (result) {
-            console.log("SOL transaction signature:", result.signature);
+            console.log('SOL transaction signature:', result.signature);
             toast.dismiss(toastId);
             setTransferResults([result as unknown as TokenTransferResult]);
             setTransferSuccess(true);
           }
         } else {
-          const transferParams = validRecipients.map(recipient => ({
+          const transferParams = validRecipients.map((recipient) => ({
             recipientAddress: recipient.address,
-            amount: recipient.amount
+            amount: recipient.amount,
           }));
 
           const results = await transferSolToMultipleRecipients(
@@ -376,21 +381,21 @@ export default function TransferTokenPage() {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
-              onStart: () => { },
+              onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
-                toast.success("SOL transfers successful!");
+                toast.success('SOL transfers successful!');
               },
               onError: (err: Error) => {
                 toast.dismiss(toastId);
                 toast.error(`SOL transfers failed: ${err.message}`);
               },
-              onFinish: () => setTransferInProgress(false)
-            }
+              onFinish: () => setTransferInProgress(false),
+            },
           );
 
           if (results && results.length > 0) {
-            console.log("SOL transaction results:", results);
+            console.log('SOL transaction results:', results);
             toast.dismiss(toastId);
             setTransferResults(results as unknown as TokenTransferResult[]);
             setTransferSuccess(true);
@@ -407,37 +412,37 @@ export default function TransferTokenPage() {
               mintAddress: selectedToken.address,
               recipientAddress: recipient.address,
               amount: recipient.amount,
-              decimals: selectedToken.decimals || 0
+              decimals: selectedToken.decimals || 0,
             },
             {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
-              onStart: () => { },
+              onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
-                toast.success("Transfer successful!");
+                toast.success('Transfer successful!');
               },
               onError: (err) => {
                 toast.dismiss(toastId);
                 toast.error(`Transfer failed: ${err.message}`);
               },
-              onFinish: () => setTransferInProgress(false)
-            }
+              onFinish: () => setTransferInProgress(false),
+            },
           );
 
           if (result) {
-            console.log("Transaction signature:", result.signature);
+            console.log('Transaction signature:', result.signature);
             toast.dismiss(toastId);
             setTransferResults([result]);
             setTransferSuccess(true);
           }
         } else {
-          const transferParams = validRecipients.map(recipient => ({
+          const transferParams = validRecipients.map((recipient) => ({
             mintAddress: selectedToken.address,
             recipientAddress: recipient.address,
             amount: recipient.amount,
-            decimals: selectedToken.decimals || 0
+            decimals: selectedToken.decimals || 0,
           }));
 
           const results = await transferTokenToMultipleRecipients(
@@ -448,21 +453,21 @@ export default function TransferTokenPage() {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
-              onStart: () => { },
+              onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
-                toast.success("Transfers successful!");
+                toast.success('Transfers successful!');
               },
               onError: (err: Error) => {
                 toast.dismiss(toastId);
                 toast.error(`Transfers failed: ${err.message}`);
               },
-              onFinish: () => setTransferInProgress(false)
-            }
+              onFinish: () => setTransferInProgress(false),
+            },
           );
 
           if (results && results.length > 0) {
-            console.log("Transaction results:", results);
+            console.log('Transaction results:', results);
             toast.dismiss(toastId);
             setTransferResults(results);
             setTransferSuccess(true);
@@ -470,7 +475,7 @@ export default function TransferTokenPage() {
         }
       }
     } catch (error: unknown) {
-      console.error("Error in transfer:", error);
+      console.error('Error in transfer:', error);
       if (toastId) toast.dismiss(toastId);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -503,10 +508,12 @@ export default function TransferTokenPage() {
 
     const amountPerRecipient = (balance / count).toFixed(selectedToken.decimals || 6);
 
-    setRecipients(recipients.map(r => ({
-      ...r,
-      amount: amountPerRecipient
-    })));
+    setRecipients(
+      recipients.map((r) => ({
+        ...r,
+        amount: amountPerRecipient,
+      })),
+    );
 
     setTokenAmount(balance.toString());
 
@@ -526,7 +533,7 @@ export default function TransferTokenPage() {
     const availableBalance = parseFloat(selectedToken.balance) - totalOtherAmount;
 
     if (availableBalance <= 0) {
-      toast.error("No remaining balance available");
+      toast.error('No remaining balance available');
       setIsUpdatingFromSelectToken(false);
       return;
     }
@@ -534,7 +541,7 @@ export default function TransferTokenPage() {
     const newRecipients = [...recipients];
     newRecipients[index] = {
       ...newRecipients[index],
-      amount: availableBalance.toString()
+      amount: availableBalance.toString(),
     };
 
     setRecipients(newRecipients);
@@ -550,10 +557,10 @@ export default function TransferTokenPage() {
   };
 
   const calculateTotalFee = (): number => {
-    const validRecipients = recipients.filter(r => r.address && r.amount);
+    const validRecipients = recipients.filter((r) => r.address && r.amount);
     if (validRecipients.length > 1) {
-      const calculatedFee = FEE_PER_RECIPIENT * (validRecipients.length - 1); 
-      return Math.min(calculatedFee, MAX_TOTAL_FEE); 
+      const calculatedFee = FEE_PER_RECIPIENT * (validRecipients.length - 1);
+      return Math.min(calculatedFee, MAX_TOTAL_FEE);
     }
     return 0;
   };
@@ -561,8 +568,8 @@ export default function TransferTokenPage() {
   const handleCloseSuccessDialog = () => {
     setTransferSuccess(false);
     setTransferResults([]);
-    setRecipients([{ address: "", amount: "" }]);
-    setMemo("");
+    setRecipients([{ address: '', amount: '' }]);
+    setMemo('');
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -586,7 +593,8 @@ export default function TransferTokenPage() {
   };
 
   const downloadCsvTemplate = () => {
-    const template = "address,amount\n9ZNTfG4NyQgxy2SWjSiQoUyBPEvXT2xo7fKc5hPYYJ7b,0.1\nHxFLKUAmAMLz1jtT3hbvCMELwH5H9tpM2QugP8sKyfhc,0.5";
+    const template =
+      'address,amount\n9ZNTfG4NyQgxy2SWjSiQoUyBPEvXT2xo7fKc5hPYYJ7b,0.1\nHxFLKUAmAMLz1jtT3hbvCMELwH5H9tpM2QugP8sKyfhc,0.5';
     const blob = new Blob([template], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -602,7 +610,9 @@ export default function TransferTokenPage() {
     return (
       <div className="h-full flex md:items-center mt-10 md:mt-0">
         <div className="container mx-auto px-4">
-          <div className={`md:p-6 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear shadow-sm rounded-xl"}`}>
+          <div
+            className={`md:p-6 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear shadow-sm rounded-xl'}`}
+          >
             <div className="text-center">
               <div className="mb-8 flex justify-center">
                 <div className="h-20 w-20 rounded-full bg-green-100 flex items-center justify-center shadow-sm">
@@ -617,20 +627,25 @@ export default function TransferTokenPage() {
                   <div className="px-6 py-4 bg-gray-100 border-b border-gray-200">
                     <p className="text-sm font-medium text-gray-700">Transaction Details</p>
                   </div>
-                  
+
                   <div className="divide-y divide-gray-100">
                     <div className="px-6 py-4 flex justify-between items-center">
                       <p className="text-sm font-medium text-gray-500">Token</p>
-                      <p className="text-base font-semibold">{selectedToken?.symbol || ""}</p>
+                      <p className="text-base font-semibold">{selectedToken?.symbol || ''}</p>
                     </div>
-                    
+
                     <div className="px-6 py-4 flex justify-between items-center">
                       <p className="text-sm font-medium text-gray-500">Total Amount</p>
                       <p className="text-base font-semibold">
-                        {parseFloat(transferResults.reduce((sum, result) => sum + parseFloat(result.amount), 0).toFixed(selectedToken?.decimals || 6)).toString()} {selectedToken?.symbol || ""}
+                        {parseFloat(
+                          transferResults
+                            .reduce((sum, result) => sum + parseFloat(result.amount), 0)
+                            .toFixed(selectedToken?.decimals || 6),
+                        ).toString()}{' '}
+                        {selectedToken?.symbol || ''}
                       </p>
                     </div>
-                    
+
                     <div className="px-6 py-4">
                       <p className="text-sm font-medium text-gray-500 mb-2">Transaction ID</p>
                       <div className="bg-white p-3 rounded-lg border border-gray-200 break-all font-mono text-xs text-gray-700">
@@ -642,21 +657,20 @@ export default function TransferTokenPage() {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  variant="outline"
-                  onClick={handleCloseSuccessDialog}
-                  className="px-6"
-                >
+                <Button variant="outline" onClick={handleCloseSuccessDialog} className="px-6">
                   Make Another Transfer
                 </Button>
 
                 <Button
                   onClick={() => {
-                    const urlCluster = window.location.href.includes('cluster=devnet') ? 'devnet' : 'mainnet';
-                    const explorerUrl = urlCluster === 'devnet'
-                      ? `https://explorer.solana.com/tx/${transferResults[0].signature}?cluster=devnet`
-                      : `https://explorer.solana.com/tx/${transferResults[0].signature}`;
-                    window.open(explorerUrl, "_blank");
+                    const urlCluster = window.location.href.includes('cluster=devnet')
+                      ? 'devnet'
+                      : 'mainnet';
+                    const explorerUrl =
+                      urlCluster === 'devnet'
+                        ? `https://explorer.solana.com/tx/${transferResults[0].signature}?cluster=devnet`
+                        : `https://explorer.solana.com/tx/${transferResults[0].signature}`;
+                    window.open(explorerUrl, '_blank');
                   }}
                   className="px-6"
                 >
@@ -674,7 +688,7 @@ export default function TransferTokenPage() {
     <div className="h-full flex md:items-center mt-10 md:mt-0 ">
       <div className="container mx-auto px-4 max-h-[calc(100vh-100px)] overflow-y-auto py-5">
         <SuspenseLayout>
-          <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
+          <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
             <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
               Multisender
             </h1>
@@ -743,19 +757,23 @@ export default function TransferTokenPage() {
 
                         <div className="space-y-3">
                           <div>
-                            <Label htmlFor={`recipient-${index}`} className="sr-only">Recipient Address</Label>
+                            <Label htmlFor={`recipient-${index}`} className="sr-only">
+                              Recipient Address
+                            </Label>
                             <Input
                               id={`recipient-${index}`}
                               placeholder="Enter Solana address"
                               value={recipient.address}
-                              onChange={(e) => updateRecipient(index, "address", e.target.value)}
+                              onChange={(e) => updateRecipient(index, 'address', e.target.value)}
                               className="border-gear-gray h-[28px] bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
                             />
                           </div>
 
                           <div>
                             <div className="flex justify-between">
-                              <Label htmlFor={`amount-${index}`} className="sr-only">Amount</Label>
+                              <Label htmlFor={`amount-${index}`} className="sr-only">
+                                Amount
+                              </Label>
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -771,7 +789,7 @@ export default function TransferTokenPage() {
                               id={`amount-${index}`}
                               placeholder="0.00"
                               value={recipient.amount}
-                              onChange={(e) => updateRecipient(index, "amount", e.target.value)}
+                              onChange={(e) => updateRecipient(index, 'amount', e.target.value)}
                               disabled={!selectedToken}
                               className="border-gear-gray h-[28px] bg-white text-gray-900 focus:border-purple-500 focus:ring-purple-500"
                             />
@@ -804,7 +822,7 @@ export default function TransferTokenPage() {
                           )}
                         </span>
                       </div>
-                      
+
                       {/* Hiển thị phí khi có nhiều người nhận */}
                       {recipients.length > 1 && (
                         <div className="flex items-center justify-between">
@@ -820,7 +838,9 @@ export default function TransferTokenPage() {
 
                 {/* Memo (for MemoTransfer extension) */}
                 <div className="space-y-2">
-                  <Label htmlFor="memo" className="text-gray-900">Memo (Optional)</Label>
+                  <Label htmlFor="memo" className="text-gray-900">
+                    Memo (Optional)
+                  </Label>
                   <Textarea
                     id="memo"
                     placeholder="Add a memo to this transfer"
@@ -848,7 +868,7 @@ export default function TransferTokenPage() {
                     Processing...
                   </>
                 ) : (
-                  "Transfer Token"
+                  'Transfer Token'
                 )}
               </Button>
             </form>
@@ -860,12 +880,13 @@ export default function TransferTokenPage() {
                   <DialogTitle>Import CSV Data</DialogTitle>
                   <DialogDescription>
                     Paste CSV data with addresses and amounts to create multiple recipients.
-                    <br />Format: address, amount (one per line)
+                    <br />
+                    Format: address, amount (one per line)
                   </DialogDescription>
                   <div className="mt-2 flex justify-end">
-                    <Button 
-                      variant="link" 
-                      size="sm" 
+                    <Button
+                      variant="link"
+                      size="sm"
                       className="h-6 p-0 text-xs"
                       onClick={downloadCsvTemplate}
                     >
@@ -891,8 +912,8 @@ export default function TransferTokenPage() {
                           className="hidden"
                         />
                       </label>
-                      <Button 
-                        variant="outline" 
+                      <Button
+                        variant="outline"
                         size="sm"
                         onClick={clearCsvText}
                         className="h-8"
@@ -902,18 +923,20 @@ export default function TransferTokenPage() {
                       </Button>
                     </div>
                   </div>
-                  
+
                   <Textarea
                     placeholder="address, amount&#10;9ZNTfG4NyQgxy2SWjSiQoUyBPEvXT2xo7fKc5hPYYJ7b, 0.1&#10;HxFLKUAmAMLz1jtT3hbvCMELwH5H9tpM2QugP8sKyfhc, 0.5"
                     className="min-h-[150px] font-mono text-sm"
                     value={csvText}
                     onChange={handleCsvTextChange}
                   />
-                  
+
                   <div className="text-xs text-gray-500 flex items-center">
                     <div className="flex-1">
                       <p>You can either paste CSV data above or upload a CSV file.</p>
-                      <p>The first row with &quot;address, amount&quot; will be skipped as header.</p>
+                      <p>
+                        The first row with &quot;address, amount&quot; will be skipped as header.
+                      </p>
                     </div>
                   </div>
 
@@ -930,12 +953,16 @@ export default function TransferTokenPage() {
                         </TableHeader>
                         <TableBody>
                           {parsedCsvRecipients.map((recipient, index) => (
-                            <TableRow key={index} className={recipient.valid ? "" : "bg-red-50"}>
-                              <TableCell className="text-center font-mono text-xs">{index + 1}</TableCell>
-                              <TableCell className="font-mono text-xs">
-                                {recipient.address ? `${recipient.address.slice(0, 6)}...${recipient.address.slice(-6)}` : "–"}
+                            <TableRow key={index} className={recipient.valid ? '' : 'bg-red-50'}>
+                              <TableCell className="text-center font-mono text-xs">
+                                {index + 1}
                               </TableCell>
-                              <TableCell>{recipient.amount || "–"}</TableCell>
+                              <TableCell className="font-mono text-xs">
+                                {recipient.address
+                                  ? `${recipient.address.slice(0, 6)}...${recipient.address.slice(-6)}`
+                                  : '–'}
+                              </TableCell>
+                              <TableCell>{recipient.amount || '–'}</TableCell>
                               <TableCell className="text-right">
                                 {recipient.valid ? (
                                   <span className="text-green-600 text-xs">Valid</span>
@@ -954,11 +981,12 @@ export default function TransferTokenPage() {
                 <DialogFooter>
                   <div className="w-full flex justify-between items-center">
                     <div className="text-sm text-gray-600">
-                      {parsedCsvRecipients.filter(r => r.valid).length}/{parsedCsvRecipients.length} valid recipients
+                      {parsedCsvRecipients.filter((r) => r.valid).length}/
+                      {parsedCsvRecipients.length} valid recipients
                     </div>
-                    <Button 
-                      onClick={importCsvData} 
-                      disabled={parsedCsvRecipients.filter(r => r.valid).length === 0}
+                    <Button
+                      onClick={importCsvData}
+                      disabled={parsedCsvRecipients.filter((r) => r.valid).length === 0}
                     >
                       <Upload className="h-4 w-4 mr-2" /> Import
                     </Button>
@@ -971,4 +999,4 @@ export default function TransferTokenPage() {
       </div>
     </div>
   );
-} 
+}

@@ -1,21 +1,21 @@
-"use client";
+'use client';
 
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { toast } from "sonner";
-import { useWallet } from "@solana/wallet-adapter-react";
-import SelectToken from "../transfer/select-token";
-import ReceiveSolDevnet from "./receive-sol-devnet";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { debounce } from "lodash";
-import { ArrowsVertical } from "@nsmr/pixelart-react";
-import { Transaction } from "@solana/web3.js";
-import { UserToken } from "@/hooks/useUserTokens";
-import { NATIVE_SOL } from "@/utils/constants";
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
+import { toast } from 'sonner';
+import { useWallet } from '@solana/wallet-adapter-react';
+import SelectToken from '../transfer/select-token';
+import ReceiveSolDevnet from './receive-sol-devnet';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { debounce } from 'lodash';
+import { ArrowsVertical } from '@nsmr/pixelart-react';
+import { Transaction } from '@solana/web3.js';
+import { UserToken } from '@/hooks/useUserTokens';
+import { NATIVE_SOL } from '@/utils/constants';
 
 const formSchema = z.object({
   amount: z.string(),
@@ -38,8 +38,8 @@ export default function SellSolDevnet() {
   const form = useForm<FormSellSol>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: "",
-      solAmount: "",
+      amount: '',
+      solAmount: '',
     },
   });
 
@@ -48,18 +48,16 @@ export default function SellSolDevnet() {
       try {
         setPriceLoading(true);
         if (!inputAmount || Number(inputAmount) === 0 || !selectedToken) {
-          form.setValue(isSwapped ? "amount" : "solAmount", "0.00");
+          form.setValue(isSwapped ? 'amount' : 'solAmount', '0.00');
           return;
         }
 
-        let tokenMint = selectedToken?.address || "";
+        let tokenMint = selectedToken?.address || '';
         if (selectedToken?.address === NATIVE_SOL) {
-          tokenMint = "So11111111111111111111111111111111111111112";
+          tokenMint = 'So11111111111111111111111111111111111111112';
         }
 
-        const response = await fetch(
-          `https://lite-api.jup.ag/price/v2?ids=${tokenMint}`
-        );
+        const response = await fetch(`https://lite-api.jup.ag/price/v2?ids=${tokenMint}`);
 
         const result = await response.json();
         const priceInUSD = result?.data[tokenMint]?.price;
@@ -69,30 +67,27 @@ export default function SellSolDevnet() {
           if (!isNaN(amountValue) && amountValue > 0) {
             if (isSwapped) {
               const tokenAmount = (amountValue * USDPERSOL) / priceInUSD;
-              form.setValue(
-                "amount",
-                tokenAmount.toFixed(selectedToken?.decimals || 6)
-              );
+              form.setValue('amount', tokenAmount.toFixed(selectedToken?.decimals || 6));
             } else {
               const solAmount = (amountValue * priceInUSD) / USDPERSOL;
-              form.setValue("solAmount", solAmount.toFixed(9));
+              form.setValue('solAmount', solAmount.toFixed(9));
             }
           } else {
-            form.setValue(isSwapped ? "amount" : "solAmount", "");
+            form.setValue(isSwapped ? 'amount' : 'solAmount', '');
           }
         } else {
-          form.setValue(isSwapped ? "amount" : "solAmount", "");
-          toast.error("Failed to fetch price data");
+          form.setValue(isSwapped ? 'amount' : 'solAmount', '');
+          toast.error('Failed to fetch price data');
         }
       } catch (e) {
-        console.error("Failed to fetch price data:", e);
-        form.setValue(isSwapped ? "amount" : "solAmount", "");
-        toast.error("Failed to fetch price data");
+        console.error('Failed to fetch price data:', e);
+        form.setValue(isSwapped ? 'amount' : 'solAmount', '');
+        toast.error('Failed to fetch price data');
       } finally {
         setPriceLoading(false);
       }
     },
-    [selectedToken, form, isSwapped]
+    [selectedToken, form, isSwapped],
   );
 
   const debouncedFetchPrice = useMemo(() => {
@@ -103,19 +98,19 @@ export default function SellSolDevnet() {
 
   const handleSwap = () => {
     setIsSwapped(!isSwapped);
-    form.setValue("amount", "");
-    form.setValue("solAmount", "");
+    form.setValue('amount', '');
+    form.setValue('solAmount', '');
   };
 
   const onSubmit = async (values: FormSellSol) => {
     try {
       setLoading(true);
       if (!publicKey || !signTransaction) {
-        toast.error("Please connect your wallet first");
+        toast.error('Please connect your wallet first');
         return;
       }
       if (!selectedToken) {
-        toast.error("Please select a token");
+        toast.error('Please select a token');
         return;
       }
 
@@ -133,7 +128,7 @@ export default function SellSolDevnet() {
         solAmount <= 0 ||
         Number.isNaN(solAmount)
       ) {
-        toast.error("Amount must be greater than 0");
+        toast.error('Amount must be greater than 0');
         return;
       }
 
@@ -144,10 +139,10 @@ export default function SellSolDevnet() {
         solAmount: solAmount * 1_000_000_000,
       };
 
-      const response = await fetch("/api/sell-sol-devnet", {
-        method: "POST",
+      const response = await fetch('/api/sell-sol-devnet', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(sellData),
       });
@@ -155,18 +150,16 @@ export default function SellSolDevnet() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to create transaction");
+        throw new Error(data.error || 'Failed to create transaction');
       }
 
-      const tokenTx = Transaction.from(
-        Buffer.from(data.serializedTx, "base64")
-      );
+      const tokenTx = Transaction.from(Buffer.from(data.serializedTx, 'base64'));
       const signedTx = await signTransaction(tokenTx);
 
-      const confirmResponse = await fetch("/api/sell-sol-devnet/confirm", {
-        method: "POST",
+      const confirmResponse = await fetch('/api/sell-sol-devnet/confirm', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           signedTransaction: Array.from(signedTx.serialize()),
@@ -179,25 +172,24 @@ export default function SellSolDevnet() {
       const confirmData = await confirmResponse.json();
 
       if (!confirmResponse.ok) {
-        throw new Error(confirmData.error || "Failed to send SOL Devnet");
+        throw new Error(confirmData.error || 'Failed to send SOL Devnet');
       }
 
-      toast.success("🎉 Buy sol devnet Successful!", {
+      toast.success('🎉 Buy sol devnet Successful!', {
         description: `You sold ${values.amount} ${selectedToken.symbol} for ${values.solAmount} SOL Devnet`,
         action: {
-          label: "View Transaction",
+          label: 'View Transaction',
           onClick: () =>
             window.open(
               `https://solscan.io/tx/${confirmData.solTxSignature}?cluster=devnet`,
-              "_blank"
+              '_blank',
             ),
         },
       });
       setSelectedToken(null);
       form.reset();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "An unexpected error occurred";
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -205,21 +197,15 @@ export default function SellSolDevnet() {
   };
 
   useEffect(() => {
-    const amount = form.getValues(isSwapped ? "solAmount" : "amount");
+    const amount = form.getValues(isSwapped ? 'solAmount' : 'amount');
     if (amount) {
       debouncedFetchPrice(amount);
     }
   }, [selectedToken, isSwapped, debouncedFetchPrice, form]);
 
   return (
-    <div
-      className={`md:p-2 max-w-[550px] mx-auto my-2 ${
-        !isMobile && "border-gear"
-      }`}
-    >
-      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-        Buy SOL Devnet
-      </h1>
+    <div className={`md:p-2 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">Buy SOL Devnet</h1>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -239,9 +225,9 @@ export default function SellSolDevnet() {
                 title="You Pay"
                 selectedToken={selectedToken}
                 setSelectedToken={setSelectedToken}
-                amount={form.watch("amount")}
+                amount={form.watch('amount')}
                 onAmountChange={(value) => {
-                  form.setValue("amount", value);
+                  form.setValue('amount', value);
                   debouncedFetchPrice(value);
                 }}
               />
@@ -265,10 +251,10 @@ export default function SellSolDevnet() {
                 selectedToken={selectedToken}
                 setSelectedToken={setSelectedToken}
                 onAmountChange={(value) => {
-                  form.setValue("amount", value);
+                  form.setValue('amount', value);
                 }}
                 disabled={true}
-                amount={form.watch("amount")}
+                amount={form.watch('amount')}
                 amountLoading={priceLoading}
               />
             ) : (
@@ -287,7 +273,7 @@ export default function SellSolDevnet() {
             variant="default"
             disabled={loading}
           >
-            {loading ? "Processing..." : "Buy SOL Devnet"}
+            {loading ? 'Processing...' : 'Buy SOL Devnet'}
           </Button>
         </form>
       </Form>

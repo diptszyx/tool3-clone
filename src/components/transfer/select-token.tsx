@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import TokenSearchModal from "./select-token-modal";
-import { toast } from "sonner";
-import Image from "next/image";
-import { ChevronDown, Loader, Wallet } from "@nsmr/pixelart-react";
-import { useUserTokens, UserToken } from "@/hooks/useUserTokens";
-import { ClusterType } from "@/types/types";
-import { NATIVE_SOL } from "@/utils/constants";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import TokenSearchModal from './select-token-modal';
+import { toast } from 'sonner';
+import Image from 'next/image';
+import { ChevronDown, Loader, Wallet } from '@nsmr/pixelart-react';
+import { useUserTokens, UserToken } from '@/hooks/useUserTokens';
+import { ClusterType } from '@/types/types';
+import { NATIVE_SOL } from '@/utils/constants';
 
 interface SelectTokenProps {
   selectedToken: UserToken | null;
@@ -34,7 +34,7 @@ const SelectToken: React.FC<SelectTokenProps> = ({
   amount,
   amountLoading = false,
   excludeToken,
-  cluster = "mainnet",
+  cluster = 'mainnet',
   onTokensLoaded,
   tokenFee = 0,
 }) => {
@@ -46,9 +46,9 @@ const SelectToken: React.FC<SelectTokenProps> = ({
     if (tokens.length > 0 && !selectedToken && !userHasSelected) {
       const solToken = tokens.find(
         (token) =>
-          token.symbol === "SOL" ||
-          token.address === "11111111111111111111111111111111" ||
-          token.address === NATIVE_SOL
+          token.symbol === 'SOL' ||
+          token.address === '11111111111111111111111111111111' ||
+          token.address === NATIVE_SOL,
       );
 
       if (solToken) {
@@ -61,22 +61,16 @@ const SelectToken: React.FC<SelectTokenProps> = ({
     if (tokens.length > 0 && onTokensLoaded) {
       onTokensLoaded(tokens);
     }
-  }, [
-    tokens,
-    selectedToken,
-    setSelectedToken,
-    onTokensLoaded,
-    userHasSelected,
-  ]);
+  }, [tokens, selectedToken, setSelectedToken, onTokensLoaded, userHasSelected]);
 
   const handleTokenSelect = (token: UserToken) => {
     setSelectedToken(token);
     setUserHasSelected(true);
     setIsModalOpen(false);
-    onAmountChange("");
+    onAmountChange('');
   };
 
-  const setAmount = (type: "half" | "max") => {
+  const setAmount = (type: 'half' | 'max') => {
     if (!selectedToken) return;
 
     const balance = parseFloat(selectedToken.balance);
@@ -86,42 +80,40 @@ const SelectToken: React.FC<SelectTokenProps> = ({
     if (balance < tokenFee) {
       toast.error(
         `Insufficient balance to cover fee. Need ${tokenFee.toFixed(
-          6
-        )} ${symbol}, but only have ${balance.toFixed(6)} ${symbol}`
+          6,
+        )} ${symbol}, but only have ${balance.toFixed(6)} ${symbol}`,
       );
-      onAmountChange("0");
+      onAmountChange('0');
       return;
     }
 
     const availableAmount = Math.max(0, balance - tokenFee);
-    const amount = type === "half" ? availableAmount / 2 : availableAmount;
+    const amount = type === 'half' ? availableAmount / 2 : availableAmount;
     const amountString = amount.toFixed(decimals);
 
-    toast.success(
-      `You can proceed with up to ${amountString} ${symbol} after deducting fee`
-    );
+    toast.success(`You can proceed with up to ${amountString} ${symbol} after deducting fee`);
 
     onAmountChange(amountString);
   };
 
-  const setHalf = () => setAmount("half");
-  const setMax = () => setAmount("max");
+  const setHalf = () => setAmount('half');
+  const setMax = () => setAmount('max');
 
   const handleAmountChange = (value: string) => {
     if (disabled) return;
 
-    if (value === "") {
-      onAmountChange("");
+    if (value === '') {
+      onAmountChange('');
       return;
     }
     const numValue = parseFloat(value);
     if (isNaN(numValue) || numValue < 0) {
-      toast.error("Please enter a valid positive number");
+      toast.error('Please enter a valid positive number');
       return;
     }
     if (selectedToken && numValue > parseFloat(selectedToken.balance)) {
       toast.error(
-        `Amount exceeds available balance of ${selectedToken.balance} ${selectedToken.symbol}`
+        `Amount exceeds available balance of ${selectedToken.balance} ${selectedToken.symbol}`,
       );
       return;
     }
@@ -131,14 +123,12 @@ const SelectToken: React.FC<SelectTokenProps> = ({
   return (
     <div className="bg-white border-gear-gray p-3 flex flex-col min-h-[120px] justify-between pt-[18px]">
       <div className="flex items-center justify-between mb-2">
-        <div className="ml-[4px]">{title || "Select Token"}</div>
+        <div className="ml-[4px]">{title || 'Select Token'}</div>
         <div className="flex items-center sm:gap-4 gap-2 mr-1">
           <div className="flex items-center gap-1">
             <Wallet className="h-4 w-4 text-purple-400" />
             <div className="mt-[2px]">
-              {selectedToken
-                ? `${selectedToken.balance} ${selectedToken.symbol}`
-                : "0.00"}
+              {selectedToken ? `${selectedToken.balance} ${selectedToken.symbol}` : '0.00'}
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -169,27 +159,24 @@ const SelectToken: React.FC<SelectTokenProps> = ({
         <button
           type="button"
           onClick={() => setIsModalOpen(true)}
-          className={`flex items-center gap-2 text-gray-700 hover:text-purple-900 border-gear-gray px-2 py-1 ml-2 ${!selectedToken || loading ? "cursor-not-allowed" : "cursor-pointer"
-            }`}
+          className={`flex items-center gap-2 text-gray-700 hover:text-purple-900 border-gear-gray px-2 py-1 ml-2 ${
+            !selectedToken || loading ? 'cursor-not-allowed' : 'cursor-pointer'
+          }`}
           disabled={!selectedToken || loading}
         >
           {selectedToken ? (
             <div className="flex items-center gap-2">
               <Image
-                src={selectedToken?.logoURI || "/image/none-icon.webp"}
-                alt={selectedToken?.name || "Token"}
+                src={selectedToken?.logoURI || '/image/none-icon.webp'}
+                alt={selectedToken?.name || 'Token'}
                 width={24}
                 height={24}
                 className="rounded-full object-cover !h-6 !w-6"
               />
               <div className="mt-[2px]">
-                {title === "You Pay"
-                  ? `${selectedToken.symbol} Mainnet`
-                  : selectedToken.symbol}
+                {title === 'You Pay' ? `${selectedToken.symbol} Mainnet` : selectedToken.symbol}
                 {selectedToken.isToken2022 && (
-                  <span className="ml-1 text-xs text-purple-600 font-semibold">
-                    2022
-                  </span>
+                  <span className="ml-1 text-xs text-purple-600 font-semibold">2022</span>
                 )}
               </div>
             </div>
@@ -211,7 +198,7 @@ const SelectToken: React.FC<SelectTokenProps> = ({
               onChange={(e) => handleAmountChange(e.target.value)}
               onWheel={(e) => e.currentTarget.blur()}
               onKeyDown={(e) => {
-                if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
                   e.preventDefault();
                 }
               }}

@@ -1,13 +1,18 @@
-"use client";
+'use client';
 
-import { useNetwork } from "@/context/NetworkContext";
-import WalletConnectButton from "./custom-wallet-button";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Globe } from "lucide-react";
-import { Check, ChevronDown } from "@nsmr/pixelart-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useNetwork } from '@/context/NetworkContext';
+import WalletConnectButton from './custom-wallet-button';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Globe } from 'lucide-react';
+import { Check, ChevronDown } from '@nsmr/pixelart-react';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function Header() {
   const { network, setNetwork } = useNetwork();
@@ -16,9 +21,10 @@ export default function Header() {
 
   const handleNetworkChange = (selectedNetwork: WalletAdapterNetwork) => {
     setNetwork(selectedNetwork);
-    const newUrl = selectedNetwork === WalletAdapterNetwork.Devnet
-      ? "/?cluster=devnet"
-      : pathname.replace(/\?cluster=devnet/, "");
+    const newUrl =
+      selectedNetwork === WalletAdapterNetwork.Devnet
+        ? '/?cluster=devnet'
+        : pathname.replace(/\?cluster=devnet/, '');
     router.push(newUrl);
   };
 
@@ -33,7 +39,7 @@ export default function Header() {
             >
               <Globe className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-medium">
-                {network === WalletAdapterNetwork.Mainnet ? "Mainnet" : "Devnet"}
+                {network === WalletAdapterNetwork.Mainnet ? 'Mainnet' : 'Devnet'}
               </span>
               <ChevronDown className="h-4 w-4 opacity-70" />
             </Button>
@@ -44,14 +50,18 @@ export default function Header() {
               onClick={() => handleNetworkChange(WalletAdapterNetwork.Mainnet)}
             >
               <span>Mainnet</span>
-              {network === WalletAdapterNetwork.Mainnet && <Check className="h-4 w-4 text-green-600" />}
+              {network === WalletAdapterNetwork.Mainnet && (
+                <Check className="h-4 w-4 text-green-600" />
+              )}
             </DropdownMenuItem>
             <DropdownMenuItem
               className="flex items-center justify-between cursor-pointer"
               onClick={() => handleNetworkChange(WalletAdapterNetwork.Devnet)}
             >
               <span>Devnet</span>
-              {network === WalletAdapterNetwork.Devnet && <Check className="h-4 w-4 text-green-600" />}
+              {network === WalletAdapterNetwork.Devnet && (
+                <Check className="h-4 w-4 text-green-600" />
+              )}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

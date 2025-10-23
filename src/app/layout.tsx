@@ -1,45 +1,45 @@
-import type { Metadata } from "next";
-import { getTraceData } from "@sentry/nextjs";
-import "./globals.css";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
-import Header from "@/components/header";
-import WalletProviderComponent from "@/components/wallet-provider";
-import { Toaster } from "sonner";
-import { NetworkProvider } from "@/context/NetworkContext";
-import SuspenseLayout from "@/components/suspense-layout";
-import { GoogleTagManager } from "@next/third-parties/google";
-import Script from "next/script";
-import ChatwootWidget from "@/components/chatwoot-widget";
+import type { Metadata } from 'next';
+import { getTraceData } from '@sentry/nextjs';
+import './globals.css';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/app-sidebar';
+import Header from '@/components/header';
+import WalletProviderComponent from '@/components/wallet-provider';
+import { Toaster } from 'sonner';
+import { NetworkProvider } from '@/context/NetworkContext';
+import SuspenseLayout from '@/components/suspense-layout';
+import { GoogleTagManager } from '@next/third-parties/google';
+import Script from 'next/script';
+import ChatwootWidget from '@/components/chatwoot-widget';
 
 export const metadata: Metadata = {
-  title: "Tool3 - Powerful All-in-One Token Tool",
+  title: 'Tool3 - Powerful All-in-One Token Tool',
   description:
-    "Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.",
+    'Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.',
 
   openGraph: {
-    title: "Tool3 - Powerful All-in-One Token Tool",
+    title: 'Tool3 - Powerful All-in-One Token Tool',
     description:
-      "Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.",
-    url: "https://tool3.xyz",
-    siteName: "Tool3",
+      'Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.',
+    url: 'https://tool3.xyz',
+    siteName: 'Tool3',
     images: [
       {
-        url: "https://tool3.xyz/image/social-preview.png",
+        url: 'https://tool3.xyz/image/social-preview.png',
         width: 1200,
         height: 630,
       },
     ],
-    locale: "en_US",
-    type: "website",
+    locale: 'en_US',
+    type: 'website',
   },
 
   twitter: {
-    card: "summary_large_image",
-    title: "Tool3 - Powerful All-in-One Token Tool",
+    card: 'summary_large_image',
+    title: 'Tool3 - Powerful All-in-One Token Tool',
     description:
-      "Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.",
-    images: ["https://tool3.xyz/image/social-preview.png"],
+      'Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.',
+    images: ['https://tool3.xyz/image/social-preview.png'],
   },
 
   other: {
@@ -48,17 +48,13 @@ export const metadata: Metadata = {
 };
 
 const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  name: "Tool3",
-  url: "https://tool3.xyz",
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Tool3',
+  url: 'https://tool3.xyz',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>

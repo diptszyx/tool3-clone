@@ -1,22 +1,32 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { toast } from "sonner";
-import { Check, ExternalLink, Flame, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { burnToken, TokenBurnResult } from "@/service/token/token-extensions/tool/burn-token-extension";
-import { Separator } from "@/components/ui/separator";
-import SelectToken from "@/components/transfer/select-token";
-import React from "react";
-import { UserToken } from "@/hooks/useUserTokens";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { useNetwork } from "@/context/NetworkContext";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { toast } from 'sonner';
+import { Check, ExternalLink, Flame, Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  burnToken,
+  TokenBurnResult,
+} from '@/service/token/token-extensions/tool/burn-token-extension';
+import { Separator } from '@/components/ui/separator';
+import SelectToken from '@/components/transfer/select-token';
+import React from 'react';
+import { UserToken } from '@/hooks/useUserTokens';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useNetwork } from '@/context/NetworkContext';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
-const Alert = ({ className, children }: { className?: string, children: React.ReactNode }) => (
+const Alert = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <div className={`p-4 rounded-md ${className}`}>{children}</div>
 );
 
@@ -32,7 +42,7 @@ export interface BurnFormProps {
   [key: string]: never;
 }
 
-export function BurnForm({ }: BurnFormProps) {
+export function BurnForm({}: BurnFormProps) {
   const wallet = useWallet();
   const { connected } = wallet;
   const { connection } = useConnection();
@@ -40,12 +50,12 @@ export function BurnForm({ }: BurnFormProps) {
   const { network } = useNetwork();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedToken, setSelectedToken] = useState<UserToken | null>(null);
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState('');
   const [burnInProgress, setBurnInProgress] = useState(false);
   const [burnSuccess, setBurnSuccess] = useState(false);
   const [burnResult, setBurnResult] = useState<TokenBurnResult | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [cluster, setCluster] = useState<"mainnet" | "devnet">("mainnet");
+  const [cluster, setCluster] = useState<'mainnet' | 'devnet'>('mainnet');
 
   const handleTokensLoaded = () => {
     setIsLoading(false);
@@ -63,22 +73,22 @@ export function BurnForm({ }: BurnFormProps) {
   const handleCloseBurnDialog = () => {
     setBurnSuccess(false);
     setBurnResult(null);
-    setAmount("");
+    setAmount('');
   };
 
   const openConfirmDialog = () => {
     if (!connected) {
-      toast.error("Please connect your wallet first");
+      toast.error('Please connect your wallet first');
       return;
     }
 
     if (!selectedToken) {
-      toast.error("Please select a token");
+      toast.error('Please select a token');
       return;
     }
 
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error('Please enter a valid amount');
       return;
     }
 
@@ -93,7 +103,7 @@ export function BurnForm({ }: BurnFormProps) {
 
   const handleBurn = async () => {
     if (!connected || !selectedToken || !amount) {
-      toast.error("Please fill in all required information");
+      toast.error('Please fill in all required information');
       return;
     }
 
@@ -103,7 +113,7 @@ export function BurnForm({ }: BurnFormProps) {
     let toastId: string | number | undefined;
 
     try {
-      toastId = toast.loading("Processing burn transaction...");
+      toastId = toast.loading('Processing burn transaction...');
 
       const result = await burnToken(
         connection,
@@ -111,24 +121,24 @@ export function BurnForm({ }: BurnFormProps) {
         {
           mintAddress: selectedToken.address,
           amount: amount,
-          decimals: selectedToken.decimals || 0
+          decimals: selectedToken.decimals || 0,
         },
         {
-          onStart: () => { },
+          onStart: () => {},
           onSuccess: () => {
             toast.dismiss(toastId);
-            toast.success("Token burned successfully!");
+            toast.success('Token burned successfully!');
           },
           onError: (err) => {
             toast.dismiss(toastId);
             toast.error(`Burn failed: ${err.message}`);
           },
-          onFinish: () => setBurnInProgress(false)
-        }
+          onFinish: () => setBurnInProgress(false),
+        },
       );
 
       if (result) {
-        console.log("Transaction signature:", result.signature);
+        console.log('Transaction signature:', result.signature);
         toast.dismiss(toastId);
         setBurnResult(result);
         setBurnSuccess(true);
@@ -136,7 +146,7 @@ export function BurnForm({ }: BurnFormProps) {
         // Reloading tokens will happen automatically through parent components
       }
     } catch (error: unknown) {
-      console.error("Error in burn:", error);
+      console.error('Error in burn:', error);
       if (toastId) toast.dismiss(toastId);
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
@@ -147,7 +157,7 @@ export function BurnForm({ }: BurnFormProps) {
 
   if (burnSuccess && burnResult) {
     return (
-      <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
+      <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
         <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
           Burn Successful
         </h1>
@@ -157,7 +167,9 @@ export function BurnForm({ }: BurnFormProps) {
               <Check className="h-8 w-8 text-green-600" />
             </div>
           </div>
-          <p className="text-gray-500 mb-6">Your tokens have been permanently removed from circulation</p>
+          <p className="text-gray-500 mb-6">
+            Your tokens have been permanently removed from circulation
+          </p>
 
           <div className="space-y-4 mb-8">
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -167,7 +179,9 @@ export function BurnForm({ }: BurnFormProps) {
 
             <div className="p-4 bg-gray-50 rounded-lg">
               <p className="text-sm font-medium text-gray-500">Amount Burned</p>
-              <p className="text-base font-mono">{burnResult.amount} {selectedToken?.symbol || ""}</p>
+              <p className="text-base font-mono">
+                {burnResult.amount} {selectedToken?.symbol || ''}
+              </p>
             </div>
 
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -177,10 +191,7 @@ export function BurnForm({ }: BurnFormProps) {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              variant="outline"
-              onClick={handleCloseBurnDialog}
-            >
+            <Button variant="outline" onClick={handleCloseBurnDialog}>
               Burn More Tokens
             </Button>
 
@@ -190,7 +201,7 @@ export function BurnForm({ }: BurnFormProps) {
                 const explorerUrl = isDevnet
                   ? `https://explorer.solana.com/tx/${burnResult.signature}?cluster=devnet`
                   : `https://explorer.solana.com/tx/${burnResult.signature}`;
-                window.open(explorerUrl, "_blank");
+                window.open(explorerUrl, '_blank');
               }}
             >
               View on Explorer <ExternalLink className="ml-2 h-4 w-4" />
@@ -202,7 +213,7 @@ export function BurnForm({ }: BurnFormProps) {
   }
 
   return (
-    <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && "border-gear"}`}>
+    <div className={`md:p-3 max-w-[550px] mx-auto my-2 ${!isMobile && 'border-gear'}`}>
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
         Burn Token Extensions
       </h1>
@@ -212,12 +223,19 @@ export function BurnForm({ }: BurnFormProps) {
           <div>
             <AlertTitle>Warning: Irreversible Action</AlertTitle>
             <AlertDescription>
-              Burning tokens permanently removes them from circulation. This action cannot be undone.
+              Burning tokens permanently removes them from circulation. This action cannot be
+              undone.
             </AlertDescription>
           </div>
         </Alert>
 
-        <form onSubmit={(e) => { e.preventDefault(); openConfirmDialog(); }} className="space-y-6">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            openConfirmDialog();
+          }}
+          className="space-y-6"
+        >
           <div className="space-y-3">
             <Label htmlFor="token">Select Token</Label>
             <div className="w-[calc(100%-8px)] ml-1">
@@ -240,9 +258,9 @@ export function BurnForm({ }: BurnFormProps) {
               <p className="text-sm text-gray-500 mb-1">Balance After Burning</p>
               <p className="font-medium">
                 {amount
-                  ? (parseFloat(selectedToken.balance) - parseFloat(amount || "0")).toLocaleString()
-                  : parseFloat(selectedToken.balance).toLocaleString()
-                } {selectedToken.symbol}
+                  ? (parseFloat(selectedToken.balance) - parseFloat(amount || '0')).toLocaleString()
+                  : parseFloat(selectedToken.balance).toLocaleString()}{' '}
+                {selectedToken.symbol}
               </p>
             </div>
           )}
@@ -280,11 +298,15 @@ export function BurnForm({ }: BurnFormProps) {
             <div className="space-y-3 py-2">
               <div className="flex justify-between">
                 <span className="text-gray-500">Token:</span>
-                <span className="font-medium">{selectedToken.name} ({selectedToken.symbol})</span>
+                <span className="font-medium">
+                  {selectedToken.name} ({selectedToken.symbol})
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Amount to Burn:</span>
-                <span className="font-medium">{amount} {selectedToken.symbol}</span>
+                <span className="font-medium">
+                  {amount} {selectedToken.symbol}
+                </span>
               </div>
               <Separator className="bg-gray-200" />
               <div className="flex justify-between text-red-500">
@@ -295,16 +317,10 @@ export function BurnForm({ }: BurnFormProps) {
           )}
 
           <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirmDialog(false)}
-            >
+            <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
               Cancel
             </Button>
-            <Button
-              onClick={handleBurn}
-              className="bg-red-600 hover:bg-red-700 cursor-pointer"
-            >
+            <Button onClick={handleBurn} className="bg-red-600 hover:bg-red-700 cursor-pointer">
               <Flame className="w-4 h-4 mr-2" /> Confirm Burn
             </Button>
           </DialogFooter>
@@ -312,4 +328,4 @@ export function BurnForm({ }: BurnFormProps) {
       </Dialog>
     </div>
   );
-} 
+}

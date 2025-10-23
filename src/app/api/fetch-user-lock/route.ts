@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PublicKey } from "@solana/web3.js";
-import { getUserLockInfo } from "@/service/fetch-user-lock";
-import { checkVaultExists } from "@/lib/helper";
-import { getMint } from "@solana/spl-token";
-import { connectionDevnet } from "@/service/solana/connection";
-
+import { NextRequest, NextResponse } from 'next/server';
+import { PublicKey } from '@solana/web3.js';
+import { getUserLockInfo } from '@/service/fetch-user-lock';
+import { checkVaultExists } from '@/lib/helper';
+import { getMint } from '@solana/spl-token';
+import { connectionDevnet } from '@/service/solana/connection';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,10 +11,7 @@ export async function POST(req: NextRequest) {
     const { walletPublicKey, poolId } = body;
 
     if (!walletPublicKey || !poolId) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
     const userPublicKey = new PublicKey(walletPublicKey);
@@ -24,10 +20,7 @@ export async function POST(req: NextRequest) {
     const vaultCheck = await checkVaultExists(poolIdPublicKey);
     const tokenMint = vaultCheck.tokenMint;
     if (!vaultCheck.exists) {
-      return NextResponse.json(
-        { error: "Vault not initialized" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Vault not initialized' }, { status: 404 });
     }
     const mintInfo = await getMint(connectionDevnet, tokenMint);
     const decimals = mintInfo.decimals;
@@ -45,15 +38,12 @@ export async function POST(req: NextRequest) {
       amount: adjustedAmount,
       unlockTimestamp: userLockInfo.unlockTimestamp.toString(),
       isUnlocked: Date.now() / 1000 > userLockInfo.unlockTimestamp.toNumber(),
-      remainingTime: Math.max(
-        0,
-        userLockInfo.unlockTimestamp.toNumber() - Date.now() / 1000
-      ),
+      remainingTime: Math.max(0, userLockInfo.unlockTimestamp.toNumber() - Date.now() / 1000),
     });
   } catch (error: unknown) {
-    console.error("Error fetching user lock info:", error);
+    console.error('Error fetching user lock info:', error);
 
-    let errorMessage = "Failed to fetch user lock info";
+    let errorMessage = 'Failed to fetch user lock info';
     if (error instanceof Error) {
       errorMessage = error.message;
     }

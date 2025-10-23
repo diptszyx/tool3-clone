@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { PublicKey } from "@solana/web3.js";
-import { Token } from "@/types/types";
+import { NextResponse } from 'next/server';
+import { PublicKey } from '@solana/web3.js';
+import { Token } from '@/types/types';
 
 const cache = new Map<string, { metadata: Token; timestamp: number }>();
 const CACHE_DURATION = 24 * 60 * 60 * 1000;
@@ -9,19 +9,13 @@ export async function POST(request: Request) {
   try {
     const { mintAddress } = await request.json();
     if (!mintAddress) {
-      return NextResponse.json(
-        { error: "Mint address is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Mint address is required' }, { status: 400 });
     }
 
     try {
       new PublicKey(mintAddress);
     } catch {
-      return NextResponse.json(
-        { error: "Invalid mint address" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid mint address' }, { status: 400 });
     }
 
     // Check cache first
@@ -31,17 +25,17 @@ export async function POST(request: Request) {
       return NextResponse.json(cached.metadata);
     }
 
-    const RPC_DEVNET = process.env.NEXT_PUBLIC_RPC_DEVNET!;;
+    const RPC_DEVNET = process.env.NEXT_PUBLIC_RPC_DEVNET!;
 
     const response = await fetch(RPC_DEVNET, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: "test",
-        method: "getAsset",
+        jsonrpc: '2.0',
+        id: 'test',
+        method: 'getAsset',
         params: {
           id: mintAddress,
           options: {
@@ -56,14 +50,11 @@ export async function POST(request: Request) {
 
     const data = await response.json();
 
-    if (
-      data?.result?.content?.metadata &&
-      Object.keys(data.result.content.metadata).length > 0
-    ) {
+    if (data?.result?.content?.metadata && Object.keys(data.result.content.metadata).length > 0) {
       const metadata: Token = {
         address: mintAddress,
-        name: data.result.content.metadata.name || "Unknown",
-        symbol: data.result.content.metadata.symbol || "Unknown",
+        name: data.result.content.metadata.name || 'Unknown',
+        symbol: data.result.content.metadata.symbol || 'Unknown',
         logoURI: data.result.content.links?.image || undefined,
         decimals: data.result.token_info?.decimals || 0,
       };
@@ -74,14 +65,12 @@ export async function POST(request: Request) {
     }
 
     const fallbackRes = await fetch(
-      "https://cdn.jsdelivr.net/gh/solana-labs/token-list@latest/src/tokens/solana.tokenlist.json"
+      'https://cdn.jsdelivr.net/gh/solana-labs/token-list@latest/src/tokens/solana.tokenlist.json',
     );
     const fallbackData = await fallbackRes.json();
 
     const tokenList: Token[] = fallbackData?.tokens || [];
-    const found = tokenList.find(
-      (token: Token) => token.address === mintAddress
-    );
+    const found = tokenList.find((token: Token) => token.address === mintAddress);
 
     if (found) {
       const fallbackMetadata: Token = {
@@ -97,12 +86,9 @@ export async function POST(request: Request) {
       return NextResponse.json(fallbackMetadata);
     }
 
-    return NextResponse.json({ error: "Metadata not found" }, { status: 404 });
+    return NextResponse.json({ error: 'Metadata not found' }, { status: 404 });
   } catch (error) {
-    console.error("Error fetching token metadata:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch token metadata" },
-      { status: 500 }
-    );
+    console.error('Error fetching token metadata:', error);
+    return NextResponse.json({ error: 'Failed to fetch token metadata' }, { status: 500 });
   }
 }

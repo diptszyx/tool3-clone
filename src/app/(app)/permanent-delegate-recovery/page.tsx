@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { RecoveryForm } from "@/components/recovery/recovery-form";
-import SuspenseLayout from "@/components/suspense-layout";
+import { RecoveryForm } from '@/components/recovery/recovery-form';
+import SuspenseLayout from '@/components/suspense-layout';
 
 export default function PermanentDelegateRecoveryPage() {
   return (
@@ -13,4 +13,4 @@ export default function PermanentDelegateRecoveryPage() {
       </div>
     </div>
   );
-} 
+}

@@ -1,11 +1,11 @@
-import { PublicKey, TransactionInstruction } from "@solana/web3.js";
+import { PublicKey, TransactionInstruction } from '@solana/web3.js';
 export interface QuoteResponse {
   inputMint: string;
   inAmount: string;
   outputMint: string;
   outAmount: string;
   otherAmountThreshold: string;
-  swapMode: "ExactIn" | "ExactOut";
+  swapMode: 'ExactIn' | 'ExactOut';
   slippageBps: number;
   platformFee: null;
   priceImpactPct: string;
@@ -30,7 +30,7 @@ export interface SwapInstructionsRequest {
   prioritizationFeeLamports?: {
     priorityLevelWithMaxLamports: {
       maxLamports: number;
-      priorityLevel: "low" | "medium" | "high" | "veryHigh";
+      priorityLevel: 'low' | 'medium' | 'high' | 'veryHigh';
     };
   };
   dynamicComputeUnitLimit?: boolean;
@@ -84,7 +84,7 @@ export async function getJupiterQuote(
   outputMint: string,
   amount: number,
   slippageBps: number = 100,
-  dexes?: string[]
+  dexes?: string[],
 ): Promise<QuoteResponse> {
   try {
     const params = new URLSearchParams({
@@ -92,16 +92,14 @@ export async function getJupiterQuote(
       outputMint,
       amount: amount.toString(),
       slippageBps: slippageBps.toString(),
-      swapMode: "ExactIn",
+      swapMode: 'ExactIn',
     });
 
     if (dexes && dexes.length > 0) {
-      params.append("dexes", dexes.join(","));
+      params.append('dexes', dexes.join(','));
     }
 
-    const response = await fetch(
-      `https://lite-api.jup.ag/swap/v1/quote?${params.toString()}`
-    );
+    const response = await fetch(`https://lite-api.jup.ag/swap/v1/quote?${params.toString()}`);
 
     if (!response.ok) {
       throw new Error(`Jupiter quote failed: ${response.statusText}`);
@@ -110,43 +108,38 @@ export async function getJupiterQuote(
     const quote = await response.json();
     return quote;
   } catch (error) {
-    console.error("Jupiter quote error:", error);
-    throw new Error("Failed to get Jupiter quote");
+    console.error('Jupiter quote error:', error);
+    throw new Error('Failed to get Jupiter quote');
   }
 }
 
 export async function getJupiterSwapInstructions(
-  request: SwapInstructionsRequest
+  request: SwapInstructionsRequest,
 ): Promise<SwapInstructionsResponse> {
   try {
-    const response = await fetch(
-      "https://lite-api.jup.ag/swap/v1/swap-instructions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(request),
-      }
-    );
+    const response = await fetch('https://lite-api.jup.ag/swap/v1/swap-instructions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
 
     if (!response.ok) {
-      throw new Error(
-        `Jupiter swap instructions failed: ${response.statusText}`
-      );
+      throw new Error(`Jupiter swap instructions failed: ${response.statusText}`);
     }
 
     const result = await response.json();
     return result;
   } catch (error) {
-    console.error("Jupiter swap instructions error:", error);
-    throw new Error("Failed to get Jupiter swap instructions");
+    console.error('Jupiter swap instructions error:', error);
+    throw new Error('Failed to get Jupiter swap instructions');
   }
 }
 
 export function createInstructionFromJupiter(
-  jupiterInstruction: JupiterInstruction
+  jupiterInstruction: JupiterInstruction,
 ): TransactionInstruction {
   return new TransactionInstruction({
     programId: new PublicKey(jupiterInstruction.programId),
@@ -155,6 +148,6 @@ export function createInstructionFromJupiter(
       isSigner: account.isSigner,
       isWritable: account.isWritable,
     })),
-    data: Buffer.from(jupiterInstruction.data, "base64"),
+    data: Buffer.from(jupiterInstruction.data, 'base64'),
   });
 }

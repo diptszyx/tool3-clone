@@ -1,7 +1,7 @@
-import { BN } from "@coral-xyz/anchor";
-import { program } from "@/service/solana/program";
-import { PublicKey } from "@solana/web3.js";
-import { findUserLockPda } from "@/service/solana/pda";
+import { BN } from '@coral-xyz/anchor';
+import { program } from '@/service/solana/program';
+import { PublicKey } from '@solana/web3.js';
+import { findUserLockPda } from '@/service/solana/pda';
 
 export const getUserLockInfo = async ({
   vault,
@@ -22,7 +22,7 @@ export const getUserLockInfo = async ({
       unlockTimestamp: userLockAccount.unlockTimestamp,
     };
   } catch (error) {
-    console.error("Error fetching user lock info:", error);
+    console.error('Error fetching user lock info:', error);
     return {
       amount: new BN(0),
       unlockTimestamp: new BN(0),

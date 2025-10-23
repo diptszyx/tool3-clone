@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import {
   Sidebar,
@@ -13,23 +13,15 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
-} from "@/components/ui/sidebar";
-import { usePathname } from "next/navigation";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
-import { useNetwork } from "@/context/NetworkContext";
-import Link from "next/link";
-import {
-  Home,
-  Lock,
-  ArrowUp,
-  Coin,
-  ChevronDown,
-  CreditCard,
-  Keyboard,
-} from "@nsmr/pixelart-react";
+} from '@/components/ui/sidebar';
+import { usePathname } from 'next/navigation';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { useNetwork } from '@/context/NetworkContext';
+import Link from 'next/link';
+import { Home, Lock, ArrowUp, Coin, ChevronDown, CreditCard, Keyboard } from '@nsmr/pixelart-react';
 
-import { useState } from "react";
-import Image from "next/image";
+import { useState } from 'react';
+import Image from 'next/image';
 
 interface RouteItem {
   title: string;
@@ -41,140 +33,148 @@ interface RouteItem {
 
 export const route = {
   api: [
-    "/api",
-    "/api/update-extensions",
-    "/api/create-token",
-    "/create",
-    "/create/review",
-    "/update-extensions",
-    "/solana-multisender",
-    "/solana-batch-transfer",
-    "/solana-token-transfer",
+    '/api',
+    '/api/update-extensions',
+    '/api/create-token',
+    '/create',
+    '/create/review',
+    '/update-extensions',
+    '/solana-multisender',
+    '/solana-batch-transfer',
+    '/solana-token-transfer',
   ],
   mainnet: [
     {
-      title: "Utilities",
+      title: 'Utilities',
       icon: CreditCard,
       submenu: [
         {
-          title: "Gasless Transfer",
-          url: "/",
+          title: 'Gasless Transfer',
+          url: '/',
         },
         {
-          title: "Swap to SOL ",
-          url: "/swap-sol",
+          title: 'Swap to SOL ',
+          url: '/swap-sol',
         },
         {
-          title: "Swap All Token to SOL ",
-          url: "/swap-all",
+          title: 'Swap All Token to SOL ',
+          url: '/swap-all',
         },
         {
-          title: "Launch Token DBC Meteora",
-          url: "/dbc/token",
+          title: 'Launch Token DBC Meteora',
+          url: '/dbc/token',
         },
         {
-          title: "Increase Holders",
-          url: "/increase-holders",
+          title: 'Increase Holders',
+          url: '/increase-holders',
         },
         {
-          title: "Close account",
-          url: "/close-account",
+          title: 'Close account',
+          url: '/close-account',
         },
         {
-          title: "Multisender",
-          url: "/solana-multisender",
+          title: 'Multisender',
+          url: '/solana-multisender',
+        },
+        {
+          title: 'Local Web3 Wallet Manager',
+          url: '/local-wallet-manager',
+        },
+        {
+          title: 'Wallet Asset Migration',
+          url: '/wallet-asset-migration',
         },
       ],
     },
     {
-      title: "Developer",
+      title: 'Developer',
       icon: Keyboard,
       submenu: [
         {
-          title: "Buy Sol Devnet ",
-          url: "/sell-sol-devnet",
+          title: 'Buy Sol Devnet ',
+          url: '/sell-sol-devnet',
         },
         {
-          title: "Raydium CPMM",
-          url: "/create-pool/raydium-cpmm",
+          title: 'Raydium CPMM',
+          url: '/create-pool/raydium-cpmm',
         },
         {
-          title: "Meteora DAMM V2",
-          url: "/create-pool/meteora-damm",
+          title: 'Meteora DAMM V2',
+          url: '/create-pool/meteora-damm',
         },
         {
-          title: "Create Token",
-          url: "/create",
+          title: 'Create Token',
+          url: '/create',
         },
         {
-          title: "Update Extensions",
-          url: "/update-extensions",
+          title: 'Update Extensions',
+          url: '/update-extensions',
         },
         {
-          title: "Burn Token",
-          url: "/burn-token",
+          title: 'Burn Token',
+          url: '/burn-token',
         },
         {
-          title: "Permanent Delegate",
-          url: "/permanent-delegate-recovery",
+          title: 'Permanent Delegate',
+          url: '/permanent-delegate-recovery',
         },
       ],
     },
     {
-      title: "Review Token",
+      title: 'Review Token',
       icon: Coin,
-      url: "/create/review",
+      url: '/create/review',
       hidden: true,
     },
   ],
 
   devnet: [
     {
-      title: "Dashboard",
+      title: 'Dashboard',
       icon: Home,
-      url: "/?cluster=devnet",
+      url: '/?cluster=devnet',
     },
     {
-      title: "Lock LP",
+      title: 'Lock LP',
       icon: Lock,
-      url: "/lock-lp?cluster=devnet",
+      url: '/lock-lp?cluster=devnet',
     },
     {
-      title: "Withdraw LP",
+      title: 'Withdraw LP',
       icon: ArrowUp,
-      url: "/withdraw-lp?cluster=devnet",
+      url: '/withdraw-lp?cluster=devnet',
     },
     {
-      title: "Multisender",
+      title: 'Multisender',
       icon: CreditCard,
-      url: "/solana-multisender?cluster=devnet",
+      url: '/solana-multisender?cluster=devnet',
     },
     {
-      title: "Token",
+      title: 'Token',
       icon: Coin,
       submenu: [
         {
-          title: "Create Token",
-          url: "/create?cluster=devnet",
+          title: 'Create Token',
+          url: '/create?cluster=devnet',
         },
         {
-          title: "Update Extensions",
-          url: "/update-extensions?cluster=devnet",
+          title: 'Update Extensions',
+          url: '/update-extensions?cluster=devnet',
         },
         {
-          title: "Burn Token",
-          url: "/burn-token?cluster=devnet",
+          title: 'Burn Token',
+          url: '/burn-token?cluster=devnet',
         },
         {
-          title: "Permanent Delegate",
-          url: "/permanent-delegate-recovery?cluster=devnet",
+          title: 'Permanent Delegate',
+          url: '/permanent-delegate-recovery?cluster=devnet',
         },
       ],
     },
     {
-      title: "Review Token",
+      title: 'Review Token',
       icon: Coin,
-      url: "/create/review?cluster=devnet",
+      url: '/create/review?cluster=devnet',
       hidden: true,
     },
   ],
@@ -185,8 +185,7 @@ export function AppSidebar() {
   const { network } = useNetwork();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
 
-  const navMain =
-    network === WalletAdapterNetwork.Devnet ? route.devnet : route.mainnet;
+  const navMain = network === WalletAdapterNetwork.Devnet ? route.devnet : route.mainnet;
 
   const toggleSubmenu = (title: string) => {
     setOpenSubmenu(openSubmenu === title ? null : title);
@@ -196,7 +195,7 @@ export function AppSidebar() {
     if (!pathname) return false;
     return submenuItems.some((item) => {
       if (!item.url) return false;
-      return pathname.split("?")[0] === item.url.split("?")[0];
+      return pathname.split('?')[0] === item.url.split('?')[0];
     });
   };
 
@@ -233,16 +232,13 @@ export function AppSidebar() {
                             className="flex items-center justify-between w-full"
                           >
                             <div className="flex items-center">
-                              {item.icon && (
-                                <item.icon className="mr-2 h-4 w-4" />
-                              )}
+                              {item.icon && <item.icon className="mr-2 h-4 w-4" />}
                               <span>{item.title}</span>
                             </div>
                             <ChevronDown className="h-4 w-4" />
                           </SidebarMenuButton>
 
-                          {(openSubmenu === item.title ||
-                            isSubmenuActive(item.submenu)) && (
+                          {(openSubmenu === item.title || isSubmenuActive(item.submenu)) && (
                             <SidebarMenuSub>
                               {item.submenu.map((subItem) => (
                                 <SidebarMenuSubItem key={subItem.title}>
@@ -250,12 +246,11 @@ export function AppSidebar() {
                                     asChild
                                     isActive={
                                       pathname && subItem.url
-                                        ? pathname.split("?")[0] ===
-                                          subItem.url.split("?")[0]
+                                        ? pathname.split('?')[0] === subItem.url.split('?')[0]
                                         : false
                                     }
                                   >
-                                    <Link href={subItem.url || "#"}>
+                                    <Link href={subItem.url || '#'}>
                                       <span>{subItem.title}</span>
                                     </Link>
                                   </SidebarMenuSubButton>
@@ -269,18 +264,12 @@ export function AppSidebar() {
                           asChild
                           isActive={
                             pathname && item.url
-                              ? pathname.split("?")[0] ===
-                                item.url.split("?")[0]
+                              ? pathname.split('?')[0] === item.url.split('?')[0]
                               : false
                           }
                         >
-                          <Link
-                            href={item.url || "#"}
-                            className="flex items-center"
-                          >
-                            {item.icon && (
-                              <item.icon className="mr-2 h-4 w-4" />
-                            )}
+                          <Link href={item.url || '#'} className="flex items-center">
+                            {item.icon && <item.icon className="mr-2 h-4 w-4" />}
                             <span>{item.title}</span>
                           </Link>
                         </SidebarMenuButton>

@@ -1,10 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PublicKey, Transaction } from "@solana/web3.js";
-import { getAssociatedTokenAddress, getMint } from "@solana/spl-token";
-import { checkVaultExists } from "@/lib/helper";
-import { deposit, initializeVault } from "@/service/solana/action";
-import { connectionDevnet } from "@/service/solana/connection";
-
+import { NextRequest, NextResponse } from 'next/server';
+import { PublicKey, Transaction } from '@solana/web3.js';
+import { getAssociatedTokenAddress, getMint } from '@solana/spl-token';
+import { checkVaultExists } from '@/lib/helper';
+import { deposit, initializeVault } from '@/service/solana/action';
+import { connectionDevnet } from '@/service/solana/connection';
 
 interface DepositRequestBody {
   walletPublicKey: string;
@@ -25,10 +24,7 @@ export async function POST(req: NextRequest) {
       !body.poolId ||
       !body.tokenMint
     ) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
     const walletPublicKey = new PublicKey(body.walletPublicKey);
@@ -39,17 +35,14 @@ export async function POST(req: NextRequest) {
     const decimals = mintInfo.decimals;
     const amountFloat = parseFloat(body.amount.toString());
     if (isNaN(amountFloat) || amountFloat <= 0) {
-      return NextResponse.json(
-        { error: "Amount must be a positive number" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 });
     }
     const amountDecimal = Math.round(amountFloat * Math.pow(10, decimals));
 
     if (body.unlockTimestamp <= Math.floor(Date.now() / 1000)) {
       return NextResponse.json(
-        { error: "Unlock timestamp must be in the future" },
-        { status: 400 }
+        { error: 'Unlock timestamp must be in the future' },
+        { status: 400 },
       );
     }
 
@@ -71,7 +64,7 @@ export async function POST(req: NextRequest) {
     } = vaultCheck;
 
     if (!vaultCheck.exists) {
-      console.log("Vault does not exist, initializing vault...");
+      console.log('Vault does not exist, initializing vault...');
 
       const initInstruction = await initializeVault({
         publicKey: walletPublicKey,
@@ -94,7 +87,7 @@ export async function POST(req: NextRequest) {
       tokenMint,
       walletPublicKey,
       false,
-      tokenProgram
+      tokenProgram,
     );
 
     const depositInstruction = await deposit({
@@ -112,14 +105,13 @@ export async function POST(req: NextRequest) {
     });
     transaction.add(depositInstruction);
 
-    const { blockhash, lastValidBlockHeight } =
-      await connectionDevnet.getLatestBlockhash();
+    const { blockhash, lastValidBlockHeight } = await connectionDevnet.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = walletPublicKey;
 
     const serializedTransaction = transaction
       .serialize({ requireAllSignatures: false })
-      .toString("base64");
+      .toString('base64');
 
     return NextResponse.json({
       success: true,
@@ -128,9 +120,9 @@ export async function POST(req: NextRequest) {
       lastValidBlockHeight,
     });
   } catch (error: unknown) {
-    const errorMessage = "Failed to process withdraw";
+    const errorMessage = 'Failed to process withdraw';
 
-    console.error("Deposit error:", error);
+    console.error('Deposit error:', error);
 
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }

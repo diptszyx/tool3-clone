@@ -1,34 +1,26 @@
-"use client";
+'use client';
 
-import type React from "react";
+import type React from 'react';
 
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { toast } from "sonner";
-import { useState, useCallback } from "react";
-import { connectionMainnet } from "@/service/solana/connection";
-import {
-  Upload,
-  X,
-  ImageIcon,
-  Twitter,
-  Send,
-  Globe,
-  ChevronDown,
-} from "lucide-react";
-import Image from "next/image";
-import { createTokenTransaction } from "@/lib/dbc/createToken";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { toast } from 'sonner';
+import { useState, useCallback } from 'react';
+import { connectionMainnet } from '@/service/solana/connection';
+import { Upload, X, ImageIcon, Twitter, Send, Globe, ChevronDown } from 'lucide-react';
+import Image from 'next/image';
+import { createTokenTransaction } from '@/lib/dbc/createToken';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const formSchema = z.object({
-  name: z.string().min(1, "Token name is required"),
-  symbol: z.string().min(1, "Token symbol is required"),
+  name: z.string().min(1, 'Token name is required'),
+  symbol: z.string().min(1, 'Token symbol is required'),
   description: z.string().optional(),
   socialX: z.string().optional(),
   socialTelegram: z.string().optional(),
@@ -51,20 +43,20 @@ export default function CreateTokenForm() {
   const { publicKey, signTransaction } = useWallet();
   const [loading, setLoading] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [showSocialLinks, setShowSocialLinks] = useState(false);
 
   const handleFileUpload = useCallback((file: File) => {
     if (file) {
-      const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!validTypes.includes(file.type)) {
-        toast.error("Please upload a valid image file (JPG, PNG, GIF, WebP)");
+        toast.error('Please upload a valid image file (JPG, PNG, GIF, WebP)');
         return;
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size must be less than 10MB");
+        toast.error('File size must be less than 10MB');
         return;
       }
 
@@ -83,7 +75,7 @@ export default function CreateTokenForm() {
         handleFileUpload(files[0]);
       }
     },
-    [handleFileUpload]
+    [handleFileUpload],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -103,25 +95,25 @@ export default function CreateTokenForm() {
         handleFileUpload(files[0]);
       }
     },
-    [handleFileUpload]
+    [handleFileUpload],
   );
 
   const removeFile = useCallback(() => {
     setUploadedFile(null);
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
-      setPreviewUrl("");
+      setPreviewUrl('');
     }
   }, [previewUrl]);
 
   const onSubmit = async (data: FormValues) => {
     if (!publicKey || !signTransaction) {
-      toast.error("Please connect your wallet");
+      toast.error('Please connect your wallet');
       return;
     }
 
     if (!uploadedFile) {
-      toast.error("Please upload an image");
+      toast.error('Please upload an image');
       return;
     }
 
@@ -142,16 +134,16 @@ export default function CreateTokenForm() {
       const signedTx = await signTransaction(transaction);
       await connectionMainnet.sendRawTransaction(signedTx.serialize(), {
         skipPreflight: false,
-        preflightCommitment: "confirmed",
+        preflightCommitment: 'confirmed',
       });
 
-      toast.success("Token created successfully", {
+      toast.success('Token created successfully', {
         action: {
-          label: "View on Birdeye",
+          label: 'View on Birdeye',
           onClick: () =>
             window.open(
               `https://birdeye.so/token/${baseMint.publicKey.toBase58()}?chain=solana`,
-              "_blank"
+              '_blank',
             ),
         },
       });
@@ -159,25 +151,17 @@ export default function CreateTokenForm() {
       reset();
       removeFile();
     } catch (err: unknown) {
-      toast.error(
-        `Failed: ${err instanceof Error ? err.message : "Unknown error"}`
-      );
+      toast.error(`Failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div
-      className={`max-h-[calc(100vh-100px)] overflow-y-auto ${
-        isMobile ? "py-2" : "py-6"
-      }`}
-    >
+    <div className={`max-h-[calc(100vh-100px)] overflow-y-auto ${isMobile ? 'py-2' : 'py-6'}`}>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={`max-w-2xl mx-auto p-2 bg-white space-y-6 ${
-          !isMobile && "border-gear"
-        }`}
+        className={`max-w-2xl mx-auto p-2 bg-white space-y-6 ${!isMobile && 'border-gear'}`}
       >
         <h2 className="text-2xl font-bold text-center">Create a New Token</h2>
 
@@ -186,26 +170,22 @@ export default function CreateTokenForm() {
             <Label htmlFor="name">Token Name *</Label>
             <Input
               id="name"
-              {...register("name")}
+              {...register('name')}
               placeholder="Dipts Zyx"
               className="border-gear-gray h-[28px] w-[calc(100%-8px)] ml-[4px]"
             />
-            {errors.name && (
-              <p className="text-red-500 text-sm">{errors.name.message}</p>
-            )}
+            {errors.name && <p className="text-red-500 text-sm">{errors.name.message}</p>}
           </div>
 
           <div className="space-y-3">
             <Label htmlFor="symbol">Token Symbol *</Label>
             <Input
               id="symbol"
-              {...register("symbol")}
+              {...register('symbol')}
               placeholder="DIS"
               className="border-gear-gray h-[28px] w-[calc(100%-8px)] ml-[4px]"
             />
-            {errors.symbol && (
-              <p className="text-red-500 text-sm">{errors.symbol.message}</p>
-            )}
+            {errors.symbol && <p className="text-red-500 text-sm">{errors.symbol.message}</p>}
           </div>
         </div>
 
@@ -213,7 +193,7 @@ export default function CreateTokenForm() {
           <Label htmlFor="description">Description (Optional)</Label>
           <Textarea
             id="description"
-            {...register("description")}
+            {...register('description')}
             placeholder="Describe your token and its purpose..."
             rows={3}
             className="border-gear-gray h-[28px] w-[calc(100%-8px)] ml-[4px]"
@@ -224,9 +204,7 @@ export default function CreateTokenForm() {
           <Label>Token Image *</Label>
           <div
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              isDragOver
-                ? "border-blue-500 bg-blue-50"
-                : "border-gray-300 hover:border-gray-400"
+              isDragOver ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
             }`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
@@ -236,7 +214,7 @@ export default function CreateTokenForm() {
               <div className="space-y-4">
                 <div className="relative inline-block">
                   <Image
-                    src={previewUrl || "/placeholder.svg"}
+                    src={previewUrl || '/placeholder.svg'}
                     alt="Preview"
                     width={300}
                     height={300}
@@ -270,9 +248,7 @@ export default function CreateTokenForm() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() =>
-                    document.getElementById("file-upload")?.click()
-                  }
+                  onClick={() => document.getElementById('file-upload')?.click()}
                   className="border-gear-gray py-0 cursor-pointer h-[28px]"
                 >
                   <Upload className="h-4 w-4 mr-2" />
@@ -296,7 +272,7 @@ export default function CreateTokenForm() {
             </span>
             <ChevronDown
               className={`h-4 w-4 transition-transform duration-200 ${
-                showSocialLinks ? "rotate-180" : ""
+                showSocialLinks ? 'rotate-180' : ''
               }`}
             />
           </Button>
@@ -309,39 +285,33 @@ export default function CreateTokenForm() {
                 </Label>
                 <Input
                   id="socialX"
-                  {...register("socialX")}
+                  {...register('socialX')}
                   placeholder="https://x.com/yourusername"
                   className="border-gear-gray h-[28px] w-[calc(100%-8px)] ml-[4px]"
                 />
               </div>
 
               <div className="space-y-3">
-                <Label
-                  htmlFor="socialTelegram"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="socialTelegram" className="flex items-center gap-2">
                   <Send className="h-4 w-4" />
                   Telegram
                 </Label>
                 <Input
                   id="socialTelegram"
-                  {...register("socialTelegram")}
+                  {...register('socialTelegram')}
                   placeholder="https://t.me/yourchannel"
                   className="border-gear-gray h-[28px] w-[calc(100%-8px)] ml-[4px]"
                 />
               </div>
 
               <div className="space-y-3">
-                <Label
-                  htmlFor="socialWebsite"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="socialWebsite" className="flex items-center gap-2">
                   <Globe className="h-4 w-4" />
                   Website
                 </Label>
                 <Input
                   id="socialWebsite"
-                  {...register("socialWebsite")}
+                  {...register('socialWebsite')}
                   placeholder="https://yourwebsite.com"
                   className="border-gear-gray h-[28px] w-[calc(100%-8px)] ml-[4px]"
                 />
@@ -350,12 +320,8 @@ export default function CreateTokenForm() {
           )}
         </div>
 
-        <Button
-          type="submit"
-          className="w-full mt-4 cursor-pointer"
-          disabled={loading}
-        >
-          {loading ? "Creating Token..." : "Create Token"}
+        <Button type="submit" className="w-full mt-4 cursor-pointer" disabled={loading}>
+          {loading ? 'Creating Token...' : 'Create Token'}
         </Button>
       </form>
     </div>

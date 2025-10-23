@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
-import TokenReviewForm from "@/components/token-review-form"
-import SuspenseLayout from "@/components/suspense-layout"
+import TokenReviewForm from '@/components/token-review-form';
+import SuspenseLayout from '@/components/suspense-layout';
 
 export default function ReviewToken() {
   return (
@@ -9,6 +9,6 @@ export default function ReviewToken() {
       <SuspenseLayout>
         <TokenReviewForm />
       </SuspenseLayout>
-      </div>
-  )
-} 
+    </div>
+  );
+}

@@ -1,7 +1,5 @@
-import { Connection, PublicKey } from "@solana/web3.js";
-import { 
-  TOKEN_2022_PROGRAM_ID, 
-} from "@solana/spl-token";
+import { Connection, PublicKey } from '@solana/web3.js';
+import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 
 export interface TokenExtensionInfo {
   isToken2022: boolean;
@@ -21,27 +19,27 @@ export interface TokenExtensionInfo {
   uri?: string;
 }
 
-
-
-
-export async function isToken2022(connection: Connection, mintAddress: string | PublicKey): Promise<boolean> {
+export async function isToken2022(
+  connection: Connection,
+  mintAddress: string | PublicKey,
+): Promise<boolean> {
   try {
-    const mintPublicKey = typeof mintAddress === 'string' ? new PublicKey(mintAddress) : mintAddress;
+    const mintPublicKey =
+      typeof mintAddress === 'string' ? new PublicKey(mintAddress) : mintAddress;
     const mintInfo = await connection.getAccountInfo(mintPublicKey);
-    
+
     if (!mintInfo) return false;
-    
+
     return mintInfo.owner.equals(TOKEN_2022_PROGRAM_ID);
   } catch (error) {
-    console.error("Error checking if token is Token-2022:", error);
+    console.error('Error checking if token is Token-2022:', error);
     return false;
   }
 }
 
-
 export function getExtensionSummary(extensionInfo: TokenExtensionInfo): string {
   const extensions = [];
-  
+
   if (extensionInfo.hasTransferFee) {
     extensions.push(`Transfer Fee: ${extensionInfo.feePercentage}%`);
   }
@@ -57,6 +55,6 @@ export function getExtensionSummary(extensionInfo: TokenExtensionInfo): string {
   if (extensionInfo.hasMetadata) {
     extensions.push('Metadata');
   }
-  if (extensions.length === 0) return 'No extensions'; 
+  if (extensions.length === 0) return 'No extensions';
   return extensions.join(', ');
 }

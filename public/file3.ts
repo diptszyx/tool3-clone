@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Transaction, Keypair } from "@solana/web3.js";
-import { toast } from "sonner";
-import { checkExtensionsCompatibility } from "@/utils/token/token-compatibility";
-import { checkExtensionRequiredFields } from "@/utils/token/token-validation";
-import { useNetwork } from "@/context/NetworkContext";
-import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
+import { useState, useEffect } from 'react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { Transaction, Keypair } from '@solana/web3.js';
+import { toast } from 'sonner';
+import { checkExtensionsCompatibility } from '@/utils/token/token-compatibility';
+import { checkExtensionRequiredFields } from '@/utils/token/token-validation';
+import { useNetwork } from '@/context/NetworkContext';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 export interface TokenCreationResult {
   mint: string;
@@ -21,78 +21,78 @@ export interface TokenExtensionType {
   bgColor: string;
 }
 export const tokenExtensionsMap: Record<string, TokenExtensionType> = {
-  "transfer-fees": {
-    id: "transfer-fees",
+  'transfer-fees': {
+    id: 'transfer-fees',
     icon: () => null,
-    name: "Transfer Fees",
-    description: "Automatically collect fees for each token transfer transaction",
-    color: "text-green-400",
-    bgColor: "bg-green-400/10",
+    name: 'Transfer Fees',
+    description: 'Automatically collect fees for each token transfer transaction',
+    color: 'text-green-400',
+    bgColor: 'bg-green-400/10',
   },
-  "confidential-transfer": {
-    id: "confidential-transfer",
+  'confidential-transfer': {
+    id: 'confidential-transfer',
     icon: () => null,
-    name: "Confidential Transfer",
-    description: "Secure transaction information with zero-knowledge proofs",
-    color: "text-blue-400",
-    bgColor: "bg-blue-400/10",
+    name: 'Confidential Transfer',
+    description: 'Secure transaction information with zero-knowledge proofs',
+    color: 'text-blue-400',
+    bgColor: 'bg-blue-400/10',
   },
-  "permanent-delegate": {
-    id: "permanent-delegate",
+  'permanent-delegate': {
+    id: 'permanent-delegate',
     icon: () => null,
-    name: "Permanent Delegate",
-    description: "Assign a permanent delegate for the token",
-    color: "text-purple-400",
-    bgColor: "bg-purple-400/10",
+    name: 'Permanent Delegate',
+    description: 'Assign a permanent delegate for the token',
+    color: 'text-purple-400',
+    bgColor: 'bg-purple-400/10',
   },
-  "non-transferable": {
-    id: "non-transferable",
+  'non-transferable': {
+    id: 'non-transferable',
     icon: () => null,
-    name: "Non-Transferable",
-    description: "Create tokens that cannot be transferred",
-    color: "text-red-400",
-    bgColor: "bg-red-400/10",
+    name: 'Non-Transferable',
+    description: 'Create tokens that cannot be transferred',
+    color: 'text-red-400',
+    bgColor: 'bg-red-400/10',
   },
-  "interest-bearing": {
-    id: "interest-bearing",
+  'interest-bearing': {
+    id: 'interest-bearing',
     icon: () => null,
-    name: "Interest Bearing",
-    description: "Tokens that automatically generate interest over time",
-    color: "text-orange-400",
-    bgColor: "bg-orange-400/10",
+    name: 'Interest Bearing',
+    description: 'Tokens that automatically generate interest over time',
+    color: 'text-orange-400',
+    bgColor: 'bg-orange-400/10',
   },
-  "default-account-state": {
-    id: "default-account-state",
+  'default-account-state': {
+    id: 'default-account-state',
     icon: () => null,
-    name: "Default Account State",
-    description: "Set default state for all accounts of this token",
-    color: "text-cyan-400",
-    bgColor: "bg-cyan-400/10",
+    name: 'Default Account State',
+    description: 'Set default state for all accounts of this token',
+    color: 'text-cyan-400',
+    bgColor: 'bg-cyan-400/10',
   },
-  "mint-close-authority": {
-    id: "mint-close-authority",
+  'mint-close-authority': {
+    id: 'mint-close-authority',
     icon: () => null,
-    name: "Mint Close Authority",
-    description: "Authority allowed to close this mint",
-    color: "text-pink-600",
-    bgColor: "bg-pink-600/10",
+    name: 'Mint Close Authority',
+    description: 'Authority allowed to close this mint',
+    color: 'text-pink-600',
+    bgColor: 'bg-pink-600/10',
   },
-  "transfer-hook": {
-    id: "transfer-hook",
+  'transfer-hook': {
+    id: 'transfer-hook',
     icon: () => null,
-    name: "Transfer Hook",
-    description: "Execute custom program logic on every token transfer",
-    color: "text-indigo-500",
-    bgColor: "bg-indigo-500/10",
+    name: 'Transfer Hook',
+    description: 'Execute custom program logic on every token transfer',
+    color: 'text-indigo-500',
+    bgColor: 'bg-indigo-500/10',
   },
-  "metadata": {
-    id: "metadata",
+  metadata: {
+    id: 'metadata',
     icon: () => null,
-    name: "Token Metadata",
-    description: "Metadata embedded directly in the token (always enabled)",
-    color: "text-pink-400",
-    bgColor: "bg-pink-400/10",
-  }
+    name: 'Token Metadata',
+    description: 'Metadata embedded directly in the token (always enabled)',
+    color: 'text-pink-400',
+    bgColor: 'bg-pink-400/10',
+  },
 };
 
 export interface ExtensionOptions {
@@ -116,8 +116,7 @@ export interface TokenDataType {
 export function useTokenReview(router: { push: (url: string) => void }) {
   const { connection } = useConnection();
   const wallet = useWallet();
-  const { network } = useNetwork()
-
+  const { network } = useNetwork();
 
   const [isLoading, setIsLoading] = useState(true);
   const [tokenData, setTokenData] = useState<TokenDataType | null>(null);
@@ -128,7 +127,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
   const [createdTokenMint, setCreatedTokenMint] = useState<string | null>(null);
   const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
   const [creationError, setCreationError] = useState<string | null>(null);
-  const [metadataUri, setMetadataUri] = useState<string>("");
+  const [metadataUri, setMetadataUri] = useState<string>('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -144,51 +143,57 @@ export function useTokenReview(router: { push: (url: string) => void }) {
             supply: parsedData.supply,
             description: parsedData.description,
             extensionOptions: parsedData.extensionOptions,
-            websiteUrl: parsedData.websiteUrl || "",
-            twitterUrl: parsedData.twitterUrl || "",
-            telegramUrl: parsedData.telegramUrl || "",
-            discordUrl: parsedData.discordUrl || ""
+            websiteUrl: parsedData.websiteUrl || '',
+            twitterUrl: parsedData.twitterUrl || '',
+            telegramUrl: parsedData.telegramUrl || '',
+            discordUrl: parsedData.discordUrl || '',
           });
 
           if (parsedData.selectedExtensions) {
             const extensions = [...parsedData.selectedExtensions];
 
-
-            const hasMetadataExtension = extensions.includes("metadata") || extensions.includes("metadata-pointer");
+            const hasMetadataExtension =
+              extensions.includes('metadata') || extensions.includes('metadata-pointer');
             if (hasMetadataExtension) {
-              if (!extensions.includes("metadata")) {
-                extensions.push("metadata");
+              if (!extensions.includes('metadata')) {
+                extensions.push('metadata');
               }
-              if (!extensions.includes("metadata-pointer")) {
-                extensions.push("metadata-pointer");
+              if (!extensions.includes('metadata-pointer')) {
+                extensions.push('metadata-pointer');
               }
             }
 
             const compatibility = checkExtensionsCompatibility(extensions);
             if (!compatibility.compatible && compatibility.incompatiblePairs) {
-              const incompatibleNames = compatibility.incompatiblePairs.map(pair => {
-                const ext1 = tokenExtensionsMap[pair[0]]?.name || pair[0];
-                const ext2 = tokenExtensionsMap[pair[1]]?.name || pair[1];
-                return `${ext1} and ${ext2}`;
-              }).join(", ");
+              const incompatibleNames = compatibility.incompatiblePairs
+                .map((pair) => {
+                  const ext1 = tokenExtensionsMap[pair[0]]?.name || pair[0];
+                  const ext2 = tokenExtensionsMap[pair[1]]?.name || pair[1];
+                  return `${ext1} and ${ext2}`;
+                })
+                .join(', ');
 
               toast.error(
                 `Incompatible extensions detected: ${incompatibleNames}. Please go back to the token creation page and adjust.`,
-                { duration: 6000 }
+                { duration: 6000 },
               );
             }
 
-            const requiredCheck = checkExtensionRequiredFields(extensions, parsedData.extensionOptions);
+            const requiredCheck = checkExtensionRequiredFields(
+              extensions,
+              parsedData.extensionOptions,
+            );
             if (!requiredCheck.valid) {
               const missingFieldsInfo = Object.entries(requiredCheck.missingFields)
                 .map(([extId, fields]) => {
                   const extName = tokenExtensionsMap[extId]?.name || extId;
                   return `${extName}: ${fields.join(', ')}`;
-                }).join("; ");
+                })
+                .join('; ');
 
               toast.error(
                 `Missing required information for extensions: ${missingFieldsInfo}. Please go back to the token creation page and complete all fields.`,
-                { duration: 6000 }
+                { duration: 6000 },
               );
 
               setTimeout(() => {
@@ -215,58 +220,69 @@ export function useTokenReview(router: { push: (url: string) => void }) {
 
   const handleConfirmCreate = async () => {
     if (!wallet.connected || !connection) {
-      toast.error("Please connect your wallet first");
+      toast.error('Please connect your wallet first');
       return;
     }
 
     if (!wallet.publicKey) {
-      toast.error("Wallet public key not available");
+      toast.error('Wallet public key not available');
       return;
     }
 
     if (!wallet.signTransaction) {
-      toast.error("Wallet does not support transaction signing");
+      toast.error('Wallet does not support transaction signing');
       return;
     }
 
     if (!tokenData) {
-      toast.error("Token data not available");
+      toast.error('Token data not available');
       return;
     }
 
-    const cluster = network === WalletAdapterNetwork.Mainnet ? "Mainnet" : "Devnet"
+    const cluster = network === WalletAdapterNetwork.Mainnet ? 'Mainnet' : 'Devnet';
 
     const updatedExtensions = [...selectedExtensions];
-    const hasMetadataExtension = updatedExtensions.includes("metadata") || updatedExtensions.includes("metadata-pointer");
+    const hasMetadataExtension =
+      updatedExtensions.includes('metadata') || updatedExtensions.includes('metadata-pointer');
     if (hasMetadataExtension) {
-      if (!updatedExtensions.includes("metadata")) {
-        updatedExtensions.push("metadata");
+      if (!updatedExtensions.includes('metadata')) {
+        updatedExtensions.push('metadata');
       }
-      if (!updatedExtensions.includes("metadata-pointer")) {
-        updatedExtensions.push("metadata-pointer");
+      if (!updatedExtensions.includes('metadata-pointer')) {
+        updatedExtensions.push('metadata-pointer');
       }
     }
 
     const compatibility = checkExtensionsCompatibility(updatedExtensions);
     if (!compatibility.compatible) {
-      const incompatibleNames = compatibility.incompatiblePairs!.map(pair => {
-        const ext1 = tokenExtensionsMap[pair[0]]?.name || pair[0];
-        const ext2 = tokenExtensionsMap[pair[1]]?.name || pair[1];
-        return `${ext1} and ${ext2}`;
-      }).join(", ");
+      const incompatibleNames = compatibility
+        .incompatiblePairs!.map((pair) => {
+          const ext1 = tokenExtensionsMap[pair[0]]?.name || pair[0];
+          const ext2 = tokenExtensionsMap[pair[1]]?.name || pair[1];
+          return `${ext1} and ${ext2}`;
+        })
+        .join(', ');
 
-      toast.error(`Cannot create token: The extensions ${incompatibleNames} are not compatible with each other`);
+      toast.error(
+        `Cannot create token: The extensions ${incompatibleNames} are not compatible with each other`,
+      );
       return;
     }
-    const requiredCheck = checkExtensionRequiredFields(updatedExtensions, tokenData.extensionOptions || {});
+    const requiredCheck = checkExtensionRequiredFields(
+      updatedExtensions,
+      tokenData.extensionOptions || {},
+    );
     if (!requiredCheck.valid) {
       const missingFieldsInfo = Object.entries(requiredCheck.missingFields)
         .map(([extId, fields]) => {
           const extName = tokenExtensionsMap[extId]?.name || extId;
           return `${extName}: ${fields.join(', ')}`;
-        }).join("; ");
+        })
+        .join('; ');
 
-      toast.error(`Cannot create token: Missing required information for extensions - ${missingFieldsInfo}`);
+      toast.error(
+        `Cannot create token: Missing required information for extensions - ${missingFieldsInfo}`,
+      );
       return;
     }
 
@@ -274,53 +290,53 @@ export function useTokenReview(router: { push: (url: string) => void }) {
     setCreationError(null);
 
     try {
-      const toastId1 = toast.loading("Preparing token data...");
+      const toastId1 = toast.loading('Preparing token data...');
       const requestData = {
         walletPublicKey: wallet.publicKey.toString(),
         name: tokenData.name,
         symbol: tokenData.symbol,
         decimals: tokenData.decimals,
         supply: tokenData.supply,
-        description: tokenData.description || "",
+        description: tokenData.description || '',
         imageUrl: imageUrl,
         extensionOptions: tokenData.extensionOptions,
         selectedExtensions: updatedExtensions,
-        websiteUrl: tokenData.websiteUrl || "",
-        twitterUrl: tokenData.twitterUrl || "",
-        telegramUrl: tokenData.telegramUrl || "",
-        discordUrl: tokenData.discordUrl || "",
-        cluster
+        websiteUrl: tokenData.websiteUrl || '',
+        twitterUrl: tokenData.twitterUrl || '',
+        telegramUrl: tokenData.telegramUrl || '',
+        discordUrl: tokenData.discordUrl || '',
+        cluster,
       };
 
-      console.log("TokenReview: Sending request with extensions:", selectedExtensions);
-      console.log("TokenReview: Extension options:", tokenData.extensionOptions);
+      console.log('TokenReview: Sending request with extensions:', selectedExtensions);
+      console.log('TokenReview: Extension options:', tokenData.extensionOptions);
 
-      const response = await fetch("/api/create-token", {
-        method: "POST",
+      const response = await fetch('/api/create-token', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to create token transaction");
+        throw new Error(errorData.error || 'Failed to create token transaction');
       }
 
       const tokenTxData = await response.json();
       toast.dismiss(toastId1);
 
-      const transactionBuffer = Buffer.from(tokenTxData.transaction, "base64");
+      const transactionBuffer = Buffer.from(tokenTxData.transaction, 'base64');
       const originalTransaction = Transaction.from(transactionBuffer);
 
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
 
       const transaction = new Transaction();
       transaction.feePayer = originalTransaction.feePayer;
       transaction.recentBlockhash = blockhash;
 
-      originalTransaction.instructions.forEach(instruction => {
+      originalTransaction.instructions.forEach((instruction) => {
         transaction.add(instruction);
       });
 
@@ -330,80 +346,91 @@ export function useTokenReview(router: { push: (url: string) => void }) {
       }
 
       const signedTransaction = await wallet.signTransaction(transaction);
-      const toastId2 = toast.loading("Creating token on blockchain...");
+      const toastId2 = toast.loading('Creating token on blockchain...');
       const signature = await connection.sendRawTransaction(signedTransaction.serialize());
-      await connection.confirmTransaction({
-        blockhash,
-        lastValidBlockHeight,
-        signature
-      }, 'confirmed');
+      await connection.confirmTransaction(
+        {
+          blockhash,
+          lastValidBlockHeight,
+          signature,
+        },
+        'confirmed',
+      );
 
       const mintAddress = tokenTxData.mint;
       setCreatedTokenMint(mintAddress);
       setTransactionSignature(signature);
       toast.dismiss(toastId2);
-      const toastId3 = toast.loading("Minting tokens to your wallet...");
+      const toastId3 = toast.loading('Minting tokens to your wallet...');
       const mintRequestData = {
         walletPublicKey: wallet.publicKey.toString(),
         mintAddress: mintAddress,
         amount: tokenData.supply,
         decimals: parseInt(tokenData.decimals),
         useToken2022: tokenTxData.useToken2022,
-        cluster
+        cluster,
       };
 
-      const mintResponse = await fetch("/api/create-token/mint", {
-        method: "POST",
+      const mintResponse = await fetch('/api/create-token/mint', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(mintRequestData),
       });
 
       if (!mintResponse.ok) {
         const mintErrorData = await mintResponse.json();
-        throw new Error(mintErrorData.error || "Failed to mint tokens");
+        throw new Error(mintErrorData.error || 'Failed to mint tokens');
       }
       const mintTxData = await mintResponse.json();
-      const mintTransactionBuffer = Buffer.from(mintTxData.transaction, "base64");
+      const mintTransactionBuffer = Buffer.from(mintTxData.transaction, 'base64');
       const mintTransaction = Transaction.from(mintTransactionBuffer);
 
-      const { blockhash: mintBlockhash, lastValidBlockHeight: mintLastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+      const { blockhash: mintBlockhash, lastValidBlockHeight: mintLastValidBlockHeight } =
+        await connection.getLatestBlockhash('confirmed');
       mintTransaction.recentBlockhash = mintBlockhash;
 
       const signedMintTransaction = await wallet.signTransaction(mintTransaction);
       const mintSignature = await connection.sendRawTransaction(signedMintTransaction.serialize());
 
-      await connection.confirmTransaction({
-        blockhash: mintBlockhash,
-        lastValidBlockHeight: mintLastValidBlockHeight,
-        signature: mintSignature
-      }, 'confirmed');
+      await connection.confirmTransaction(
+        {
+          blockhash: mintBlockhash,
+          lastValidBlockHeight: mintLastValidBlockHeight,
+          signature: mintSignature,
+        },
+        'confirmed',
+      );
 
       toast.dismiss(toastId3);
 
-      toast.success("Token created and minted successfully!");
+      toast.success('Token created and minted successfully!');
 
-      setMetadataUri("");
+      setMetadataUri('');
       setSuccess(true);
 
       localStorage.removeItem('tokenData');
     } catch (error: Error | unknown) {
-      console.error("Detailed token creation error:", error);
+      console.error('Detailed token creation error:', error);
 
-      let errorMessage = error instanceof Error ? error.message : "Error creating token";
+      let errorMessage = error instanceof Error ? error.message : 'Error creating token';
 
       if (error instanceof Error && 'code' in error && error.code === 4001) {
-        errorMessage = "Transaction rejected by user";
+        errorMessage = 'Transaction rejected by user';
       } else if (typeof errorMessage === 'string') {
-        if (errorMessage.includes("insufficient funds")) {
-          errorMessage = "Insufficient funds to complete the transaction. Please add more SOL to your wallet.";
-        } else if (errorMessage.includes("blockhash") || 
-                   errorMessage.includes("Blockhash not found") ||
-                   errorMessage.includes("Transaction simulation failed: Blockhash not found")) {
-          errorMessage = "Network timeout or blockhash expired. This is common on mainnet during high traffic. Please try again in a few moments.";
-        } else if (errorMessage.includes("transaction too large")) {
-          errorMessage = "Transaction size exceeds limit. Try reducing the number of extensions.";
+        if (errorMessage.includes('insufficient funds')) {
+          errorMessage =
+            'Insufficient funds to complete the transaction. Please add more SOL to your wallet.';
+        } else if (
+          errorMessage.includes('blockhash') ||
+          errorMessage.includes('Blockhash not found') ||
+          errorMessage.includes('Transaction simulation failed: Blockhash not found')
+        ) {
+          errorMessage =
+            'Network timeout or blockhash expired. This is common on mainnet during high traffic. Please try again in a few moments.';
+        } else if (errorMessage.includes('transaction too large')) {
+          errorMessage = 'Transaction size exceeds limit. Try reducing the number of extensions.';
         }
       }
 
@@ -437,38 +464,45 @@ export function useTokenReview(router: { push: (url: string) => void }) {
     goToHome,
   };
 }
-export function getExtensionDetails(extId: string, options: Record<string, string | number>): {
+export function getExtensionDetails(
+  extId: string,
+  options: Record<string, string | number>,
+): {
   displayItems?: Array<{ label: string; value: string | number }>;
   address?: string;
   truncatedAddress?: string;
 } | null {
-  if (extId === "permanent-delegate" && options?.["delegate-address"]) {
-    const address = String(options["delegate-address"]);
-    const truncatedAddress = address.length > 20 ?
-      `${address.substring(0, 10)}...${address.substring(address.length - 6)}` : address;
+  if (extId === 'permanent-delegate' && options?.['delegate-address']) {
+    const address = String(options['delegate-address']);
+    const truncatedAddress =
+      address.length > 20
+        ? `${address.substring(0, 10)}...${address.substring(address.length - 6)}`
+        : address;
 
     return { address, truncatedAddress };
   }
 
-  if (extId === "transfer-fees" && options?.["fee-percentage"] !== undefined) {
+  if (extId === 'transfer-fees' && options?.['fee-percentage'] !== undefined) {
     return {
-      displayItems: [{ label: "Fee Rate", value: `${options["fee-percentage"]}%` }]
+      displayItems: [{ label: 'Fee Rate', value: `${options['fee-percentage']}%` }],
     };
   }
 
-  if (extId === "interest-bearing" && options?.["interest-rate"] !== undefined) {
+  if (extId === 'interest-bearing' && options?.['interest-rate'] !== undefined) {
     return {
-      displayItems: [{ label: "Annual Rate", value: `${options["interest-rate"]}%` }]
+      displayItems: [{ label: 'Annual Rate', value: `${options['interest-rate']}%` }],
     };
   }
 
-  if (extId === "mint-close-authority" && options?.["close-authority"]) {
-    const address = String(options["close-authority"]);
-    const truncatedAddress = address.length > 20 ?
-      `${address.substring(0, 10)}...${address.substring(address.length - 6)}` : address;
+  if (extId === 'mint-close-authority' && options?.['close-authority']) {
+    const address = String(options['close-authority']);
+    const truncatedAddress =
+      address.length > 20
+        ? `${address.substring(0, 10)}...${address.substring(address.length - 6)}`
+        : address;
 
     return { address, truncatedAddress };
   }
 
   return null;
-} 
+}

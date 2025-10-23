@@ -1,16 +1,12 @@
-import { PublicKey, Connection } from "@solana/web3.js";
-import {
-  findVaultPda,
-  findVaultTokenPda,
-  findVaultAuthorityPda,
-} from "@/service/solana/pda";
-import { program } from "@/service/solana/program";
+import { PublicKey, Connection } from '@solana/web3.js';
+import { findVaultPda, findVaultTokenPda, findVaultAuthorityPda } from '@/service/solana/pda';
+import { program } from '@/service/solana/program';
 import {
   TOKEN_PROGRAM_ID,
   TOKEN_2022_PROGRAM_ID,
   getAssociatedTokenAddress,
-} from "@solana/spl-token";
-import { connectionDevnet, connectionMainnet } from "@/service/solana/connection";
+} from '@solana/spl-token';
+import { connectionDevnet, connectionMainnet } from '@/service/solana/connection';
 
 interface VaultCheckResult {
   exists: boolean;
@@ -31,9 +27,7 @@ interface VaultCheckResult {
   token1Program: PublicKey;
 }
 
-export const checkVaultExists = async (
-  poolId: PublicKey
-): Promise<VaultCheckResult> => {
+export const checkVaultExists = async (poolId: PublicKey): Promise<VaultCheckResult> => {
   try {
     const [vault] = findVaultPda(poolId);
     const [vaultTokenAccount] = findVaultTokenPda(poolId, vault);
@@ -43,9 +37,7 @@ export const checkVaultExists = async (
     const poolState = await program.account.poolState.fetch(poolId);
 
     const vaultInfo = await connectionDevnet.getAccountInfo(vault);
-    const vaultTokenAccountInfo = await connectionDevnet.getAccountInfo(
-      vaultTokenAccount
-    );
+    const vaultTokenAccountInfo = await connectionDevnet.getAccountInfo(vaultTokenAccount);
 
     const exists = !!(vaultInfo && vaultTokenAccountInfo);
 
@@ -63,14 +55,14 @@ export const checkVaultExists = async (
       poolState.token0Mint,
       vaultAuthority,
       true,
-      token0Program
+      token0Program,
     );
 
     const projectVaultToken1Account = await getAssociatedTokenAddress(
       poolState.token1Mint,
       vaultAuthority,
       true,
-      token1Program
+      token1Program,
     );
 
     return {
@@ -89,7 +81,7 @@ export const checkVaultExists = async (
       tokenProgram,
     };
   } catch (error: unknown) {
-    console.error("Error checking vault:", error);
+    console.error('Error checking vault:', error);
     return {
       exists: false,
       vault: PublicKey.default,
@@ -108,7 +100,10 @@ export const checkVaultExists = async (
   }
 };
 
-export async function getTokenProgram(mint: PublicKey, connection?: Connection): Promise<PublicKey> {
+export async function getTokenProgram(
+  mint: PublicKey,
+  connection?: Connection,
+): Promise<PublicKey> {
   try {
     const conn = connection || connectionMainnet;
     const mintAccountInfo = await conn.getAccountInfo(mint);
@@ -124,10 +119,10 @@ export async function getTokenProgram(mint: PublicKey, connection?: Connection):
       return TOKEN_2022_PROGRAM_ID;
     } else {
       console.warn(`Unknown token program: ${mintAccountInfo.owner.toString()}`);
-      return TOKEN_PROGRAM_ID; 
+      return TOKEN_PROGRAM_ID;
     }
   } catch (error) {
-    console.error("Error in getTokenProgram:", error);
-    return TOKEN_PROGRAM_ID; 
+    console.error('Error in getTokenProgram:', error);
+    return TOKEN_PROGRAM_ID;
   }
 }

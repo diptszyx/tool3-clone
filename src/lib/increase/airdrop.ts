@@ -8,14 +8,14 @@ import {
   TransactionMessage,
   AddressLookupTableAccount,
   TransactionInstruction,
-} from "@solana/web3.js";
+} from '@solana/web3.js';
 import {
   getJupiterQuote,
   getJupiterSwapInstructions,
   createInstructionFromJupiter,
-} from "@/service/jupiter/swap";
+} from '@/service/jupiter/swap';
 
-import { type WalletInfo } from "@/utils/create-wallets";
+import { type WalletInfo } from '@/utils/create-wallets';
 
 const BATCH_SIZE = 3;
 const DELAY_BETWEEN_BATCHES = 2000;
@@ -40,7 +40,7 @@ async function createVersionedTransaction(
   connection: Connection,
   instructions: TransactionInstruction[],
   feePayer: PublicKey,
-  lookupTables?: AddressLookupTableAccount[]
+  lookupTables?: AddressLookupTableAccount[],
 ): Promise<VersionedTransaction> {
   const { blockhash } = await connection.getLatestBlockhash();
 
@@ -57,7 +57,7 @@ function calculateRequiredFunding(
   wallets: WalletInfo[],
   index: number,
   feePerTransfer = 5000,
-  extraBuffer = 5000000
+  extraBuffer = 5000000,
 ): number {
   if (index >= wallets.length) return 0;
 
@@ -73,8 +73,7 @@ function calculateRequiredFunding(
     ? calculateRequiredFunding(wallets, right, feePerTransfer) + feePerTransfer
     : 0;
 
-  const selfHolding =
-    Math.round(wallet.solAmount * LAMPORTS_PER_SOL) + extraBuffer;
+  const selfHolding = Math.round(wallet.solAmount * LAMPORTS_PER_SOL) + extraBuffer;
 
   return selfHolding + leftCost + rightCost;
 }
@@ -101,35 +100,23 @@ async function createSwapTransaction(
   wallet: WalletInfo,
   connection: Connection,
   outputMint: string,
-  dexes?: string[]
+  dexes?: string[],
 ): Promise<VersionedTransaction | null> {
   try {
-    const SOL_MINT = "So11111111111111111111111111111111111111112";
+    const SOL_MINT = 'So11111111111111111111111111111111111111112';
     const swapAmount = Math.round(wallet.solAmount * LAMPORTS_PER_SOL);
 
     let processedDexes = dexes;
-    if (dexes && dexes[0] === "Raydium,Meteora,Orca+V2") {
-      processedDexes = dexes[0].split(",").map((d) => d.trim());
+    if (dexes && dexes[0] === 'Raydium,Meteora,Orca+V2') {
+      processedDexes = dexes[0].split(',').map((d) => d.trim());
     }
 
     let quote;
     try {
-      quote = await getJupiterQuote(
-        SOL_MINT,
-        outputMint,
-        swapAmount,
-        undefined,
-        processedDexes
-      );
+      quote = await getJupiterQuote(SOL_MINT, outputMint, swapAmount, undefined, processedDexes);
     } catch (error) {
-      if (dexes && dexes[0] === "Raydium,Meteora,Orca+V2") {
-        quote = await getJupiterQuote(
-          SOL_MINT,
-          outputMint,
-          swapAmount,
-          undefined,
-          undefined
-        );
+      if (dexes && dexes[0] === 'Raydium,Meteora,Orca+V2') {
+        quote = await getJupiterQuote(SOL_MINT, outputMint, swapAmount, undefined, undefined);
       } else {
         throw error;
       }
@@ -141,7 +128,7 @@ async function createSwapTransaction(
       prioritizationFeeLamports: {
         priorityLevelWithMaxLamports: {
           maxLamports: 1000,
-          priorityLevel: "medium",
+          priorityLevel: 'medium',
         },
       },
     });
@@ -156,30 +143,19 @@ async function createSwapTransaction(
       instructions.push(createInstructionFromJupiter(ix));
     });
 
-    instructions.push(
-      createInstructionFromJupiter(swapInstructions.swapInstruction)
-    );
+    instructions.push(createInstructionFromJupiter(swapInstructions.swapInstruction));
 
     if (swapInstructions.cleanupInstruction) {
-      instructions.push(
-        createInstructionFromJupiter(swapInstructions.cleanupInstruction)
-      );
+      instructions.push(createInstructionFromJupiter(swapInstructions.cleanupInstruction));
     }
 
-    const tx = await createVersionedTransaction(
-      connection,
-      instructions,
-      wallet.keypair.publicKey
-    );
+    const tx = await createVersionedTransaction(connection, instructions, wallet.keypair.publicKey);
 
     tx.sign([wallet.keypair]);
 
     return tx;
   } catch (error) {
-    console.error(
-      `Failed to create swap transaction for ${wallet.publicKey}:`,
-      error
-    );
+    console.error(`Failed to create swap transaction for ${wallet.publicKey}:`, error);
     return null;
   }
 }
@@ -188,7 +164,7 @@ async function buildChildTransactions(
   wallets: WalletInfo[],
   connection: Connection,
   outputMint?: string,
-  dexes?: string[]
+  dexes?: string[],
 ): Promise<
   Array<{
     transaction: VersionedTransaction;
@@ -209,10 +185,7 @@ async function buildChildTransactions(
     walletIndexMap.set(wallet.publicKey, index);
   });
 
-  async function buildDFSTransactions(
-    index: number,
-    parent: WalletInfo
-  ): Promise<void> {
+  async function buildDFSTransactions(index: number, parent: WalletInfo): Promise<void> {
     if (index >= wallets.length) return;
 
     const left = index * 2 + 1;
@@ -228,7 +201,7 @@ async function buildChildTransactions(
       const tx = await createVersionedTransaction(
         connection,
         [instruction],
-        parent.keypair.publicKey
+        parent.keypair.publicKey,
       );
 
       tx.sign([parent.keypair]);
@@ -253,7 +226,7 @@ async function buildChildTransactions(
       const tx = await createVersionedTransaction(
         connection,
         [instruction],
-        parent.keypair.publicKey
+        parent.keypair.publicKey,
       );
 
       tx.sign([parent.keypair]);
@@ -269,12 +242,7 @@ async function buildChildTransactions(
     }
 
     if (index > 0 && outputMint) {
-      const swapTx = await createSwapTransaction(
-        wallets[index],
-        connection,
-        outputMint,
-        dexes
-      );
+      const swapTx = await createSwapTransaction(wallets[index], connection, outputMint, dexes);
 
       if (swapTx) {
         transactions.push({
@@ -300,9 +268,9 @@ export async function buildAirdropTransactions(
   originalWallets: WalletInfo[],
   connection: Connection,
   outputMint?: string,
-  dexes?: string[]
+  dexes?: string[],
 ): Promise<AirdropTransactions> {
-  console.log("Building airdrop transactions...", {
+  console.log('Building airdrop transactions...', {
     walletsCount: originalWallets.length,
     outputMint,
     dexes,
@@ -314,8 +282,8 @@ export async function buildAirdropTransactions(
   let processedDexes = dexes;
 
   if (dexes && dexes.length > 0) {
-    if (dexes[0] === "Raydium,Meteora,Orca+V2") {
-      processedDexes = dexes[0].split(",").map((d) => d.trim());
+    if (dexes[0] === 'Raydium,Meteora,Orca+V2') {
+      processedDexes = dexes[0].split(',').map((d) => d.trim());
     }
   }
 
@@ -326,21 +294,21 @@ export async function buildAirdropTransactions(
         fromPubkey: userPublicKey,
         toPubkey: new PublicKey(w.publicKey),
         lamports: Math.round(w.transferAmount * LAMPORTS_PER_SOL),
-      })
+      }),
     );
   }
 
   const initialTransaction = await createVersionedTransaction(
     connection,
     transferInstructions,
-    userPublicKey
+    userPublicKey,
   );
 
   const childTransactions = await buildChildTransactions(
     wallets,
     connection,
     outputMint,
-    processedDexes
+    processedDexes,
   );
 
   const keypairMap = new Map(wallets.map((w) => [w.publicKey, w.keypair]));
@@ -361,11 +329,9 @@ export async function executeChildTransactionsBatched(
   }>,
   connection: Connection,
   wallets: WalletInfo[],
-  onProgress?: (completed: number, total: number) => void
+  onProgress?: (completed: number, total: number) => void,
 ): Promise<void> {
-  console.log(
-    `Executing ${childTransactions.length} child transactions in batches...`
-  );
+  console.log(`Executing ${childTransactions.length} child transactions in batches...`);
 
   const batches = [];
   for (let i = 0; i < childTransactions.length; i += BATCH_SIZE) {
@@ -378,9 +344,7 @@ export async function executeChildTransactionsBatched(
     const batch = batches[batchIndex];
 
     console.log(
-      `Processing batch ${batchIndex + 1}/${batches.length} (${
-        batch.length
-      } transactions)`
+      `Processing batch ${batchIndex + 1}/${batches.length} (${batch.length} transactions)`,
     );
 
     const batchPromises = batch.map(async (child, indexInBatch) => {
@@ -388,28 +352,23 @@ export async function executeChildTransactionsBatched(
 
       try {
         const signature = await connection.sendTransaction(child.transaction);
-        await connection.confirmTransaction(signature, "confirmed");
+        await connection.confirmTransaction(signature, 'confirmed');
 
         if (child.walletIndex < wallets.length) {
-          wallets[child.walletIndex].result = "success";
+          wallets[child.walletIndex].result = 'success';
         }
 
         completedTransactions++;
         onProgress?.(completedTransactions, childTransactions.length);
 
-        console.log(
-          ` Transaction ${completedTransactions}/${childTransactions.length} completed`
-        );
+        console.log(` Transaction ${completedTransactions}/${childTransactions.length} completed`);
 
         return { success: true, signature, walletIndex: child.walletIndex };
       } catch (err) {
-        console.error(
-          ` Transaction failed for wallet ${child.walletIndex}:`,
-          err
-        );
+        console.error(` Transaction failed for wallet ${child.walletIndex}:`, err);
 
         if (child.walletIndex < wallets.length) {
-          wallets[child.walletIndex].result = "failed";
+          wallets[child.walletIndex].result = 'failed';
         }
 
         completedTransactions++;
@@ -421,14 +380,8 @@ export async function executeChildTransactionsBatched(
 
     const batchResults = await Promise.allSettled(batchPromises);
 
-    const successCount = batchResults.filter(
-      (r) => r.status === "fulfilled"
-    ).length;
-    console.log(
-      `Batch ${batchIndex + 1} completed: ${successCount}/${
-        batch.length
-      } successful`
-    );
+    const successCount = batchResults.filter((r) => r.status === 'fulfilled').length;
+    console.log(`Batch ${batchIndex + 1} completed: ${successCount}/${batch.length} successful`);
 
     if (batchIndex < batches.length - 1) {
       console.log(`Waiting ${DELAY_BETWEEN_BATCHES}ms before next batch...`);
@@ -436,7 +389,5 @@ export async function executeChildTransactionsBatched(
     }
   }
 
-  console.log(
-    `All batches completed. Total: ${completedTransactions}/${childTransactions.length}`
-  );
+  console.log(`All batches completed. Total: ${completedTransactions}/${childTransactions.length}`);
 }

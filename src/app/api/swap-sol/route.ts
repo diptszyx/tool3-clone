@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { NextRequest, NextResponse } from 'next/server';
+import { PublicKey, Transaction } from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
   getMint,
@@ -7,19 +7,19 @@ import {
   getAccount,
   createTransferInstruction,
   createCloseAccountInstruction,
-} from "@solana/spl-token";
-import { connectionMainnet } from "@/service/solana/connection";
-import { getTokenProgram } from "@/lib/helper";
+} from '@solana/spl-token';
+import { connectionMainnet } from '@/service/solana/connection';
+import { getTokenProgram } from '@/lib/helper';
 import {
   getJupiterQuote,
   getJupiterSwapInstructions,
   createInstructionFromJupiter,
-} from "@/service/jupiter/swap";
-import { adminKeypair } from "@/config";
-import { getTokenFeeFromUsd } from "@/service/jupiter/calculate-fee";
-import { isWhitelisted } from "@/utils/whitelist";
+} from '@/service/jupiter/swap';
+import { adminKeypair } from '@/config';
+import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
+import { isWhitelisted } from '@/utils/whitelist';
 
-const SOL_MINT = "So11111111111111111111111111111111111111112";
+const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
 interface SwapRequestBody {
   walletPublicKey: string;
@@ -36,17 +36,15 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     return NextResponse.json(
       {
-        error: "Failed to process swap",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: 'Failed to process swap',
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-async function prepareSwapTransaction(
-  body: Omit<SwapRequestBody, "signedTransaction">
-) {
+async function prepareSwapTransaction(body: Omit<SwapRequestBody, 'signedTransaction'>) {
   const userPublicKey = new PublicKey(body.walletPublicKey);
   const inputTokenMint = new PublicKey(body.inputTokenMint);
   const outputTokenMint = new PublicKey(SOL_MINT);
@@ -58,35 +56,29 @@ async function prepareSwapTransaction(
   const outputMintInfo = await getMint(connectionMainnet, outputTokenMint);
   const outputTokenProgram = await getTokenProgram(outputMintInfo.address);
 
-  const inputAmountInLamports = Math.round(
-    body.inputAmount * Math.pow(10, inputDecimals)
-  );
+  const inputAmountInLamports = Math.round(body.inputAmount * Math.pow(10, inputDecimals));
 
-  const quote = await getJupiterQuote(
-    body.inputTokenMint,
-    SOL_MINT,
-    inputAmountInLamports
-  );
+  const quote = await getJupiterQuote(body.inputTokenMint, SOL_MINT, inputAmountInLamports);
 
   const userInputTokenAccount = await getAssociatedTokenAddress(
     inputTokenMint,
     userPublicKey,
     false,
-    inputTokenProgram
+    inputTokenProgram,
   );
 
   const userOutputTokenAccount = await getAssociatedTokenAddress(
     outputTokenMint,
     userPublicKey,
     false,
-    outputTokenProgram
+    outputTokenProgram,
   );
 
   const feeTokenAccount = await getAssociatedTokenAddress(
     inputTokenMint,
     adminKeypair.publicKey,
     false,
-    inputTokenProgram
+    inputTokenProgram,
   );
 
   const feeInTokens = await getTokenFeeFromUsd(body.inputTokenMint, 0.25);
@@ -98,33 +90,28 @@ async function prepareSwapTransaction(
     const userAccount = await getAccount(
       connectionMainnet,
       userInputTokenAccount,
-      "confirmed",
-      inputTokenProgram
+      'confirmed',
+      inputTokenProgram,
     );
 
     if (userAccount.amount < BigInt(totalRequiredAmount)) {
-      const reducedFeeAmount = Math.round(
-        feeInTokens * 0.98 * Math.pow(10, inputDecimals)
-      );
+      const reducedFeeAmount = Math.round(feeInTokens * 0.98 * Math.pow(10, inputDecimals));
       totalRequiredAmount = inputAmountInLamports + reducedFeeAmount;
       if (userAccount.amount >= BigInt(totalRequiredAmount)) {
         feeAmount = reducedFeeAmount;
       } else {
         return NextResponse.json(
           {
-            error: "Token price has change. Please try again.",
+            error: 'Token price has change. Please try again.',
             required: totalRequiredAmount.toString(),
             available: userAccount.amount.toString(),
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
   } catch {
-    return NextResponse.json(
-      { error: "User input token account not found" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User input token account not found' }, { status: 400 });
   }
 
   const swapInstructionsResponse = await getJupiterSwapInstructions({
@@ -133,7 +120,7 @@ async function prepareSwapTransaction(
     prioritizationFeeLamports: {
       priorityLevelWithMaxLamports: {
         maxLamports: 1000000,
-        priorityLevel: "medium",
+        priorityLevel: 'medium',
       },
     },
     dynamicComputeUnitLimit: false,
@@ -142,37 +129,27 @@ async function prepareSwapTransaction(
   const swapTransaction = new Transaction();
 
   try {
-    await getAccount(
-      connectionMainnet,
-      userOutputTokenAccount,
-      "confirmed",
-      outputTokenProgram
-    );
+    await getAccount(connectionMainnet, userOutputTokenAccount, 'confirmed', outputTokenProgram);
   } catch {
     const createOutputAccountIx = createAssociatedTokenAccountInstruction(
       adminKeypair.publicKey,
       userOutputTokenAccount,
       userPublicKey,
       outputTokenMint,
-      outputTokenProgram
+      outputTokenProgram,
     );
     swapTransaction.add(createOutputAccountIx);
   }
 
   try {
-    await getAccount(
-      connectionMainnet,
-      feeTokenAccount,
-      "confirmed",
-      inputTokenProgram
-    );
+    await getAccount(connectionMainnet, feeTokenAccount, 'confirmed', inputTokenProgram);
   } catch {
     const createFeeAccountIx = createAssociatedTokenAccountInstruction(
       adminKeypair.publicKey,
       feeTokenAccount,
       adminKeypair.publicKey,
       inputTokenMint,
-      inputTokenProgram
+      inputTokenProgram,
     );
     swapTransaction.add(createFeeAccountIx);
   }
@@ -184,14 +161,12 @@ async function prepareSwapTransaction(
       userPublicKey,
       feeAmount,
       [],
-      inputTokenProgram
+      inputTokenProgram,
     );
     swapTransaction.add(feeTransferIx);
   }
 
-  const swapIx = createInstructionFromJupiter(
-    swapInstructionsResponse.swapInstruction
-  );
+  const swapIx = createInstructionFromJupiter(swapInstructionsResponse.swapInstruction);
   swapTransaction.add(swapIx);
 
   const { blockhash } = await connectionMainnet.getLatestBlockhash();
@@ -206,23 +181,20 @@ async function prepareSwapTransaction(
     userPublicKey,
     userPublicKey,
     [],
-    outputTokenProgram
+    outputTokenProgram,
   );
   unwrapTransaction.add(closeAccountIx);
 
-  const { blockhash: unwrapBlockhash } =
-    await connectionMainnet.getLatestBlockhash();
+  const { blockhash: unwrapBlockhash } = await connectionMainnet.getLatestBlockhash();
   unwrapTransaction.recentBlockhash = unwrapBlockhash;
   unwrapTransaction.feePayer = adminKeypair.publicKey;
   unwrapTransaction.partialSign(adminKeypair);
 
   return NextResponse.json({
     success: true,
-    swapTransaction: swapTransaction
-      .serialize({ requireAllSignatures: false })
-      .toString("base64"),
+    swapTransaction: swapTransaction.serialize({ requireAllSignatures: false }).toString('base64'),
     unwrapTransaction: unwrapTransaction
       .serialize({ requireAllSignatures: false })
-      .toString("base64"),
+      .toString('base64'),
   });
 }

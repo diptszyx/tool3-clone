@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { BurnForm } from "@/components/burn/burn-form";
-import SuspenseLayout from "@/components/suspense-layout";
+import { BurnForm } from '@/components/burn/burn-form';
+import SuspenseLayout from '@/components/suspense-layout';
 
 export default function BurnTokenPage() {
   return (
@@ -13,4 +13,4 @@ export default function BurnTokenPage() {
       </div>
     </div>
   );
-} 
+}

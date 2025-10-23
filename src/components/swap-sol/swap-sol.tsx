@@ -1,23 +1,23 @@
-"use client";
+'use client';
 
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { toast } from "sonner";
-import { useWallet } from "@solana/wallet-adapter-react";
-import SelectToken from "../transfer/select-token";
-import ReceiveSolMainnet from "./receive-sol";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { debounce } from "lodash";
-import { Transaction } from "@solana/web3.js";
-import { UserToken } from "@/hooks/useUserTokens";
-import { WSOL_MINT } from "@/utils/constants";
-import { getTokenFeeFromUsd } from "@/service/jupiter/calculate-fee";
-import { connectionMainnet } from "../../service/solana/connection";
-import { isWhitelisted } from "@/utils/whitelist";
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
+import { toast } from 'sonner';
+import { useWallet } from '@solana/wallet-adapter-react';
+import SelectToken from '../transfer/select-token';
+import ReceiveSolMainnet from './receive-sol';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { debounce } from 'lodash';
+import { Transaction } from '@solana/web3.js';
+import { UserToken } from '@/hooks/useUserTokens';
+import { WSOL_MINT } from '@/utils/constants';
+import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
+import { connectionMainnet } from '../../service/solana/connection';
+import { isWhitelisted } from '@/utils/whitelist';
 
 const formSchema = z.object({
   amount: z.string(),
@@ -37,8 +37,8 @@ export default function SwapSolForm() {
   const form = useForm<FormSwapSol>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: "",
-      solAmount: "",
+      amount: '',
+      solAmount: '',
     },
   });
 
@@ -50,13 +50,10 @@ export default function SwapSolForm() {
           return;
         }
         try {
-          const tokenFeeAmount = await getTokenFeeFromUsd(
-            selectedToken.address,
-            0.25
-          );
+          const tokenFeeAmount = await getTokenFeeFromUsd(selectedToken.address, 0.25);
           setTokenFee(tokenFeeAmount);
         } catch (error) {
-          console.error("Error calculating token fee:", error);
+          console.error('Error calculating token fee:', error);
           setTokenFee(0);
         }
       } else {
@@ -72,13 +69,13 @@ export default function SwapSolForm() {
       try {
         setPriceLoading(true);
         if (!inputAmount || Number(inputAmount) === 0 || !selectedToken) {
-          form.setValue(isCalculatingSol ? "solAmount" : "amount", "");
+          form.setValue(isCalculatingSol ? 'solAmount' : 'amount', '');
           return;
         }
 
         const amountValue = parseFloat(inputAmount);
         if (isNaN(amountValue) || amountValue <= 0) {
-          form.setValue(isCalculatingSol ? "solAmount" : "amount", "");
+          form.setValue(isCalculatingSol ? 'solAmount' : 'amount', '');
           return;
         }
 
@@ -86,47 +83,43 @@ export default function SwapSolForm() {
 
         if (isCalculatingSol) {
           const inputAmountInLamports = Math.round(
-            amountValue * Math.pow(10, selectedToken.decimals || 0)
+            amountValue * Math.pow(10, selectedToken.decimals || 0),
           );
 
           response = await fetch(
-            `https://lite-api.jup.ag/swap/v1/quote?inputMint=${selectedToken.address}&outputMint=So11111111111111111111111111111111111111112&amount=${inputAmountInLamports}&slippageBps=100&swapMode=ExactIn`
+            `https://lite-api.jup.ag/swap/v1/quote?inputMint=${selectedToken.address}&outputMint=So11111111111111111111111111111111111111112&amount=${inputAmountInLamports}&slippageBps=100&swapMode=ExactIn`,
           );
         } else {
           const solAmountInLamports = Math.round(amountValue * Math.pow(10, 9));
 
           response = await fetch(
-            `https://lite-api.jup.ag/swap/v1/quote?inputMint=${selectedToken.address}&outputMint=So11111111111111111111111111111111111111112&amount=${solAmountInLamports}&slippageBps=100&swapMode=ExactOut`
+            `https://lite-api.jup.ag/swap/v1/quote?inputMint=${selectedToken.address}&outputMint=So11111111111111111111111111111111111111112&amount=${solAmountInLamports}&slippageBps=100&swapMode=ExactOut`,
           );
         }
 
         if (!response.ok) {
-          toast.error("Token has insufficient liquidity.");
+          toast.error('Token has insufficient liquidity.');
         }
 
         const quote = await response.json();
 
         if (isCalculatingSol) {
           const solAmount = parseFloat(quote.outAmount) / Math.pow(10, 9);
-          form.setValue("solAmount", solAmount.toFixed(6));
+          form.setValue('solAmount', solAmount.toFixed(6));
         } else {
           const tokenAmount =
-            parseFloat(quote.inAmount) /
-            Math.pow(10, selectedToken.decimals || 0);
-          form.setValue(
-            "amount",
-            tokenAmount.toFixed(selectedToken.decimals || 6)
-          );
+            parseFloat(quote.inAmount) / Math.pow(10, selectedToken.decimals || 0);
+          form.setValue('amount', tokenAmount.toFixed(selectedToken.decimals || 6));
         }
       } catch (e) {
-        console.error("Failed to fetch swap quote:", e);
-        form.setValue(isCalculatingSol ? "solAmount" : "amount", "");
-        toast.error("Failed to fetch swap quote");
+        console.error('Failed to fetch swap quote:', e);
+        form.setValue(isCalculatingSol ? 'solAmount' : 'amount', '');
+        toast.error('Failed to fetch swap quote');
       } finally {
         setPriceLoading(false);
       }
     },
-    [selectedToken, form]
+    [selectedToken, form],
   );
 
   const debouncedFetchQuote = useMemo(() => {
@@ -140,12 +133,12 @@ export default function SwapSolForm() {
       setLoading(true);
 
       if (!publicKey || !signAllTransactions) {
-        toast.error("Please connect your wallet first");
+        toast.error('Please connect your wallet first');
         return;
       }
 
       if (!selectedToken) {
-        toast.error("Please select a token to swap");
+        toast.error('Please select a token to swap');
         return;
       }
 
@@ -163,7 +156,7 @@ export default function SwapSolForm() {
         solAmount <= 0 ||
         Number.isNaN(solAmount)
       ) {
-        toast.error("Amount must be greater than 0");
+        toast.error('Amount must be greater than 0');
         return;
       }
 
@@ -173,10 +166,10 @@ export default function SwapSolForm() {
         inputAmount: tokenAmount,
       };
 
-      const response = await fetch("/api/swap-sol", {
-        method: "POST",
+      const response = await fetch('/api/swap-sol', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify(swapData),
       });
@@ -184,65 +177,46 @@ export default function SwapSolForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to prepare swap transaction");
+        throw new Error(data.error || 'Failed to prepare swap transaction');
       }
 
-      const swapTx = Transaction.from(
-        Buffer.from(data.swapTransaction, "base64")
-      );
-      const unwrapTx = Transaction.from(
-        Buffer.from(data.unwrapTransaction, "base64")
-      );
+      const swapTx = Transaction.from(Buffer.from(data.swapTransaction, 'base64'));
+      const unwrapTx = Transaction.from(Buffer.from(data.unwrapTransaction, 'base64'));
 
-      const [signedSwapTx, signedUnwrapTx] = await signAllTransactions([
-        swapTx,
-        unwrapTx,
-      ]);
+      const [signedSwapTx, signedUnwrapTx] = await signAllTransactions([swapTx, unwrapTx]);
 
-      const swapSignature = await connectionMainnet.sendRawTransaction(
-        signedSwapTx.serialize()
-      );
-      const swapConfirmation = await connectionMainnet.confirmTransaction(
-        swapSignature
-      );
+      const swapSignature = await connectionMainnet.sendRawTransaction(signedSwapTx.serialize());
+      const swapConfirmation = await connectionMainnet.confirmTransaction(swapSignature);
 
       if (swapConfirmation.value.err) {
-        throw new Error("Swap failed");
+        throw new Error('Swap failed');
       }
 
       const unwrapSignature = await connectionMainnet.sendRawTransaction(
-        signedUnwrapTx.serialize()
+        signedUnwrapTx.serialize(),
       );
-      const unwrapConfirmation = await connectionMainnet.confirmTransaction(
-        unwrapSignature
-      );
+      const unwrapConfirmation = await connectionMainnet.confirmTransaction(unwrapSignature);
 
       if (swapConfirmation.value.err) {
-        throw new Error(
-          `Transaction failed: ${JSON.stringify(swapConfirmation.value.err)}`
-        );
+        throw new Error(`Transaction failed: ${JSON.stringify(swapConfirmation.value.err)}`);
       }
 
       if (unwrapConfirmation.value.err) {
-        throw new Error(
-          `Transaction failed: ${JSON.stringify(unwrapConfirmation.value.err)}`
-        );
+        throw new Error(`Transaction failed: ${JSON.stringify(unwrapConfirmation.value.err)}`);
       }
 
-      toast.success("🎉 Gasless Swap to SOL Successful!", {
+      toast.success('🎉 Gasless Swap to SOL Successful!', {
         description: `Swapped ${values.amount} ${selectedToken.symbol} for ${values.solAmount} SOL`,
         action: {
-          label: "View Transaction",
-          onClick: () =>
-            window.open(`https://solscan.io/tx/${swapSignature}`, "_blank"),
+          label: 'View Transaction',
+          onClick: () => window.open(`https://solscan.io/tx/${swapSignature}`, '_blank'),
         },
       });
 
       setSelectedToken(null);
       form.reset();
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "An unexpected error occurred";
+      const message = error instanceof Error ? error.message : 'An unexpected error occurred';
       toast.error(message);
     } finally {
       setLoading(false);
@@ -250,7 +224,7 @@ export default function SwapSolForm() {
   };
 
   useEffect(() => {
-    const amount = form.getValues("amount");
+    const amount = form.getValues('amount');
     if (amount && selectedToken) {
       debouncedFetchQuote(amount, true);
     }
@@ -259,17 +233,14 @@ export default function SwapSolForm() {
   return (
     <div
       className={`md:p-2 max-w-[550px] mx-auto my-2 flex flex-col items-center ${
-        !isMobile && "border-gear"
+        !isMobile && 'border-gear'
       }`}
     >
-      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-        Gasless Swap to SOL
-      </h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">Gasless Swap to SOL</h1>
 
       <div className="mb-6 p-[8px] bg-green-50 border-gear-green-200 w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">
-          ⚡ <strong>No SOL ownership required:</strong> Just $0.25 per
-          transaction!
+          ⚡ <strong>No SOL ownership required:</strong> Just $0.25 per transaction!
         </p>
       </div>
 
@@ -283,12 +254,12 @@ export default function SwapSolForm() {
               title="You Pay"
               selectedToken={selectedToken}
               setSelectedToken={setSelectedToken}
-              amount={form.watch("amount")}
+              amount={form.watch('amount')}
               onAmountChange={(value) => {
-                form.setValue("amount", value);
+                form.setValue('amount', value);
                 debouncedFetchQuote(value, true);
               }}
-              excludeToken={["NativeSOL", WSOL_MINT]}
+              excludeToken={['NativeSOL', WSOL_MINT]}
               tokenFee={tokenFee}
             />
 
@@ -297,7 +268,7 @@ export default function SwapSolForm() {
               priceLoading={priceLoading}
               allowEdit={true}
               onAmountChange={(value) => {
-                form.setValue("solAmount", value);
+                form.setValue('solAmount', value);
                 debouncedFetchQuote(value, false);
               }}
             />
@@ -309,7 +280,7 @@ export default function SwapSolForm() {
             variant="default"
             disabled={loading || !selectedToken}
           >
-            {loading ? "Processing..." : "💫 Swap to SOL"}
+            {loading ? 'Processing...' : '💫 Swap to SOL'}
           </Button>
         </form>
       </Form>

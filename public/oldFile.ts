@@ -1,9 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { PublicKey, Transaction } from "@solana/web3.js";
-import { connectionDevnet, connectionMainnet } from "@/service/solana/connection";
-import { TransferFeeToken } from "solana-token-extension-boost";
-import { ClusterType } from "@/types/types";
-
+import { NextRequest, NextResponse } from 'next/server';
+import { PublicKey, Transaction } from '@solana/web3.js';
+import { connectionDevnet, connectionMainnet } from '@/service/solana/connection';
+import { TransferFeeToken } from 'solana-token-extension-boost';
+import { ClusterType } from '@/types/types';
 
 interface MintTokenRequestBody {
   walletPublicKey: string;
@@ -20,13 +19,10 @@ export async function POST(req: NextRequest) {
     const body: MintTokenRequestBody = await req.json();
 
     if (!body.walletPublicKey || !body.mintAddress || !body.amount || body.decimals === undefined) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
     }
 
-    const connection = body.cluster === "mainnet" ? connectionMainnet : connectionDevnet;
+    const connection = body.cluster === 'mainnet' ? connectionMainnet : connectionDevnet;
 
     let walletPublicKey: PublicKey;
     let mintPublicKey: PublicKey;
@@ -37,24 +33,17 @@ export async function POST(req: NextRequest) {
       /* eslint-disable @typescript-eslint/no-unused-vars */
     } catch (_) {
       /* eslint-enable @typescript-eslint/no-unused-vars */
-      return NextResponse.json(
-        { error: "Invalid public key format" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid public key format' }, { status: 400 });
     }
-
 
     const amountValue = typeof body.amount === 'string' ? parseFloat(body.amount) : body.amount;
     if (isNaN(amountValue) || amountValue <= 0) {
-      return NextResponse.json(
-        { error: "Amount must be a positive number" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Amount must be a positive number' }, { status: 400 });
     }
 
     const mintAmount = BigInt(Math.floor(amountValue * Math.pow(10, body.decimals)));
 
-    // Xác định recipient 
+    // Xác định recipient
     const recipient = body.recipientAddress
       ? new PublicKey(body.recipientAddress)
       : walletPublicKey;
@@ -63,42 +52,36 @@ export async function POST(req: NextRequest) {
       feeBasisPoints: 0,
       maxFee: BigInt(0),
       transferFeeConfigAuthority: walletPublicKey,
-      withdrawWithheldAuthority: walletPublicKey
+      withdrawWithheldAuthority: walletPublicKey,
     };
 
-    const token = new TransferFeeToken(
-      connection,
-      mintPublicKey,
-      transferFeeConfig
-    );
+    const token = new TransferFeeToken(connection, mintPublicKey, transferFeeConfig);
 
     const { instructions, address: tokenAccount } = await token.createAccountAndMintToInstructions(
       recipient,
       walletPublicKey,
       mintAmount,
-      walletPublicKey
+      walletPublicKey,
     );
     const transaction = new Transaction();
-    transaction.recentBlockhash = "11111111111111111111111111111111";
+    transaction.recentBlockhash = '11111111111111111111111111111111';
     transaction.feePayer = walletPublicKey;
 
-    instructions.forEach(ix => transaction.add(ix));
+    instructions.forEach((ix) => transaction.add(ix));
     const serializedTransaction = transaction
       .serialize({ requireAllSignatures: false })
-      .toString("base64");
+      .toString('base64');
     return NextResponse.json({
       success: true,
       transaction: serializedTransaction,
-      tokenAccount: tokenAccount.toString()
+      tokenAccount: tokenAccount.toString(),
     });
-
   } catch (error: unknown) {
-    console.error("Mint token error:", error);
+    console.error('Mint token error:', error);
 
-    const errorMessage = error instanceof Error
-      ? error.message
-      : "Failed to create mint transaction";
+    const errorMessage =
+      error instanceof Error ? error.message : 'Failed to create mint transaction';
 
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-} 
+}

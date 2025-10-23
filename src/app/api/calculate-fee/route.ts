@@ -1,5 +1,5 @@
-import { calculateTransferFee } from "@/utils/ata-checker";
-import { NextRequest, NextResponse } from "next/server";
+import { calculateTransferFee } from '@/utils/ata-checker';
+import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -7,9 +7,6 @@ export async function POST(req: NextRequest) {
     const fee = await calculateTransferFee(recipientAddress, tokenMint);
     return NextResponse.json({ fee });
   } catch {
-    return NextResponse.json(
-      { error: "Failed to calculate fee" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to calculate fee' }, { status: 500 });
   }
 }
