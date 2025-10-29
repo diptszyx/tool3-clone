@@ -27,7 +27,7 @@ export default function AssetMigration() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const { wallets, refreshAllWallets, refreshWallet, clearWallets, addWallet, setWallets } =
-    useWalletData('devnet');
+    useWalletData('mainnet');
 
   const { migrationInProgress, setMasterPassword, migrateSingleWallet, migrateMultipleWallets } =
     useMigration({

@@ -14,7 +14,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import type { WalletMigration } from '@/types/types';
-import { connectionDevnet } from '@/service/solana/connection';
+import { connectionMainnet } from '@/service/solana/connection';
 
 interface MigrationParams {
   wallet: WalletMigration;
@@ -39,7 +39,7 @@ export async function executeSingleWalletMigration({
   includeSol,
 }: MigrationParams): Promise<MigrationResult> {
   try {
-    const connection = connectionDevnet;
+    const connection = connectionMainnet;
     const selectedTokens = wallet.tokens.filter((t) => t.selected);
 
     if (selectedTokens.length === 0 && !includeSol) {

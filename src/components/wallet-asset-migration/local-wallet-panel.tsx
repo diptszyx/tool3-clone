@@ -1,4 +1,3 @@
-// components/wallet-asset-migration/local-wallet-panel.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
