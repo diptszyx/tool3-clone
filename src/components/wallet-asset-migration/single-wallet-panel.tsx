@@ -33,7 +33,7 @@ export default function SingleWalletPanel({
   onDestinationChange,
   includeSol,
   onIncludeSolChange,
-  cluster = 'devnet',
+  cluster = 'mainnet',
 }: SingleWalletPanelProps) {
   const { publicKey, connected } = useWallet();
   const { fetchWalletData, loading } = useWalletData(cluster);

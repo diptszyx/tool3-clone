@@ -34,7 +34,7 @@ export default function MultiWalletPanel({
   onDestinationChange,
   includeSol,
   onIncludeSolChange,
-  cluster = 'devnet',
+  cluster = 'mainnet',
   onPasswordReceived,
 }: MultiWalletPanelProps) {
   const [addWalletOpen, setAddWalletOpen] = useState(false);

@@ -15,7 +15,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import type { WalletMigration } from '@/types/types';
-import { connectionDevnet } from '@/service/solana/connection';
+import { connectionMainnet } from '@/service/solana/connection';
 import bs58 from 'bs58';
 
 interface MultiWalletMigrationParams {
@@ -44,7 +44,7 @@ export async function executeMultiWalletMigration({
   privateKeys,
   onProgress,
 }: MultiWalletMigrationParams): Promise<MultiWalletMigrationResult> {
-  const connection = connectionDevnet;
+  const connection = connectionMainnet;
   const destinationPubkey = new PublicKey(destinationAddress);
 
   const selectedWallets = wallets.filter((w) => w.selected);
