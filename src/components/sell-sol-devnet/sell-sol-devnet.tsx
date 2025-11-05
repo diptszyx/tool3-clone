@@ -60,7 +60,7 @@ export default function SellSolDevnet() {
         const response = await fetch(`https://lite-api.jup.ag/price/v3?ids=${tokenMint}`);
 
         const result = await response.json();
-        const priceInUSD = result?.data[tokenMint]?.price;
+        const priceInUSD = result?.data[tokenMint]?.usdPrice;
 
         if (priceInUSD) {
           const amountValue = parseFloat(inputAmount);
