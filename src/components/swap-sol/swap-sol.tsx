@@ -12,7 +12,7 @@ import SelectToken from '../transfer/select-token';
 import ReceiveSolMainnet from './receive-sol';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { debounce } from 'lodash';
-import { Transaction } from '@solana/web3.js';
+import { VersionedTransaction } from '@solana/web3.js';
 import { UserToken } from '@/hooks/useUserTokens';
 import { WSOL_MINT } from '@/utils/constants';
 import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
@@ -186,8 +186,10 @@ export default function SwapSolForm() {
         throw new Error(data.error || 'Failed to prepare swap transaction');
       }
 
-      const swapTx = Transaction.from(Buffer.from(data.swapTransaction, 'base64'));
-      const unwrapTx = Transaction.from(Buffer.from(data.unwrapTransaction, 'base64'));
+      const swapTx = VersionedTransaction.deserialize(Buffer.from(data.swapTransaction, 'base64'));
+      const unwrapTx = VersionedTransaction.deserialize(
+        Buffer.from(data.unwrapTransaction, 'base64'),
+      );
 
       const [signedSwapTx, signedUnwrapTx] = await signAllTransactions([swapTx, unwrapTx]);
 
@@ -203,12 +205,10 @@ export default function SwapSolForm() {
       );
       const unwrapConfirmation = await connectionMainnet.confirmTransaction(unwrapSignature);
 
-      if (swapConfirmation.value.err) {
-        throw new Error(`Transaction failed: ${JSON.stringify(swapConfirmation.value.err)}`);
-      }
-
       if (unwrapConfirmation.value.err) {
-        throw new Error(`Transaction failed: ${JSON.stringify(unwrapConfirmation.value.err)}`);
+        throw new Error(
+          `Unwrap transaction failed: ${JSON.stringify(unwrapConfirmation.value.err)}`,
+        );
       }
 
       toast.success('Gasless Swap to SOL Successful!', {
@@ -248,7 +248,7 @@ export default function SwapSolForm() {
         <p className="text-sm text-green-800">
           {isFreeFeature ? (
             <>
-              <strong>Free access activated!</strong> No fees for this feature!
+              <strong>Free access activated!</strong>
             </>
           ) : (
             <>

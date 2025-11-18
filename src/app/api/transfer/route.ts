@@ -26,7 +26,6 @@ interface TransferRequestBody {
 export async function POST(req: NextRequest) {
   try {
     const body: TransferRequestBody = await req.json();
-
     return await prepareTransaction(body);
   } catch (error: unknown) {
     return NextResponse.json(
@@ -39,10 +38,14 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function prepareTransaction(body: Omit<TransferRequestBody, 'signedTransaction'>) {
+async function prepareTransaction(body: TransferRequestBody) {
   const senderPublicKey = new PublicKey(body.walletPublicKey);
   const receiverPublicKey = new PublicKey(body.receiverWalletPublicKey);
   const tokenMint = new PublicKey(body.tokenMint);
+
+  const isWhitelistedUser = isWhitelisted(body.walletPublicKey);
+  const hasInviteAccess = await isFeatureFreeServer('Gasless Transfer', body.inviteCode);
+  const isFeeExempt = isWhitelistedUser || hasInviteAccess;
 
   const mintInfo = await getMint(connectionMainnet, tokenMint);
   const decimals = mintInfo.decimals;
@@ -67,14 +70,16 @@ async function prepareTransaction(body: Omit<TransferRequestBody, 'signedTransac
     tokenProgram,
   );
 
-  const hasInviteAccess = await isFeatureFreeServer('Gasless Transfer', body.inviteCode);
-
-  const feeUsdt = await calculateTransferFee(body.receiverWalletPublicKey, body.tokenMint);
-
-  const feeInTokens = await getTokenFeeFromUsd(body.tokenMint, feeUsdt);
-  let feeAmount = Math.round(feeInTokens * Math.pow(10, decimals));
+  let feeAmount = 0;
   const netAmount = Math.round(parseFloat(body.tokenAmount.toString()) * Math.pow(10, decimals));
-  let totalAmount = netAmount + feeAmount;
+  let totalAmount = netAmount;
+
+  if (!isFeeExempt) {
+    const feeUsdt = await calculateTransferFee(body.receiverWalletPublicKey, body.tokenMint);
+    const feeInTokens = await getTokenFeeFromUsd(body.tokenMint, feeUsdt);
+    feeAmount = Math.round(feeInTokens * Math.pow(10, decimals));
+    totalAmount = netAmount + feeAmount;
+  }
 
   try {
     const senderAccount = await getAccount(
@@ -83,20 +88,33 @@ async function prepareTransaction(body: Omit<TransferRequestBody, 'signedTransac
       'confirmed',
       tokenProgram,
     );
-    if (senderAccount.amount < BigInt(totalAmount)) {
-      const reducedFeeAmount = Math.round(feeInTokens * 0.98 * Math.pow(10, decimals));
-      totalAmount = netAmount + reducedFeeAmount;
 
-      if (senderAccount.amount >= BigInt(totalAmount)) {
+    if (!isFeeExempt && senderAccount.amount < BigInt(totalAmount)) {
+      const reducedFeeAmount = Math.round(feeAmount * 0.98);
+      const reducedTotal = netAmount + reducedFeeAmount;
+
+      if (senderAccount.amount >= BigInt(reducedTotal)) {
         feeAmount = reducedFeeAmount;
+        totalAmount = reducedTotal;
       } else {
         return NextResponse.json(
           {
-            error: 'Token price has change. Please try again.',
+            error: 'Token price has changed. Please try again.',
+            required: totalAmount.toString(),
+            available: senderAccount.amount.toString(),
           },
           { status: 400 },
         );
       }
+    } else if (isFeeExempt && senderAccount.amount < BigInt(netAmount)) {
+      return NextResponse.json(
+        {
+          error: 'Insufficient token balance',
+          required: netAmount.toString(),
+          available: senderAccount.amount.toString(),
+        },
+        { status: 400 },
+      );
     }
   } catch {
     return NextResponse.json({ error: 'Sender token account not found' }, { status: 400 });
@@ -117,20 +135,20 @@ async function prepareTransaction(body: Omit<TransferRequestBody, 'signedTransac
     transaction.add(createReceiverAccountIx);
   }
 
-  try {
-    await getAccount(connectionMainnet, feeTokenAccount, 'confirmed', tokenProgram);
-  } catch {
-    const createFeeAccountIx = createAssociatedTokenAccountInstruction(
-      adminKeypair.publicKey,
-      feeTokenAccount,
-      adminKeypair.publicKey,
-      tokenMint,
-      tokenProgram,
-    );
-    transaction.add(createFeeAccountIx);
-  }
+  if (!isFeeExempt && feeAmount > 0) {
+    try {
+      await getAccount(connectionMainnet, feeTokenAccount, 'confirmed', tokenProgram);
+    } catch {
+      const createFeeAccountIx = createAssociatedTokenAccountInstruction(
+        adminKeypair.publicKey,
+        feeTokenAccount,
+        adminKeypair.publicKey,
+        tokenMint,
+        tokenProgram,
+      );
+      transaction.add(createFeeAccountIx);
+    }
 
-  if (feeAmount > 0 && !isWhitelisted(body.walletPublicKey) && !hasInviteAccess) {
     const feeTransferIx = createTransferInstruction(
       senderTokenAccount,
       feeTokenAccount,
@@ -164,5 +182,7 @@ async function prepareTransaction(body: Omit<TransferRequestBody, 'signedTransac
   return NextResponse.json({
     success: true,
     transaction: serializedTransaction,
+    feeApplied: !isFeeExempt,
+    feeAmount: !isFeeExempt ? feeAmount.toString() : '0',
   });
 }
