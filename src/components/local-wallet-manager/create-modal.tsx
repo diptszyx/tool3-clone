@@ -50,7 +50,6 @@ export default function CreateModal({ isOpen, onClose, onCreate, password }: Cre
       onCreate(newWallets);
     } catch (error) {
       console.error('Error creating wallets:', error);
-      alert('Failed to create wallets. Please try again.');
     } finally {
       setIsCreating(false);
     }

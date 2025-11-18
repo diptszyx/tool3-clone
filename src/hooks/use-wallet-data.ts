@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
+import { connectionMainnet } from '@/service/solana/connection';
 import type { WalletMigration, TokenMigration } from '@/types/types';
 
 interface AssetResponse {
@@ -24,88 +25,81 @@ interface ApiResponse {
   };
 }
 
-export function useWalletData(cluster: 'mainnet' | 'devnet' = 'devnet') {
+export function useWalletData() {
   const [loading, setLoading] = useState<Set<string>>(new Set());
   const [wallets, setWallets] = useState<WalletMigration[]>([]);
+  const connection = connectionMainnet;
 
-  const fetchWalletData = useCallback(
-    async (address: string): Promise<WalletMigration | null> => {
-      setLoading((prev) => new Set(prev).add(address));
+  const fetchWalletData = useCallback(async (address: string): Promise<WalletMigration | null> => {
+    setLoading((prev) => new Set(prev).add(address));
 
-      try {
-        const RPC =
-          cluster === 'mainnet'
-            ? process.env.NEXT_PUBLIC_RPC_MAINNET!
-            : process.env.NEXT_PUBLIC_RPC_DEVNET!;
+    try {
+      const RPC = connection.rpcEndpoint;
+      const pubKey = new PublicKey(address);
 
-        const connection = new Connection(RPC, 'confirmed');
-        const pubKey = new PublicKey(address);
+      const solBalance = await connection.getBalance(pubKey);
 
-        const solBalance = await connection.getBalance(pubKey);
-
-        const response = await fetch(RPC, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: '1',
-            method: 'getAssetsByOwner',
-            params: {
-              ownerAddress: address,
-              page: 1,
-              limit: 50,
-              options: {
-                showFungible: true,
-                showNativeBalance: false,
-                showZeroBalance: false,
-              },
+      const response = await fetch(RPC, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: '1',
+          method: 'getAssetsByOwner',
+          params: {
+            ownerAddress: address,
+            page: 1,
+            limit: 50,
+            options: {
+              showFungible: true,
+              showNativeBalance: false,
+              showZeroBalance: false,
             },
-          }),
+          },
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch tokens');
+
+      const data: ApiResponse = await response.json();
+      const assets: AssetResponse[] = data.result?.items ?? [];
+
+      const tokens: TokenMigration[] = assets
+        .filter(
+          (asset) => asset.interface === 'FungibleToken' || asset.interface === 'FungibleAsset',
+        )
+        .map((asset) => {
+          const decimals = asset.token_info?.decimals ?? 0;
+          const balance = asset.token_info?.balance ?? 0;
+          return {
+            mint: asset.id,
+            symbol: asset.token_info?.symbol || asset.content?.metadata?.symbol || 'Unknown',
+            name: asset.content?.metadata?.name || 'Unknown Token',
+            decimals,
+            balance,
+            uiAmount: balance / Math.pow(10, decimals),
+            selected: false,
+          };
         });
 
-        if (!response.ok) throw new Error('Failed to fetch tokens');
-
-        const data: ApiResponse = await response.json();
-        const assets: AssetResponse[] = data.result?.items ?? [];
-
-        const tokens: TokenMigration[] = assets
-          .filter(
-            (asset) => asset.interface === 'FungibleToken' || asset.interface === 'FungibleAsset',
-          )
-          .map((asset) => {
-            const decimals = asset.token_info?.decimals ?? 0;
-            const balance = asset.token_info?.balance ?? 0;
-            return {
-              mint: asset.id,
-              symbol: asset.token_info?.symbol || asset.content?.metadata?.symbol || 'Unknown',
-              name: asset.content?.metadata?.name || 'Unknown Token',
-              decimals,
-              balance,
-              uiAmount: balance / Math.pow(10, decimals),
-              selected: false,
-            };
-          });
-
-        return {
-          address,
-          solBalance: solBalance / 1_000_000_000,
-          tokens,
-          selected: false,
-        };
-      } catch (error) {
-        const errMsg = error instanceof Error ? error.message : JSON.stringify(error);
-        console.error('Error fetching wallet data:', errMsg);
-        return null;
-      } finally {
-        setLoading((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(address);
-          return newSet;
-        });
-      }
-    },
-    [cluster],
-  );
+      return {
+        address,
+        solBalance: solBalance / 1_000_000_000,
+        tokens,
+        selected: false,
+      };
+    } catch (error) {
+      const errMsg = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Error fetching wallet data:', errMsg);
+      return null;
+    } finally {
+      setLoading((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(address);
+        return newSet;
+      });
+    }
+  }, []);
 
   const fetchMultipleWallets = useCallback(
     async (addresses: string[]): Promise<WalletMigration[]> => {

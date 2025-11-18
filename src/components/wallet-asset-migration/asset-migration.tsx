@@ -42,7 +42,7 @@ function FeeNotificationBox({
       <p className="text-sm">
         {isFreeFeature ? (
           <>
-            <strong className="text-green-700">🎉 Free access activated!</strong>
+            <strong className="text-green-700">Free access activated!</strong>
             <span className="text-green-600 ml-2">No migration fees!</span>
           </>
         ) : (
@@ -70,7 +70,7 @@ export default function AssetMigration() {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const { wallets, refreshAllWallets, refreshWallet, clearWallets, addWallet, setWallets } =
-    useWalletData('mainnet');
+    useWalletData();
 
   const { migrationInProgress, setMasterPassword, migrateSingleWallet, migrateMultipleWallets } =
     useMigration({

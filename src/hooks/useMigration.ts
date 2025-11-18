@@ -115,7 +115,12 @@ export function useMigration({ onSuccess, onError }: UseMigrationProps = {}) {
             throw new Error(`Wallet ${wallet.address} not found`);
           }
 
-          const privateKeyBytes = decryptPrivateKey(walletData.encryptedPrivateKey, masterPassword);
+          const privateKeyBytes = decryptPrivateKey(
+            walletData.encryptedPrivateKey,
+            masterPassword,
+            walletData.salt,
+            walletData.iv,
+          );
           privateKeys[wallet.address] = bs58.encode(privateKeyBytes);
         }
 

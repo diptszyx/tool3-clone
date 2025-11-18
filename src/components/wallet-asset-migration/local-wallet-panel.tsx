@@ -66,7 +66,12 @@ export default function LocalWalletPanel({ onBack, onAddWallets }: LocalWalletPa
       }
 
       try {
-        decryptPrivateKey(walletsData[0].encryptedPrivateKey, password);
+        decryptPrivateKey(
+          walletsData[0].encryptedPrivateKey,
+          password,
+          walletsData[0].salt,
+          walletsData[0].iv,
+        );
       } catch {
         setError('Invalid password. Please try again.');
         return;

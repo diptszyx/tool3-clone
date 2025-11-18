@@ -207,7 +207,7 @@ export default function TransferForm() {
           {feeLoading ? (
             <span className="text-gray-600">Calculating...</span>
           ) : isFreeFeature ? (
-            <span className="text-green-600 font-semibold">FREE </span>
+            <span className="text-green-600 font-semibold">free</span>
           ) : (
             <span className="font-semibold">${estimatedFee.toFixed(3)} USDT</span>
           )}

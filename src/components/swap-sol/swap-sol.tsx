@@ -248,7 +248,7 @@ export default function SwapSolForm() {
         <p className="text-sm text-green-800">
           {isFreeFeature ? (
             <>
-              <strong>Free access activated!</strong> No fees for this transaction!
+              <strong>Free access activated!</strong> No fees for this feature!
             </>
           ) : (
             <>
