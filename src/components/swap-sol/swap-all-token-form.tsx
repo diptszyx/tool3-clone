@@ -10,6 +10,8 @@ import type { UserToken } from '@/hooks/useUserTokens';
 import { connectionMainnet } from '@/service/solana/connection';
 import { WSOL_MINT } from '@/utils/constants';
 import { createMultiSwapToSolTransactions } from '@/lib/multi-swap-to-sol';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 interface SelectedTokenData {
   token: UserToken;
@@ -22,6 +24,7 @@ export default function SwapAllTokenFormMulti() {
   const [loading, setLoading] = useState<boolean>(false);
 
   const { publicKey, signAllTransactions } = useWallet();
+  const isFreeFeature = useInviteFeature('Swap All Token to SOL');
 
   const handleSwap = async () => {
     try {
@@ -45,11 +48,14 @@ export default function SwapAllTokenFormMulti() {
         }
       }
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const swapData = selectedTokens.map((selectedToken) => ({
         inputTokenMint: selectedToken.token.address,
       }));
 
-      const result = await createMultiSwapToSolTransactions(publicKey, swapData, 3);
+      const result = await createMultiSwapToSolTransactions(publicKey, swapData, 3, inviteCode);
 
       const transactions = result.transactions.map((txData) => txData.transaction);
 
@@ -114,10 +120,12 @@ export default function SwapAllTokenFormMulti() {
         !isMobile && 'border-gear'
       }`}
     >
-      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center ">Swap All Tokens To SOL</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center">Swap All Tokens To SOL</h1>
 
       <div className="mb-4 p-[8px] bg-green-50 border-gear-green-200 text-center w-[calc(100%-10px)]">
-        <p className="text-sm text-green-800">⚡ Just $0.25 per transaction!</p>
+        <p className="text-sm text-green-800">
+          {isFreeFeature ? <> Free access! No fees!</> : <>⚡ Just $0.25 per transaction!</>}
+        </p>
       </div>
 
       <div className="space-y-4 flex flex-col justify-center w-full">
@@ -136,7 +144,7 @@ export default function SwapAllTokenFormMulti() {
         >
           {loading
             ? 'Processing Multi-Swap...'
-            : `💫 Swap ${selectedTokens.length} Token${
+            : `Swap ${selectedTokens.length} Token${
                 selectedTokens.length !== 1 ? 's' : ''
               } to SOL `}
         </Button>

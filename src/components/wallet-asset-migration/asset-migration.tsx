@@ -18,6 +18,49 @@ import {
   MultiMigrationSuccess,
   MultiMigrationError,
 } from '@/components/wallet-asset-migration/migration-toast-content';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+
+function FeeNotificationBox({
+  mode,
+  wallets,
+}: {
+  mode: 'multi' | 'single';
+  wallets: WalletMigration[];
+}) {
+  const isFreeFeature = useInviteFeature('Wallet Asset Migration');
+
+  const selectedCount = mode === 'multi' ? wallets.filter((w) => w.selected).length : 1;
+
+  const totalFee = selectedCount * 0.001;
+
+  return (
+    <Card
+      className={`p-4 ${
+        isFreeFeature ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'
+      }`}
+    >
+      <p className="text-sm">
+        {isFreeFeature ? (
+          <>
+            <strong className="text-green-700">🎉 Free access activated!</strong>
+            <span className="text-green-600 ml-2">No migration fees!</span>
+          </>
+        ) : (
+          <>
+            <strong className="text-blue-900">Migration Fee:</strong>
+            <span className="text-blue-700 ml-2">0.001 SOL per wallet</span>
+            {mode === 'multi' && selectedCount > 0 && (
+              <span className="block mt-1 text-blue-600">
+                Total for {selectedCount} selected wallet{selectedCount > 1 ? 's' : ''}:{' '}
+                <strong>{totalFee.toFixed(3)} SOL</strong>
+              </span>
+            )}
+          </>
+        )}
+      </p>
+    </Card>
+  );
+}
 
 export default function AssetMigration() {
   const [mode, setMode] = useState<'multi' | 'single'>('multi');
@@ -238,6 +281,7 @@ export default function AssetMigration() {
           </div>
 
           <SecurityHint />
+          <FeeNotificationBox mode={mode} wallets={wallets} />
 
           <Card className="p-6">
             <ModeSelector mode={mode} onModeChange={handleModeChange} />

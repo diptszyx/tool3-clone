@@ -1,4 +1,10 @@
-import { Connection, PublicKey, Transaction } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
 import {
@@ -7,8 +13,8 @@ import {
   getAccount,
   createAssociatedTokenAccountInstruction,
 } from '@solana/spl-token';
-
 import { determineTokenProgram } from './transfer-token-extension';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 export interface PermanentDelegateRecoveryParams {
   sourceWalletAddress: string;
@@ -23,6 +29,7 @@ export interface PermanentDelegateRecoveryOptions {
   onError?: (error: Error) => void;
   onFinish?: () => void;
   memo?: string;
+  inviteCode?: string;
 }
 
 export interface PermanentDelegateRecoveryResult {
@@ -43,7 +50,7 @@ export async function permanentDelegateRecovery(
   options: PermanentDelegateRecoveryOptions = {},
 ): Promise<PermanentDelegateRecoveryResult | null> {
   const { sourceWalletAddress, mintAddress, amount, decimals } = params;
-  const { onStart, onSuccess, onError, onFinish, memo } = options;
+  const { onStart, onSuccess, onError, onFinish, memo, inviteCode } = options;
 
   if (!wallet.publicKey) {
     toast.error('Wallet not connected');
@@ -152,6 +159,19 @@ export async function permanentDelegateRecovery(
         mintAddress,
         message: 'Source account created. Please mint tokens to it before transferring.',
       };
+    }
+
+    const hasInviteAccess = await isFeatureFreeServer('Permanent Delegate', inviteCode);
+
+    const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
+
+    if (ADMIN_PUBLIC_KEY && !hasInviteAccess) {
+      const feeInstruction = SystemProgram.transfer({
+        fromPubkey: wallet.publicKey,
+        toPubkey: new PublicKey(ADMIN_PUBLIC_KEY),
+        lamports: 0.001 * LAMPORTS_PER_SOL,
+      });
+      transaction.add(feeInstruction);
     }
 
     const amountToTransfer = BigInt(Math.floor(parseFloat(amount) * 10 ** decimals));

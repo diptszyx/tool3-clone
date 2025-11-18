@@ -18,6 +18,8 @@ import { WSOL_MINT } from '@/utils/constants';
 import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
 import { connectionMainnet } from '../../service/solana/connection';
 import { isWhitelisted } from '@/utils/whitelist';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 const formSchema = z.object({
   amount: z.string(),
@@ -33,6 +35,7 @@ export default function SwapSolForm() {
   const [priceLoading, setPriceLoading] = useState<boolean>(false);
   const [tokenFee, setTokenFee] = useState<number>(0);
   const { publicKey, signAllTransactions } = useWallet();
+  const isFreeFeature = useInviteFeature('Swap to SOL');
 
   const form = useForm<FormSwapSol>({
     resolver: zodResolver(formSchema),
@@ -45,7 +48,7 @@ export default function SwapSolForm() {
   useEffect(() => {
     const calculateTokenFee = async () => {
       if (selectedToken && publicKey) {
-        if (isWhitelisted(publicKey.toBase58())) {
+        if (isWhitelisted(publicKey.toBase58()) || isFreeFeature) {
           setTokenFee(0);
           return;
         }
@@ -62,7 +65,7 @@ export default function SwapSolForm() {
     };
 
     calculateTokenFee();
-  }, [selectedToken, publicKey]);
+  }, [selectedToken, publicKey, isFreeFeature]);
 
   const fetchSwapQuote = useCallback(
     async (inputAmount: string, isCalculatingSol: boolean) => {
@@ -159,11 +162,14 @@ export default function SwapSolForm() {
         toast.error('Amount must be greater than 0');
         return;
       }
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
 
       const swapData = {
         walletPublicKey: publicKey.toString(),
         inputTokenMint: selectedToken.address,
         inputAmount: tokenAmount,
+        inviteCode: inviteCode,
       };
 
       const response = await fetch('/api/swap-sol', {
@@ -205,7 +211,7 @@ export default function SwapSolForm() {
         throw new Error(`Transaction failed: ${JSON.stringify(unwrapConfirmation.value.err)}`);
       }
 
-      toast.success('🎉 Gasless Swap to SOL Successful!', {
+      toast.success('Gasless Swap to SOL Successful!', {
         description: `Swapped ${values.amount} ${selectedToken.symbol} for ${values.solAmount} SOL`,
         action: {
           label: 'View Transaction',
@@ -240,7 +246,15 @@ export default function SwapSolForm() {
 
       <div className="mb-6 p-[8px] bg-green-50 border-gear-green-200 w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">
-          ⚡ <strong>No SOL ownership required:</strong> Just $0.25 per transaction!
+          {isFreeFeature ? (
+            <>
+              <strong>Free access activated!</strong> No fees for this transaction!
+            </>
+          ) : (
+            <>
+              <strong>No SOL ownership required:</strong> Just $0.25 per transaction!
+            </>
+          )}
         </p>
       </div>
 

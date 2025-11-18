@@ -18,6 +18,7 @@ import {
 import { adminKeypair } from '@/config';
 import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
 import { isWhitelisted } from '@/utils/whitelist';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
 
@@ -26,6 +27,7 @@ interface SwapRequestBody {
   inputTokenMint: string;
   inputAmount: number;
   slippageBps?: number;
+  inviteCode?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -154,7 +156,9 @@ async function prepareSwapTransaction(body: Omit<SwapRequestBody, 'signedTransac
     swapTransaction.add(createFeeAccountIx);
   }
 
-  if (feeAmount > 0 && !isWhitelisted(body.walletPublicKey)) {
+  const hasInviteAccess = await isFeatureFreeServer('Swap to SOL', body.inviteCode);
+
+  if (feeAmount > 0 && !isWhitelisted(body.walletPublicKey) && !hasInviteAccess) {
     const feeTransferIx = createTransferInstruction(
       userInputTokenAccount,
       feeTokenAccount,

@@ -25,6 +25,8 @@ import { WSOL_MINT } from '@/utils/constants';
 import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
 import { connectionMainnet } from '../../service/solana/connection';
 import { isWhitelisted } from '@/utils/whitelist';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 const formSchema = z.object({
   recipient: z
@@ -42,6 +44,7 @@ export default function TransferForm() {
   const [feeLoading, setFeeLoading] = useState(false);
   const { publicKey, signTransaction } = useWallet();
   const [tokenFee, setTokenFee] = useState<number>(0);
+  const isFreeFeature = useInviteFeature('Gasless Transfer');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -84,7 +87,7 @@ export default function TransferForm() {
   useEffect(() => {
     const calculateTokenFee = async () => {
       if (selectedToken && publicKey && estimatedFee > 0) {
-        if (isWhitelisted(publicKey.toBase58())) {
+        if (isWhitelisted(publicKey.toBase58()) || isFreeFeature) {
           setTokenFee(0);
           return;
         }
@@ -101,7 +104,7 @@ export default function TransferForm() {
     };
 
     calculateTokenFee();
-  }, [selectedToken, publicKey, estimatedFee]);
+  }, [selectedToken, publicKey, estimatedFee, isFreeFeature]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -129,11 +132,15 @@ export default function TransferForm() {
         return;
       }
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const prepareData = {
         walletPublicKey: publicKey.toString(),
         tokenAmount: amountValue,
         receiverWalletPublicKey: values.recipient,
         tokenMint: selectedToken.address,
+        inviteCode: inviteCode,
       };
 
       const prepareResponse = await fetch('/api/transfer', {
@@ -163,7 +170,7 @@ export default function TransferForm() {
         throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
       }
 
-      toast.success('🎉 Gasless Transfer Successful!', {
+      toast.success('Gasless Transfer Successful!', {
         description: `Transferred ${values.amount} ${
           selectedToken.symbol || selectedToken.name
         } to ${values.recipient.slice(0, 8)}...${values.recipient.slice(-8)}`,
@@ -196,9 +203,11 @@ export default function TransferForm() {
 
       <div className="mb-2 p-[8px] bg-blue-50 border-gear-blue w-[calc(100%-10px)]">
         <p className="text-sm text-blue-800">
-          💰 <strong>Estimated Fee:</strong>{' '}
+          <strong>Estimated Fee:</strong>{' '}
           {feeLoading ? (
             <span className="text-gray-600">Calculating...</span>
+          ) : isFreeFeature ? (
+            <span className="text-green-600 font-semibold">FREE </span>
           ) : (
             <span className="font-semibold">${estimatedFee.toFixed(3)} USDT</span>
           )}
@@ -207,7 +216,7 @@ export default function TransferForm() {
 
       <div className="mb-6 p-[8px] bg-green-50 border-gear-green-200 mt-4 w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">
-          ⚡ <strong>100% Gasless:</strong> No SOL needed!
+          <strong>100% Gasless:</strong> No SOL needed!
         </p>
       </div>
 
@@ -251,7 +260,7 @@ export default function TransferForm() {
             variant="default"
             disabled={loading || !selectedToken || !publicKey}
           >
-            {loading ? 'Processing...' : '🚀Transfer'}
+            {loading ? 'Processing...' : 'Transfer'}
           </Button>
         </form>
       </Form>

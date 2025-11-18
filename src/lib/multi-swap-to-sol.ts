@@ -23,6 +23,7 @@ import {
   type QuoteResponse,
 } from '@/service/jupiter/swap';
 import { isWhitelisted } from '@/utils/whitelist';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 import { getTokenFeeFromUsd } from '@/service/jupiter/calculate-fee';
 
@@ -82,6 +83,7 @@ export async function createMultiSwapToSolTransactions(
   walletPublicKey: PublicKey,
   tokenSwaps: SwapTokenData[],
   batchSize: number = 3,
+  inviteCode?: string,
 ): Promise<MultiSwapResult> {
   console.log(`Creating batched transactions: ${tokenSwaps.length} tokens, ${batchSize} per batch`);
 
@@ -90,7 +92,11 @@ export async function createMultiSwapToSolTransactions(
     throw new Error(balanceValidation.error);
   }
 
-  const adminFeeInSol = await getTokenFeeFromUsd(SOL_MINT, 0.25);
+  const hasInviteAccess = await isFeatureFreeServer('Swap All Token to SOL', inviteCode);
+
+  const shouldChargeFee = !isWhitelisted(walletPublicKey.toBase58()) && !hasInviteAccess;
+
+  const adminFeeInSol = shouldChargeFee ? await getTokenFeeFromUsd(SOL_MINT, 0.25) : 0;
 
   const tokenBatches: SwapTokenData[][] = [];
   for (let i = 0; i < tokenSwaps.length; i += batchSize) {
@@ -157,7 +163,7 @@ export async function createMultiSwapToSolTransactions(
         0,
       ),
       adminFeeInSol: adminFeeInSol,
-      feeChargedInLastBatch: true,
+      feeChargedInLastBatch: shouldChargeFee,
     },
     breakdown: {
       totalTokenSwaps: tokenSwaps.length,

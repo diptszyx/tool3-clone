@@ -6,6 +6,7 @@ import { executeMultiWalletMigration } from '@/lib/multi-wallet-migration-servic
 import { dbService } from '@/lib/indexeddb-service';
 import { decryptPrivateKey } from '@/lib/wallet-service';
 import bs58 from 'bs58';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 interface UseMigrationProps {
   onSuccess?: () => void;
@@ -31,6 +32,8 @@ interface MultiWalletResult {
 export function useMigration({ onSuccess, onError }: UseMigrationProps = {}) {
   const [migrationInProgress, setMigrationInProgress] = useState(false);
   const [masterPassword, setMasterPassword] = useState<string | null>(null);
+  const saved = getSavedInviteCode();
+  const inviteCode = saved?.code;
 
   const migrateSingleWallet = useCallback(
     async (
@@ -46,6 +49,7 @@ export function useMigration({ onSuccess, onError }: UseMigrationProps = {}) {
           wallet,
           destinationAddress,
           includeSol,
+          inviteCode,
         });
 
         toast.dismiss(loadingToast);
@@ -81,7 +85,7 @@ export function useMigration({ onSuccess, onError }: UseMigrationProps = {}) {
         setMigrationInProgress(false);
       }
     },
-    [onSuccess, onError],
+    [onSuccess, onError, inviteCode],
   );
 
   const migrateMultipleWallets = useCallback(
@@ -123,6 +127,7 @@ export function useMigration({ onSuccess, onError }: UseMigrationProps = {}) {
           destinationAddress,
           includeSol,
           privateKeys,
+          inviteCode,
           onProgress: (current, total, status) => {
             toast.loading(`${status} (${current}/${total})`, { id: migrationToast });
           },
@@ -160,7 +165,7 @@ export function useMigration({ onSuccess, onError }: UseMigrationProps = {}) {
         setMigrationInProgress(false);
       }
     },
-    [masterPassword, onSuccess, onError],
+    [masterPassword, onSuccess, onError, inviteCode],
   );
 
   return {

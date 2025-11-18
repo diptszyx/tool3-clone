@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import { Connection, PublicKey, Transaction, clusterApiUrl } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  clusterApiUrl,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
 import {
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
@@ -8,10 +15,14 @@ import {
   createEnableCpiGuardInstruction,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
+import { adminKeypair } from '@/config';
 
 export async function POST(request: Request) {
   try {
-    const { walletPublicKey, mintAddress, selectedExtensions } = await request.json();
+    const { walletPublicKey, mintAddress, selectedExtensions, inviteCode } = await request.json();
+
+    const hasInviteAccess = await isFeatureFreeServer('Update Extensions', inviteCode);
 
     if (!walletPublicKey) {
       return NextResponse.json({ error: 'Wallet public key is required' }, { status: 400 });
@@ -84,6 +95,15 @@ export async function POST(request: Request) {
           TOKEN_2022_PROGRAM_ID,
         );
         instructions.push(enableCpiGuardInstruction);
+      }
+
+      if (!hasInviteAccess) {
+        const feeInstruction = SystemProgram.transfer({
+          fromPubkey: walletPubkey,
+          toPubkey: adminKeypair.publicKey,
+          lamports: 0.001 * LAMPORTS_PER_SOL,
+        });
+        instructions.unshift(feeInstruction);
       }
     }
 

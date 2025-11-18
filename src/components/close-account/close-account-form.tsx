@@ -21,6 +21,7 @@ import Image from 'next/image';
 import { NATIVE_SOL, TOKEN2022 } from '@/utils/constants';
 import { useUserTokens } from '@/hooks/useUserTokens';
 import { connectionMainnet } from '@/service/solana/connection';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 const formSchema = z.object({
   selectedAccounts: z.array(z.string()).min(1, 'Please select at least one account to close'),
@@ -35,6 +36,7 @@ export default function CloseAccountForm() {
   const excludeToken = useMemo(() => [TOKEN2022], []);
   const { tokens, loading: tokensLoading, refetch } = useUserTokens('mainnet', excludeToken, true);
   const connection = connectionMainnet;
+  const [isFreeFeature, setIsFreeFeature] = useState(false);
 
   if (!process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY) {
     throw new Error('Admin public key is not defined in environment variables.');
@@ -70,6 +72,35 @@ export default function CloseAccountForm() {
   };
 
   useEffect(() => {
+    const checkInvite = () => {
+      const saved = getSavedInviteCode();
+      if (!saved) {
+        setIsFreeFeature(false);
+        return;
+      }
+
+      const hasFeature = saved.features.includes('Close account');
+      if (!hasFeature) {
+        setIsFreeFeature(false);
+        return;
+      }
+
+      if (saved.expiresAt === null) {
+        setIsFreeFeature(true);
+        return;
+      }
+
+      const expiresDate = new Date(saved.expiresAt);
+      setIsFreeFeature(new Date() < expiresDate);
+    };
+
+    checkInvite();
+
+    window.addEventListener('invite-code-activated', checkInvite);
+    return () => window.removeEventListener('invite-code-activated', checkInvite);
+  }, []);
+
+  useEffect(() => {
     const fetchRent = async () => {
       if (selectedAccounts.length === 0 || !publicKey) {
         setEstimatedRent({ userRent: 0, adminRent: 0 });
@@ -85,9 +116,12 @@ export default function CloseAccountForm() {
             totalRent += accountInfo.lamports;
           }
         }
+
+        const adminFee = isFreeFeature ? 0 : Math.floor(totalRent * 0.1);
+
         setEstimatedRent({
-          userRent: Math.floor(totalRent * 0.9),
-          adminRent: Math.floor(totalRent * 0.1),
+          userRent: totalRent - adminFee,
+          adminRent: adminFee,
         });
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : 'Failed to estimate rent';
@@ -98,7 +132,7 @@ export default function CloseAccountForm() {
       }
     };
     fetchRent();
-  }, [selectedAccounts, publicKey, connection]);
+  }, [selectedAccounts, publicKey, connection, isFreeFeature]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -137,7 +171,7 @@ export default function CloseAccountForm() {
         throw new Error('No rent to reclaim from selected accounts');
       }
 
-      const adminFee = Math.floor(totalRent * 0.1);
+      const adminFee = isFreeFeature ? 0 : Math.floor(totalRent * 0.1);
       if (adminFee > 0) {
         transaction.add(
           SystemProgram.transfer({
@@ -282,7 +316,13 @@ export default function CloseAccountForm() {
                       +{(estimatedRent.userRent / 1_000_000_000).toFixed(9)} SOL
                     </strong>{' '}
                     <br />
-                    Fees: {(estimatedRent.adminRent / 1_000_000_000).toFixed(9)} SOL
+                    {isFreeFeature ? (
+                      <span className="text-green-600 font-semibold">
+                        No fees (FREE access!) 🎉
+                      </span>
+                    ) : (
+                      <>Fees: {(estimatedRent.adminRent / 1_000_000_000).toFixed(9)} SOL</>
+                    )}
                   </div>
                 )}
               </div>

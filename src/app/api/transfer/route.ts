@@ -13,12 +13,14 @@ import { getTokenProgram } from '@/lib/helper';
 import { adminKeypair } from '@/config';
 import { calculateTransferFee } from '@/utils/ata-checker';
 import { isWhitelisted } from '@/utils/whitelist';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 interface TransferRequestBody {
   walletPublicKey: string;
   tokenAmount: number;
   receiverWalletPublicKey: string;
   tokenMint: string;
+  inviteCode?: string;
 }
 
 export async function POST(req: NextRequest) {
@@ -64,6 +66,8 @@ async function prepareTransaction(body: Omit<TransferRequestBody, 'signedTransac
     false,
     tokenProgram,
   );
+
+  const hasInviteAccess = await isFeatureFreeServer('Gasless Transfer', body.inviteCode);
 
   const feeUsdt = await calculateTransferFee(body.receiverWalletPublicKey, body.tokenMint);
 
@@ -126,7 +130,7 @@ async function prepareTransaction(body: Omit<TransferRequestBody, 'signedTransac
     transaction.add(createFeeAccountIx);
   }
 
-  if (feeAmount > 0 && !isWhitelisted(body.walletPublicKey)) {
+  if (feeAmount > 0 && !isWhitelisted(body.walletPublicKey) && !hasInviteAccess) {
     const feeTransferIx = createTransferInstruction(
       senderTokenAccount,
       feeTokenAccount,

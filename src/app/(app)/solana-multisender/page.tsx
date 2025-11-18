@@ -38,11 +38,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 const FEE_PER_RECIPIENT = 0.0016;
 const MAX_TOTAL_FEE = 0.025;
-const FEE_RECIPIENT_ADDRESS = '4UWS2QEhNT9hyAnvRikAXtDhvvgJGGT8fHhLzoq5KhEa';
-
+const FEE_RECIPIENT_ADDRESS = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
 interface Recipient {
   address: string;
   amount: string;
@@ -70,6 +71,7 @@ export default function TransferTokenPage() {
   const [csvDialogOpen, setCsvDialogOpen] = useState(false);
   const [csvText, setCsvText] = useState('');
   const [parsedCsvRecipients, setParsedCsvRecipients] = useState<Recipient[]>([]);
+  const isFreeFeature = useInviteFeature('Multisender');
 
   const handleTokensLoaded = (tokens: UserToken[]) => {
     setIsLoading(false);
@@ -321,6 +323,9 @@ export default function TransferTokenPage() {
       return;
     }
 
+    const saved = getSavedInviteCode();
+    const inviteCode = saved?.code;
+
     let toastId: string | number | undefined;
 
     try {
@@ -348,6 +353,7 @@ export default function TransferTokenPage() {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
+              inviteCode: inviteCode,
               onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
@@ -381,6 +387,7 @@ export default function TransferTokenPage() {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
+              inviteCode: inviteCode,
               onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
@@ -418,6 +425,7 @@ export default function TransferTokenPage() {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
+              inviteCode: inviteCode,
               onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
@@ -453,6 +461,7 @@ export default function TransferTokenPage() {
               memo: memo,
               feeRecipientAddress: FEE_RECIPIENT_ADDRESS,
               feePerRecipient: FEE_PER_RECIPIENT,
+              inviteCode: inviteCode,
               onStart: () => {},
               onSuccess: () => {
                 toast.dismiss(toastId);
@@ -557,6 +566,10 @@ export default function TransferTokenPage() {
   };
 
   const calculateTotalFee = (): number => {
+    if (isFreeFeature) {
+      return 0;
+    }
+
     const validRecipients = recipients.filter((r) => r.address && r.amount);
     if (validRecipients.length > 1) {
       const calculatedFee = FEE_PER_RECIPIENT * (validRecipients.length - 1);
@@ -692,6 +705,21 @@ export default function TransferTokenPage() {
             <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
               Multisender
             </h1>
+            <div
+              className={`mb-4 p-[8px] ${isFreeFeature ? 'bg-green-50 border-gear-green-200' : 'bg-blue-50 border-gear-blue'} w-full`}
+            >
+              <p className="text-sm">
+                {isFreeFeature ? (
+                  <>
+                    <strong>Free access!</strong> No fees for multiple recipients!
+                  </>
+                ) : (
+                  <>
+                    <strong>Fee:</strong> 0.0016 SOL per recipient (max 0.025 SOL)
+                  </>
+                )}
+              </p>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="px-[4px] space-y-6">
                 {/* Token Selection using SelectToken component */}
@@ -827,9 +855,13 @@ export default function TransferTokenPage() {
                       {recipients.length > 1 && (
                         <div className="flex items-center justify-between">
                           <span className="text-sm font-medium text-gray-700">Fee:</span>
-                          <span className="font-medium text-amber-600">
-                            {calculateTotalFee().toFixed(6)} SOL
-                          </span>
+                          {isFreeFeature ? (
+                            <span className="font-medium text-green-600">FREE 🎉</span>
+                          ) : (
+                            <span className="font-medium text-amber-600">
+                              {calculateTotalFee().toFixed(6)} SOL
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
