@@ -29,6 +29,8 @@ import { UserToken } from '@/hooks/useUserTokens';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNetwork } from '@/context/NetworkContext';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 export interface RecoveryFormProps {
   [key: string]: never;
@@ -56,6 +58,7 @@ export function RecoveryForm({}: RecoveryFormProps) {
     null,
   );
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const isFreeFeature = useInviteFeature('Permanent Delegate');
 
   useEffect(() => {
     const networkType = network === WalletAdapterNetwork.Devnet ? 'devnet' : 'mainnet';
@@ -175,6 +178,9 @@ export function RecoveryForm({}: RecoveryFormProps) {
     try {
       toastId = toast.loading('Processing recovery transaction...');
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const result = await permanentDelegateRecovery(
         connection,
         wallet,
@@ -186,6 +192,7 @@ export function RecoveryForm({}: RecoveryFormProps) {
         },
         {
           memo: memo,
+          inviteCode: inviteCode,
           onStart: () => {},
           onSuccess: () => {
             toast.dismiss(toastId);
@@ -287,6 +294,21 @@ export function RecoveryForm({}: RecoveryFormProps) {
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
         Permanent Delegate Recovery
       </h1>
+      <div
+        className={`mb-6 p-[8px] ${isFreeFeature ? 'bg-green-50 border-gear-green-200' : 'bg-blue-50 border-gear-blue'} w-[calc(100%-8px)] ml-1`}
+      >
+        <p className="text-sm">
+          {isFreeFeature ? (
+            <>
+              <strong>Free access!</strong> No fees!
+            </>
+          ) : (
+            <>
+              <strong>Fee:</strong> 0.001 SOL
+            </>
+          )}
+        </p>
+      </div>
       <div>
         <div className="text-center mb-6">
           Recover tokens from other wallets using permanent delegate authority

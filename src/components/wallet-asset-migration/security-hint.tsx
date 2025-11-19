@@ -13,7 +13,8 @@ export default function SecurityHint() {
         </TooltipTrigger>
         <TooltipContent side="bottom" className="max-w-xs p-4">
           <div className="space-y-2">
-            <h4 className="font-semibold text-amber-900">Important</h4>
+            <h4 className="font-semibold text-yellow-300">Important</h4>
+
             <ul className="text-sm space-y-1">
               <li>• Always verify wallet addresses</li>
               <li>• Keep private keys secure</li>

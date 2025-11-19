@@ -14,6 +14,7 @@ import {
 } from '@/utils/constants';
 import { isValidBase58 } from '../create-pool-raydium/route';
 import { isWhitelisted } from '@/utils/whitelist';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 async function verifyPaymentTx(
   paymentTxId: string,
@@ -34,6 +35,7 @@ async function verifyPaymentTx(
         ix.accountKeyIndexes.length === 2 &&
         message.staticAccountKeys[ix.accountKeyIndexes[1]].equals(adminKeypair.publicKey),
     );
+
     if (!transferInstruction) return false;
 
     const lamportsTransferred = new BN(transferInstruction.data.slice(4), 'le').toNumber();
@@ -42,8 +44,7 @@ async function verifyPaymentTx(
     if (!message.staticAccountKeys[0].equals(userPublicKey)) return false;
 
     return true;
-  } catch (err) {
-    console.error('Payment verification error:', err);
+  } catch {
     return false;
   }
 }
@@ -58,6 +59,7 @@ export async function POST(req: Request) {
       userPublicKey,
       paymentTxId,
       tokenTransferTxId,
+      inviteCode,
     } = await req.json();
 
     if (!userPublicKey) {
@@ -74,18 +76,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Invalid base58 format' }, { status: 400 });
     }
 
-    let PAYMENT_AMOUNT_LAMPORTS = CREATE_POOL_FEE * LAMPORTS_PER_SOL;
+    const userPubKey = new PublicKey(userPublicKey);
 
-    if (userPublicKey && isWhitelisted(userPublicKey)) {
-      console.log('Wallet in whitelist, free transaction');
-      PAYMENT_AMOUNT_LAMPORTS = 0;
-    }
+    const hasInviteAccess = await isFeatureFreeServer('Raydium CPMM', inviteCode);
+
+    const isFreeUser = isWhitelisted(userPublicKey) || hasInviteAccess;
+
+    let PAYMENT_AMOUNT_LAMPORTS = CREATE_POOL_FEE * LAMPORTS_PER_SOL;
+    if (isFreeUser) PAYMENT_AMOUNT_LAMPORTS = 0;
 
     const cpAmm = new CpAmm(connectionDevnet);
     const config = new PublicKey(CONFIG_CREATE_METEORA_ADDRESS);
-    const userPubKey = new PublicKey(userPublicKey);
 
-    if (!paymentTxId) {
+    if (!isFreeUser && !paymentTxId) {
       const paymentTx = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: userPubKey,
@@ -93,6 +96,7 @@ export async function POST(req: Request) {
           lamports: PAYMENT_AMOUNT_LAMPORTS,
         }),
       );
+
       const { blockhash, lastValidBlockHeight } =
         await connectionMainnet.getLatestBlockhash('confirmed');
       paymentTx.recentBlockhash = blockhash;
@@ -108,12 +112,14 @@ export async function POST(req: Request) {
       });
     }
 
-    const paymentValid = await verifyPaymentTx(paymentTxId, userPubKey, PAYMENT_AMOUNT_LAMPORTS);
-    if (!paymentValid) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid or unconfirmed payment transaction' },
-        { status: 400 },
-      );
+    if (!isFreeUser) {
+      const paymentValid = await verifyPaymentTx(paymentTxId, userPubKey, PAYMENT_AMOUNT_LAMPORTS);
+      if (!paymentValid) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid or unconfirmed payment transaction' },
+          { status: 400 },
+        );
+      }
     }
 
     if (!mintAAddress || !mintBAddress || !amountA || !amountB) {
@@ -133,6 +139,7 @@ export async function POST(req: Request) {
         amountA,
         amountB,
       );
+
       const { blockhash, lastValidBlockHeight } =
         await connectionDevnet.getLatestBlockhash('confirmed');
       tokenTransferTx.recentBlockhash = blockhash;
@@ -160,6 +167,7 @@ export async function POST(req: Request) {
 
     const tokenAAmountBN = new BN(Math.floor(amountA));
     const tokenBAmountBN = new BN(Math.floor(amountB));
+
     const { initSqrtPrice, liquidityDelta } = cpAmm.preparePoolCreationParams({
       tokenAAmount: tokenAAmountBN,
       tokenBAmount: tokenBAmountBN,
@@ -202,17 +210,15 @@ export async function POST(req: Request) {
     txBuilder.recentBlockhash = blockhash;
     txBuilder.feePayer = adminKeypair.publicKey;
     txBuilder.sign(adminKeypair, positionNftMint);
+
     const serializedTx = txBuilder.serialize();
     const poolTxId = await connectionDevnet.sendRawTransaction(serializedTx, {
       skipPreflight: false,
       maxRetries: 3,
     });
+
     await connectionDevnet.confirmTransaction(
-      {
-        signature: poolTxId,
-        blockhash,
-        lastValidBlockHeight,
-      },
+      { signature: poolTxId, blockhash, lastValidBlockHeight },
       'confirmed',
     );
 

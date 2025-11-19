@@ -15,6 +15,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { UserToken, useUserTokens } from '@/hooks/useUserTokens';
 import { CREATE_POOL_FEE, TOKEN2022 } from '@/utils/constants';
 import SelectTokenCreatePool from './select-token-create-pool';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 const formSchema = z.object({
   amountToken1: z
@@ -44,6 +46,9 @@ export default function CreateMeteoraDammPool() {
     poolKeys: { poolId: string };
   } | null>(null);
   const { publicKey, signTransaction } = useWallet();
+  const isFreeFeature = useInviteFeature('Meteora DAMM V2');
+  const saved = getSavedInviteCode();
+  const inviteCode = saved?.code;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,6 +87,7 @@ export default function CreateMeteoraDammPool() {
           userPublicKey: publicKey.toString(),
           mintAAddress,
           mintBAddress,
+          inviteCode: inviteCode,
         }),
       });
       const data = await res.json();
@@ -112,7 +118,7 @@ export default function CreateMeteoraDammPool() {
 
       return sendTxData.txId;
     },
-    [publicKey, signTransaction],
+    [publicKey, signTransaction, inviteCode],
   );
 
   const sendTokenTransfer = async (
@@ -194,6 +200,7 @@ export default function CreateMeteoraDammPool() {
             amountB,
             userPublicKey: publicKey!.toString(),
             paymentTxId,
+            inviteCode: inviteCode,
           }),
         });
         const dataTokenTransfer = await resTokenTransfer.json();
@@ -223,6 +230,7 @@ export default function CreateMeteoraDammPool() {
             userPublicKey: publicKey!.toString(),
             paymentTxId,
             tokenTransferTxId,
+            inviteCode: inviteCode,
           }),
         });
         const dataCreatePool = await resCreatePool.json();
@@ -236,7 +244,7 @@ export default function CreateMeteoraDammPool() {
         });
         toast.success(
           <div className="space-y-2">
-            <p>✅ Pool created successfully!</p>
+            <p>Pool created successfully!</p>
             <p className="text-sm">
               Create pool Tx ID:{' '}
               <a
@@ -289,7 +297,12 @@ export default function CreateMeteoraDammPool() {
       title: 'Choose Tokens',
       description: 'Choose the token pair and specify amounts for your liquidity pool.',
     },
-    { title: 'Confirm Payment', description: `Pay ${CREATE_POOL_FEE} SOL on Mainnet to proceed.` },
+    {
+      title: 'Confirm Payment',
+      description: isFreeFeature
+        ? 'No payment required (free access)'
+        : `Pay ${CREATE_POOL_FEE} SOL on Mainnet to proceed.`,
+    },
     {
       title: 'Create Pool',
       description: 'Transfer tokens and finalize the pool creation on Devnet.',
@@ -311,6 +324,21 @@ export default function CreateMeteoraDammPool() {
         <h1 className="text-2xl font-bold text-gray-900 mb-6 text-center">
           Create Pool with Meteora DAMM (Devnet)
         </h1>
+        <div
+          className={`mb-4 p-[8px] ${isFreeFeature ? 'bg-green-50 border-gear-green-200' : 'bg-blue-50 border-gear-blue'} w-full`}
+        >
+          <p className="text-sm">
+            {isFreeFeature ? (
+              <>
+                <strong>Free access activated!</strong> No fees for pool creation!
+              </>
+            ) : (
+              <>
+                <strong>Creation Fee:</strong> {CREATE_POOL_FEE} SOL (paid on Mainnet)
+              </>
+            )}
+          </p>
+        </div>
         <div className="flex justify-between mb-4">
           {steps.map((step, index) => (
             <div
@@ -377,10 +405,19 @@ export default function CreateMeteoraDammPool() {
           {currentStep === 2 && (
             <div className="space-y-6 px-1">
               <div className="text-sm text-gray-500">
-                <p>Pool creation fee: {CREATE_POOL_FEE} SOL (paid on Mainnet)</p>
-                <p className="mt-2">
-                  Please click Pay Fee and confirm the payment to proceed with pool creation.
-                </p>
+                {isFreeFeature ? (
+                  <>
+                    <p className="text-green-600 font-semibold">Free access activated!</p>
+                    <p className="mt-2">No payment required. Click Continue to proceed.</p>
+                  </>
+                ) : (
+                  <>
+                    <p>Pool creation fee: {CREATE_POOL_FEE} SOL (paid on Mainnet)</p>
+                    <p className="mt-2">
+                      Please click Pay Fee and confirm the payment to proceed with pool creation.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -403,10 +440,15 @@ export default function CreateMeteoraDammPool() {
                   {selectedToken2?.symbol || 'UNKNOW'}
                 </p>
                 <p className="mt-2">
-                  <strong>Fee:</strong> {CREATE_POOL_FEE} SOL
+                  <strong>Fee:</strong>{' '}
+                  {isFreeFeature ? (
+                    <span className="text-green-600 font-semibold">FREE </span>
+                  ) : (
+                    `${CREATE_POOL_FEE} SOL`
+                  )}
                 </p>
                 <div className="mt-3 bg-blue-50 border-gear-blue p-2 w-[calc(100%-8px)] ml-1">
-                  ⚡ Switch your wallet to Devnet, then click Create Pool to transfer tokens and
+                  Switch your wallet to Devnet, then click Create Pool to transfer tokens and
                   finalize the pool creation.
                 </div>
               </div>
@@ -416,7 +458,7 @@ export default function CreateMeteoraDammPool() {
           {currentStep === 4 && (
             <div className="space-y-6 px-1">
               <div className="text-sm text-gray-500">
-                <p className="text-green-600 font-semibold">✅ Pool created successfully!</p>
+                <p className="text-green-600 font-semibold">Pool created successfully!</p>
                 <p className="mt-2">
                   Create pool Tx ID:{' '}
                   <a

@@ -14,6 +14,7 @@ import { connectionDevnet, connectionMainnet } from '@/service/solana/connection
 import { CREATE_POOL_FEE, NATIVE_SOL, WSOL_MINT } from '@/utils/constants';
 import { createTokenTransferTx } from '@/utils/solana-token-transfer';
 import { isWhitelisted } from '@/utils/whitelist';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 const PAYMENT_WALLET = adminKeypair.publicKey;
 
@@ -41,16 +42,14 @@ async function verifyPaymentTx(
         ix.accountKeyIndexes.length === 2 &&
         message.staticAccountKeys[ix.accountKeyIndexes[1]].equals(PAYMENT_WALLET),
     );
-    if (!transferInstruction) return false;
 
+    if (!transferInstruction) return false;
     const lamportsTransferred = new BN(transferInstruction.data.slice(4), 'le').toNumber();
     if (lamportsTransferred < paymentAmount) return false;
-
     if (!message.staticAccountKeys[0].equals(userPublicKey)) return false;
 
     return true;
-  } catch (err) {
-    console.error('Payment verification error:', err);
+  } catch {
     return false;
   }
 }
@@ -63,9 +62,9 @@ async function transferLpToken(
   const tx = new Transaction();
   const adminAtaLp = getAssociatedTokenAddressSync(lpMint, adminKeypair.publicKey);
   const userAtaLp = getAssociatedTokenAddressSync(lpMint, userPublicKey);
+  const userAtaInfo = await connectionDevnet.getAccountInfo(userAtaLp);
 
-  const userAtaLpInfo = await connectionDevnet.getAccountInfo(userAtaLp);
-  if (!userAtaLpInfo) {
+  if (!userAtaInfo) {
     tx.add(
       createAssociatedTokenAccountInstruction(
         adminKeypair.publicKey,
@@ -94,21 +93,17 @@ async function transferLpToken(
   tx.feePayer = adminKeypair.publicKey;
   tx.sign(adminKeypair);
 
-  const serializedTx = tx.serialize();
-  const lpTransferTxId = await connectionDevnet.sendRawTransaction(serializedTx, {
+  const serialized = tx.serialize();
+  const txId = await connectionDevnet.sendRawTransaction(serialized, {
     skipPreflight: false,
     maxRetries: 3,
   });
+
   await connectionDevnet.confirmTransaction(
-    {
-      signature: lpTransferTxId,
-      blockhash,
-      lastValidBlockHeight,
-    },
+    { signature: txId, blockhash, lastValidBlockHeight },
     'confirmed',
   );
-
-  return lpTransferTxId;
+  return txId;
 }
 
 export async function POST(req: Request) {
@@ -121,13 +116,11 @@ export async function POST(req: Request) {
       userPublicKey,
       paymentTxId,
       tokenTransferTxId,
+      inviteCode,
     } = await req.json();
 
-    if (!userPublicKey) {
-      return NextResponse.json({ success: false, error: 'Missing userPublicKey' }, { status: 400 });
-    }
-
     if (
+      !userPublicKey ||
       !isValidBase58(userPublicKey) ||
       (paymentTxId && !isValidBase58(paymentTxId)) ||
       (mintAAddress && !isValidBase58(mintAAddress)) ||
@@ -137,17 +130,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: 'Invalid base58 format' }, { status: 400 });
     }
 
-    let PAYMENT_AMOUNT_LAMPORTS = CREATE_POOL_FEE * LAMPORTS_PER_SOL;
-
-    if (userPublicKey && isWhitelisted(userPublicKey)) {
-      console.log('Wallet in whitelist, free transaction');
-      PAYMENT_AMOUNT_LAMPORTS = 0;
-    }
-
     const userPubKey = new PublicKey(userPublicKey);
+    const hasInviteAccess = await isFeatureFreeServer('Meteora DAMM V2', inviteCode);
+
+    let PAYMENT_AMOUNT_LAMPORTS = CREATE_POOL_FEE * LAMPORTS_PER_SOL;
+    const isFreeUser = isWhitelisted(userPublicKey) || hasInviteAccess;
+    if (isFreeUser) PAYMENT_AMOUNT_LAMPORTS = 0;
+
     const raydium = await initSdk(connectionDevnet);
 
-    if (!paymentTxId) {
+    if (!isFreeUser && !paymentTxId) {
       const paymentTx = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: userPubKey,
@@ -155,6 +147,7 @@ export async function POST(req: Request) {
           lamports: PAYMENT_AMOUNT_LAMPORTS,
         }),
       );
+
       const { blockhash, lastValidBlockHeight } =
         await connectionMainnet.getLatestBlockhash('confirmed');
       paymentTx.recentBlockhash = blockhash;
@@ -170,36 +163,18 @@ export async function POST(req: Request) {
       });
     }
 
-    // Verify Mainnet payment
-    const paymentValid = await verifyPaymentTx(paymentTxId, userPubKey, PAYMENT_AMOUNT_LAMPORTS);
-    if (!paymentValid) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid or unconfirmed payment transaction' },
-        { status: 400 },
-      );
+    if (!isFreeUser) {
+      const valid = await verifyPaymentTx(paymentTxId, userPubKey, PAYMENT_AMOUNT_LAMPORTS);
+      if (!valid)
+        return NextResponse.json(
+          { success: false, error: 'Invalid or unconfirmed payment transaction' },
+          { status: 400 },
+        );
     }
 
     if (!mintAAddress || !mintBAddress || !amountA || !amountB) {
       return NextResponse.json(
         { success: false, error: 'Missing required fields' },
-        { status: 400 },
-      );
-    }
-
-    const mintA = await raydium.token.getTokenInfo(
-      mintAAddress === NATIVE_SOL ? WSOL_MINT : mintAAddress,
-    );
-    const mintB = await raydium.token.getTokenInfo(
-      mintBAddress === NATIVE_SOL ? WSOL_MINT : mintBAddress,
-    );
-    if (!mintA || !mintB || mintA.address === mintB.address) {
-      return NextResponse.json({ success: false, error: 'Invalid token mints' }, { status: 400 });
-    }
-
-    const adminBalance = await connectionDevnet.getBalance(adminKeypair.publicKey);
-    if (adminBalance < 0.05 * LAMPORTS_PER_SOL) {
-      return NextResponse.json(
-        { success: false, error: 'Insufficient admin SOL balance' },
         { status: 400 },
       );
     }
@@ -232,20 +207,36 @@ export async function POST(req: Request) {
     const transferTx = await connectionDevnet.getTransaction(tokenTransferTxId, {
       commitment: 'confirmed',
     });
-    if (!transferTx) {
+    if (!transferTx)
       return NextResponse.json(
         { success: false, error: 'Invalid token transfer transaction' },
         { status: 400 },
       );
-    }
+
+    const mintA = await raydium.token.getTokenInfo(
+      mintAAddress === NATIVE_SOL ? WSOL_MINT : mintAAddress,
+    );
+    const mintB = await raydium.token.getTokenInfo(
+      mintBAddress === NATIVE_SOL ? WSOL_MINT : mintBAddress,
+    );
+
+    if (!mintA || !mintB || mintA.address === mintB.address)
+      return NextResponse.json({ success: false, error: 'Invalid token mints' }, { status: 400 });
+
+    const adminBalance = await connectionDevnet.getBalance(adminKeypair.publicKey);
+    if (adminBalance < 0.05 * LAMPORTS_PER_SOL)
+      return NextResponse.json(
+        { success: false, error: 'Insufficient admin SOL balance' },
+        { status: 400 },
+      );
 
     const feeConfigs = await raydium.api.getCpmmConfigs();
-    if (!feeConfigs.length) {
+    if (!feeConfigs.length)
       return NextResponse.json(
         { success: false, error: 'No fee configurations available' },
         { status: 500 },
       );
-    }
+
     if (raydium.cluster === 'devnet') {
       feeConfigs.forEach((config) => {
         config.id = getCpmmPdaAmmConfigId(
@@ -255,7 +246,6 @@ export async function POST(req: Request) {
       });
     }
 
-    // Create pool
     const { transaction, extInfo } = await raydium.cpmm.createPool({
       programId: DEVNET_PROGRAM_ID.CREATE_CPMM_POOL_PROGRAM,
       poolFeeAccount: DEVNET_PROGRAM_ID.CREATE_CPMM_POOL_FEE_ACC,
@@ -267,10 +257,7 @@ export async function POST(req: Request) {
       feeConfig: feeConfigs[0],
       associatedOnly: true,
       checkCreateATAOwner: true,
-      ownerInfo: {
-        feePayer: adminKeypair.publicKey,
-        useSOLBalance: true,
-      },
+      ownerInfo: { feePayer: adminKeypair.publicKey, useSOLBalance: true },
       feePayer: adminKeypair.publicKey,
       txVersion,
     });
@@ -286,26 +273,20 @@ export async function POST(req: Request) {
       maxRetries: 3,
     });
     await connectionDevnet.confirmTransaction(
-      {
-        signature: poolTxId,
-        blockhash,
-        lastValidBlockHeight,
-      },
+      { signature: poolTxId, blockhash, lastValidBlockHeight },
       'confirmed',
     );
 
-    // Transfer LP tokens to user
     const lpMint = new PublicKey(extInfo.address.lpMint);
     const adminAtaLp = getAssociatedTokenAddressSync(lpMint, adminKeypair.publicKey);
     const lpBalanceInfo = await connectionDevnet.getTokenAccountBalance(adminAtaLp);
     const lpAmount = Number(lpBalanceInfo.value.amount);
 
-    if (lpAmount <= 0) {
+    if (lpAmount <= 0)
       return NextResponse.json(
         { success: false, error: 'No LP tokens available to transfer' },
         { status: 500 },
       );
-    }
 
     const lpTransferTxId = await transferLpToken(userPubKey, lpMint, lpAmount);
 

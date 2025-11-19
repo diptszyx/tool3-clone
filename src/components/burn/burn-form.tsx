@@ -25,6 +25,8 @@ import { UserToken } from '@/hooks/useUserTokens';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNetwork } from '@/context/NetworkContext';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 const Alert = ({ className, children }: { className?: string; children: React.ReactNode }) => (
   <div className={`p-4 rounded-md ${className}`}>{children}</div>
@@ -56,6 +58,7 @@ export function BurnForm({}: BurnFormProps) {
   const [burnResult, setBurnResult] = useState<TokenBurnResult | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [cluster, setCluster] = useState<'mainnet' | 'devnet'>('mainnet');
+  const isFreeFeature = useInviteFeature('Burn Token');
 
   const handleTokensLoaded = () => {
     setIsLoading(false);
@@ -115,6 +118,9 @@ export function BurnForm({}: BurnFormProps) {
     try {
       toastId = toast.loading('Processing burn transaction...');
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const result = await burnToken(
         connection,
         wallet,
@@ -122,6 +128,7 @@ export function BurnForm({}: BurnFormProps) {
           mintAddress: selectedToken.address,
           amount: amount,
           decimals: selectedToken.decimals || 0,
+          inviteCode: inviteCode,
         },
         {
           onStart: () => {},
@@ -217,6 +224,21 @@ export function BurnForm({}: BurnFormProps) {
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
         Burn Token Extensions
       </h1>
+      <div
+        className={`mb-4 p-[8px] ${isFreeFeature ? 'bg-green-50 border-gear-green-200' : 'bg-blue-50 border-gear-blue'} w-full`}
+      >
+        <p className="text-sm">
+          {isFreeFeature ? (
+            <>
+              <strong>Free access!</strong> No fees!
+            </>
+          ) : (
+            <>
+              <strong>Fee:</strong> 0.001 SOL
+            </>
+          )}
+        </p>
+      </div>
       <div>
         <Alert className="bg-amber-50 border-gear-orange mb-6 w-[calc(100%-8px)] ml-1 flex gap-3">
           <Flame className="h-4 w-4 text-amber-500" />

@@ -2,6 +2,7 @@ import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
 import { createTransferCheckedInstruction } from '@solana/spl-token';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 import { getTokenProgram } from '@/lib/helper';
 import { Token } from 'solana-token-extension-boost';
@@ -21,6 +22,7 @@ export interface TokenTransferOptions {
   memo?: string;
   feeRecipientAddress?: string;
   feePerRecipient?: number;
+  inviteCode?: string;
 }
 
 export interface TokenTransferResult {
@@ -45,6 +47,7 @@ export const transferToken = async (
     memo,
     feeRecipientAddress,
     feePerRecipient = 0.0016,
+    inviteCode,
   } = options;
   const { publicKey, sendTransaction } = wallet;
 
@@ -117,7 +120,8 @@ export const transferToken = async (
 
     const transaction = new Transaction();
 
-    if (feeRecipientAddress) {
+    const hasInviteAccess = await isFeatureFreeServer('Multisender', inviteCode);
+    if (feeRecipientAddress && !hasInviteAccess) {
       try {
         const feeRecipientPublicKey = new PublicKey(feeRecipientAddress);
         const feeLamports = BigInt(Math.round(feePerRecipient * 1e9));
@@ -249,6 +253,7 @@ export const transferTokenToMultipleRecipients = async (
     memo,
     feeRecipientAddress,
     feePerRecipient = 0.0016,
+    inviteCode,
   } = options;
   const { publicKey, sendTransaction } = wallet;
 
@@ -299,8 +304,8 @@ export const transferTokenToMultipleRecipients = async (
     }
 
     const transaction = new Transaction();
-
-    if (feeRecipientAddress && paramsArray.length > 1) {
+    const hasInviteAccess = await isFeatureFreeServer('Multisender', inviteCode);
+    if (feeRecipientAddress && paramsArray.length > 1 && !hasInviteAccess) {
       try {
         const feeRecipientPublicKey = new PublicKey(feeRecipientAddress);
         const baseFee = feePerRecipient * (paramsArray.length - 1);

@@ -80,8 +80,6 @@ const SelectTokenCreatePool: React.FC<SelectTokenCreatePoolProps> = ({
     const amount = type === 'half' ? availableAmount / 2 : availableAmount;
     const amountString = amount.toFixed(decimals);
 
-    toast.success(`You can proceed with up to ${amountString} ${symbol} after deducting fee`);
-
     onAmountChange(amountString);
   };
 

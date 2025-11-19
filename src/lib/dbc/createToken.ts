@@ -3,6 +3,7 @@ import { DynamicBondingCurveClient } from '@meteora-ag/dynamic-bonding-curve-sdk
 import { connectionMainnet } from '@/service/solana/connection';
 import { uploadFileToIPFS, uploadMetadataToIPFS, TokenMetadata } from '@/lib/dbc/metadata';
 import { isWhitelisted } from '@/utils/whitelist';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 export interface CreateTokenParams {
   name: string;
@@ -13,14 +14,24 @@ export interface CreateTokenParams {
   socialWebsite?: string;
   file: File;
   userPublicKey: PublicKey;
+  inviteCode?: string;
 }
 
 export async function createTokenTransaction(params: CreateTokenParams): Promise<{
   transaction: Transaction;
   baseMint: Keypair;
 }> {
-  const { name, symbol, description, socialX, socialTelegram, socialWebsite, file, userPublicKey } =
-    params;
+  const {
+    name,
+    symbol,
+    description,
+    socialX,
+    socialTelegram,
+    socialWebsite,
+    file,
+    userPublicKey,
+    inviteCode,
+  } = params;
 
   const imageUrl = await uploadFileToIPFS(file);
 
@@ -61,14 +72,21 @@ export async function createTokenTransaction(params: CreateTokenParams): Promise
   };
 
   const transaction = await client.pool.createPool(createPoolParams);
+  const hasInviteAccess = await isFeatureFreeServer('Launch Token DBC Meteora', inviteCode);
+
   const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
-  if (ADMIN_PUBLIC_KEY && !isWhitelisted(payer.toBase58())) {
+  const isWhitelistedUser = isWhitelisted(payer.toBase58());
+
+  if (ADMIN_PUBLIC_KEY && !isWhitelistedUser && !hasInviteAccess) {
     const transferInstruction = SystemProgram.transfer({
       fromPubkey: payer,
       toPubkey: new PublicKey(ADMIN_PUBLIC_KEY),
       lamports: 0.003 * LAMPORTS_PER_SOL,
     });
     transaction.add(transferInstruction);
+    console.log('Added fee instruction: 0.003 SOL');
+  } else {
+    console.log('No fee charged (free access or whitelisted)');
   }
 
   const { blockhash } = await connectionMainnet.getLatestBlockhash();

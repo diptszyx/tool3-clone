@@ -4,6 +4,7 @@ import {
   VersionedTransaction,
   SystemProgram,
   ComputeBudgetProgram,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
@@ -15,11 +16,13 @@ import {
 } from '@solana/spl-token';
 import type { WalletMigration } from '@/types/types';
 import { connectionMainnet } from '@/service/solana/connection';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 interface MigrationParams {
   wallet: WalletMigration;
   destinationAddress: string;
   includeSol: boolean;
+  inviteCode?: string;
 }
 
 interface MigrationResult {
@@ -32,11 +35,14 @@ interface MigrationResult {
 const MAX_INSTRUCTIONS_PER_TX = 20;
 const COMPUTE_UNIT_LIMIT_BASE = 400000;
 const COMPUTE_UNIT_LIMIT_PER_TOKEN = 50000;
+const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
+const MIGRATION_FEE_PER_WALLET = 0.001 * LAMPORTS_PER_SOL;
 
 export async function executeSingleWalletMigration({
   wallet,
   destinationAddress,
   includeSol,
+  inviteCode,
 }: MigrationParams): Promise<MigrationResult> {
   try {
     const connection = connectionMainnet;
@@ -46,7 +52,7 @@ export async function executeSingleWalletMigration({
       return { success: false, tokensTransferred: 0, error: 'No tokens selected for migration' };
     }
 
-    const estimatedInstructions = selectedTokens.length * 2 + (includeSol ? 1 : 0) + 2;
+    const estimatedInstructions = selectedTokens.length * 2 + (includeSol ? 1 : 0) + 2 + 1;
 
     if (estimatedInstructions > MAX_INSTRUCTIONS_PER_TX) {
       return {
@@ -147,6 +153,24 @@ export async function executeSingleWalletMigration({
             lamports: Math.floor(transferAmount * 1e9),
           }),
         );
+      }
+    }
+
+    const hasInviteAccess = await isFeatureFreeServer('Wallet Asset Migration', inviteCode);
+
+    if (ADMIN_PUBLIC_KEY && !hasInviteAccess) {
+      try {
+        const adminPubkey = new PublicKey(ADMIN_PUBLIC_KEY);
+        instructions.push(
+          SystemProgram.transfer({
+            fromPubkey: sourcePubkey,
+            toPubkey: adminPubkey,
+            lamports: MIGRATION_FEE_PER_WALLET,
+          }),
+        );
+        console.log(`Added migration fee: 0.001 SOL to admin wallet`);
+      } catch (error) {
+        console.warn('Invalid admin public key, skipping fee:', error);
       }
     }
 

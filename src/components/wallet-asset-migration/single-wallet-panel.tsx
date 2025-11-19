@@ -22,7 +22,6 @@ interface SingleWalletPanelProps {
   onDestinationChange: (address: string) => void;
   includeSol: boolean;
   onIncludeSolChange: (include: boolean) => void;
-  cluster?: 'mainnet' | 'devnet';
 }
 
 export default function SingleWalletPanel({
@@ -33,10 +32,9 @@ export default function SingleWalletPanel({
   onDestinationChange,
   includeSol,
   onIncludeSolChange,
-  cluster = 'mainnet',
 }: SingleWalletPanelProps) {
   const { publicKey, connected } = useWallet();
-  const { fetchWalletData, loading } = useWalletData(cluster);
+  const { fetchWalletData, loading } = useWalletData();
 
   const loadWalletData = useCallback(
     async (address: string) => {

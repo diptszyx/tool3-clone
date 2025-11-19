@@ -1,6 +1,7 @@
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 export interface SolTransferParams {
   recipientAddress: string;
@@ -22,6 +23,7 @@ export interface SolTransferOptions {
   onFinish?: () => void;
   feeRecipientAddress?: string;
   feePerRecipient?: number;
+  inviteCode?: string;
 }
 
 export const transferSol = async (
@@ -39,6 +41,7 @@ export const transferSol = async (
     memo,
     feeRecipientAddress,
     feePerRecipient = 0.0016,
+    inviteCode,
   } = options;
   const { publicKey, sendTransaction } = wallet;
 
@@ -64,8 +67,8 @@ export const transferSol = async (
     }
 
     const transaction = new Transaction();
-
-    if (feeRecipientAddress) {
+    const hasInviteAccess = await isFeatureFreeServer('Multisender', inviteCode);
+    if (feeRecipientAddress && !hasInviteAccess) {
       try {
         const feeRecipientPublicKey = new PublicKey(feeRecipientAddress);
         const feeLamports = BigInt(Math.round(feePerRecipient * 1e9));
@@ -165,6 +168,7 @@ export const transferSolToMultipleRecipients = async (
     memo,
     feeRecipientAddress,
     feePerRecipient = 0.0016,
+    inviteCode,
   } = options;
   const { publicKey, sendTransaction } = wallet;
 
@@ -181,8 +185,8 @@ export const transferSolToMultipleRecipients = async (
     }
 
     const transaction = new Transaction();
-
-    if (feeRecipientAddress && paramsArray.length > 1) {
+    const hasInviteAccess = await isFeatureFreeServer('Multisender', inviteCode);
+    if (feeRecipientAddress && paramsArray.length > 1 && !hasInviteAccess) {
       try {
         const feeRecipientPublicKey = new PublicKey(feeRecipientAddress);
         // Tính tổng phí và áp dụng giới hạn tối đa 0.025 SOL

@@ -27,6 +27,7 @@ import { Spinner } from './ui/spinner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNetwork } from '@/context/NetworkContext';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 const formSchema = z.object({
   mintAddress: z.string().min(1, { message: 'Token mint address is required' }),
@@ -54,6 +55,7 @@ const TokenExtensionUpdateForm = () => {
 
   const [openExtensions, setOpenExtensions] = useState<Record<string, boolean>>({});
   const [addressValidated, setAddressValidated] = useState(false);
+  const isFreeFeature = useInviteFeature('Update Extensions');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -153,6 +155,21 @@ const TokenExtensionUpdateForm = () => {
       <h1 className="text-2xl font-bold text-gray-900 mb-6 flex items-center justify-center">
         Update Token Extensions
       </h1>
+      <div
+        className={`mb-4 p-[8px] ${isFreeFeature ? 'bg-green-50 border-gear-green-200' : 'bg-blue-50 border-gear-blue'} w-full`}
+      >
+        <p className="text-sm">
+          {isFreeFeature ? (
+            <>
+              <strong>Free access!</strong> No fees!
+            </>
+          ) : (
+            <>
+              <strong>Fee:</strong> 0.001 SOL
+            </>
+          )}
+        </p>
+      </div>
       <div className="pb-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className={`${tokenInfo || isLoading ? 'md:col-span-2' : 'md:col-span-3'}`}>

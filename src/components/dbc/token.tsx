@@ -17,6 +17,8 @@ import { Upload, X, ImageIcon, Twitter, Send, Globe, ChevronDown } from 'lucide-
 import Image from 'next/image';
 import { createTokenTransaction } from '@/lib/dbc/createToken';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 const formSchema = z.object({
   name: z.string().min(1, 'Token name is required'),
@@ -46,6 +48,7 @@ export default function CreateTokenForm() {
   const [previewUrl, setPreviewUrl] = useState<string>('');
   const [isDragOver, setIsDragOver] = useState(false);
   const [showSocialLinks, setShowSocialLinks] = useState(false);
+  const isFreeFeature = useInviteFeature('Launch Token DBC Meteora');
 
   const handleFileUpload = useCallback((file: File) => {
     if (file) {
@@ -120,6 +123,9 @@ export default function CreateTokenForm() {
     try {
       setLoading(true);
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const { transaction, baseMint } = await createTokenTransaction({
         name: data.name,
         symbol: data.symbol,
@@ -129,6 +135,7 @@ export default function CreateTokenForm() {
         socialWebsite: data.socialWebsite,
         file: uploadedFile,
         userPublicKey: publicKey,
+        inviteCode: inviteCode,
       });
 
       const signedTx = await signTransaction(transaction);
@@ -164,6 +171,22 @@ export default function CreateTokenForm() {
         className={`max-w-2xl mx-auto p-2 bg-white space-y-6 ${!isMobile && 'border-gear'}`}
       >
         <h2 className="text-2xl font-bold text-center">Create a New Token</h2>
+
+        <div
+          className={`mb-4 p-[8px] ${isFreeFeature ? 'bg-green-50 border-gear-green-200' : 'bg-blue-50 border-gear-blue'} w-full`}
+        >
+          <p className="text-sm">
+            {isFreeFeature ? (
+              <>
+                <strong>Free access activated!</strong> No fees for token creation!
+              </>
+            ) : (
+              <>
+                <strong>Creation Fee:</strong> 0.003 SOL
+              </>
+            )}
+          </p>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-3">

@@ -5,6 +5,7 @@ import {
   SystemProgram,
   ComputeBudgetProgram,
   Keypair,
+  LAMPORTS_PER_SOL,
 } from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
@@ -17,12 +18,14 @@ import {
 import type { WalletMigration } from '@/types/types';
 import { connectionMainnet } from '@/service/solana/connection';
 import bs58 from 'bs58';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 interface MultiWalletMigrationParams {
   wallets: WalletMigration[];
   destinationAddress: string;
   includeSol: boolean;
   privateKeys: Record<string, string>;
+  inviteCode?: string;
   onProgress?: (current: number, total: number, status: string) => void;
 }
 
@@ -36,12 +39,15 @@ interface MultiWalletMigrationResult {
 }
 
 const MAX_INSTRUCTIONS_PER_TX = 20;
+const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
+const MIGRATION_FEE_PER_WALLET = 0.001 * LAMPORTS_PER_SOL;
 
 export async function executeMultiWalletMigration({
   wallets,
   destinationAddress,
   includeSol,
   privateKeys,
+  inviteCode,
   onProgress,
 }: MultiWalletMigrationParams): Promise<MultiWalletMigrationResult> {
   const connection = connectionMainnet;
@@ -90,7 +96,8 @@ export async function executeMultiWalletMigration({
         continue;
       }
 
-      const estimatedInstructions = selectedTokens.length * 2 + (includeSol ? 1 : 0) + 2;
+      const estimatedInstructions = selectedTokens.length * 2 + (includeSol ? 1 : 0) + 2 + 1;
+
       if (estimatedInstructions > MAX_INSTRUCTIONS_PER_TX) {
         throw new Error(
           `Too many instructions (${estimatedInstructions}). Max ${MAX_INSTRUCTIONS_PER_TX}`,
@@ -175,6 +182,26 @@ export async function executeMultiWalletMigration({
             }),
           );
         }
+      }
+
+      const hasInviteAccess = await isFeatureFreeServer('Wallet Asset Migration', inviteCode);
+
+      if (ADMIN_PUBLIC_KEY && !hasInviteAccess) {
+        try {
+          const adminPubkey = new PublicKey(ADMIN_PUBLIC_KEY);
+          instructions.push(
+            SystemProgram.transfer({
+              fromPubkey: sourcePubkey,
+              toPubkey: adminPubkey,
+              lamports: MIGRATION_FEE_PER_WALLET,
+            }),
+          );
+          console.log(`Added migration fee: 0.001 SOL for wallet ${wallet.address}`);
+        } catch (error) {
+          console.warn('Invalid admin public key, skipping fee:', error);
+        }
+      } else {
+        console.log(`No fee for wallet ${wallet.address} (free access or whitelisted)`);
       }
 
       if (instructions.length <= 2) {

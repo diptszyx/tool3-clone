@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import { Connection, PublicKey, Transaction, clusterApiUrl } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  clusterApiUrl,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
 import {
   ExtensionType,
   TOKEN_2022_PROGRAM_ID,
@@ -8,10 +15,12 @@ import {
   createEnableCpiGuardInstruction,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
+import { adminKeypair } from '@/config';
 
 export async function POST(request: Request) {
   try {
-    const { walletPublicKey, mintAddress, selectedExtensions } = await request.json();
+    const { walletPublicKey, mintAddress, selectedExtensions, inviteCode } = await request.json();
 
     if (!walletPublicKey) {
       return NextResponse.json({ error: 'Wallet public key is required' }, { status: 400 });
@@ -31,6 +40,8 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    const hasInviteAccess = await isFeatureFreeServer('Update Extensions', inviteCode);
 
     const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
@@ -55,40 +66,47 @@ export async function POST(request: Request) {
       extensionsToAdd.push(ExtensionType.CpiGuard);
     }
 
-    if (extensionsToAdd.length > 0) {
-      const reallocateInstruction = createReallocateInstruction(
+    if (extensionsToAdd.length === 0) {
+      return NextResponse.json({ error: 'No valid extensions to add' }, { status: 400 });
+    }
+
+    if (!hasInviteAccess) {
+      const feeInstruction = SystemProgram.transfer({
+        fromPubkey: walletPubkey,
+        toPubkey: adminKeypair.publicKey,
+        lamports: 0.001 * LAMPORTS_PER_SOL,
+      });
+      instructions.push(feeInstruction);
+    }
+
+    const reallocateInstruction = createReallocateInstruction(
+      tokenAccount,
+      walletPubkey,
+      extensionsToAdd,
+      walletPubkey,
+      [],
+      TOKEN_2022_PROGRAM_ID,
+    );
+    instructions.push(reallocateInstruction);
+
+    if (selectedExtensions.includes('memo-transfer')) {
+      const enableMemoTransferInstruction = createEnableRequiredMemoTransfersInstruction(
         tokenAccount,
-        walletPubkey,
-        extensionsToAdd,
         walletPubkey,
         [],
         TOKEN_2022_PROGRAM_ID,
       );
-      instructions.push(reallocateInstruction);
-
-      if (selectedExtensions.includes('memo-transfer')) {
-        const enableMemoTransferInstruction = createEnableRequiredMemoTransfersInstruction(
-          tokenAccount,
-          walletPubkey,
-          [],
-          TOKEN_2022_PROGRAM_ID,
-        );
-        instructions.push(enableMemoTransferInstruction);
-      }
-
-      if (selectedExtensions.includes('cpi-guard')) {
-        const enableCpiGuardInstruction = createEnableCpiGuardInstruction(
-          tokenAccount,
-          walletPubkey,
-          [],
-          TOKEN_2022_PROGRAM_ID,
-        );
-        instructions.push(enableCpiGuardInstruction);
-      }
+      instructions.push(enableMemoTransferInstruction);
     }
 
-    if (instructions.length === 0) {
-      return NextResponse.json({ error: 'No valid extensions to add' }, { status: 400 });
+    if (selectedExtensions.includes('cpi-guard')) {
+      const enableCpiGuardInstruction = createEnableCpiGuardInstruction(
+        tokenAccount,
+        walletPubkey,
+        [],
+        TOKEN_2022_PROGRAM_ID,
+      );
+      instructions.push(enableCpiGuardInstruction);
     }
 
     const recentBlockhash = await connection.getLatestBlockhash();

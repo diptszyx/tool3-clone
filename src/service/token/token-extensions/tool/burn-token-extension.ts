@@ -1,5 +1,13 @@
-import { Connection, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
+import {
+  Connection,
+  PublicKey,
+  Transaction,
+  TransactionInstruction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from '@solana/web3.js';
 import { WalletContextState } from '@solana/wallet-adapter-react';
+import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 import { Token } from 'solana-token-extension-boost';
 export interface TokenBurnParams {
@@ -16,6 +24,7 @@ export interface TokenBurnOptions {
   mintAddress: string;
   amount: string | number;
   decimals: number;
+  inviteCode?: string;
 }
 export interface TokenBurnCallbacks {
   onStart?: () => void;
@@ -73,6 +82,19 @@ export async function burnToken(
     );
 
     const transaction = new Transaction();
+
+    const hasInviteAccess = await isFeatureFreeServer('Burn Token', options.inviteCode);
+
+    const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
+
+    if (ADMIN_PUBLIC_KEY && !hasInviteAccess) {
+      const feeInstruction = SystemProgram.transfer({
+        fromPubkey: wallet.publicKey,
+        toPubkey: new PublicKey(ADMIN_PUBLIC_KEY),
+        lamports: 0.001 * LAMPORTS_PER_SOL,
+      });
+      transaction.add(feeInstruction);
+    }
 
     const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
     transaction.recentBlockhash = blockhash;

@@ -21,7 +21,6 @@ interface MultiWalletPanelProps {
   onDestinationChange: (address: string) => void;
   includeSol: boolean;
   onIncludeSolChange: (include: boolean) => void;
-  cluster?: 'mainnet' | 'devnet';
   onPasswordReceived?: (password: string) => void;
 }
 
@@ -34,11 +33,10 @@ export default function MultiWalletPanel({
   onDestinationChange,
   includeSol,
   onIncludeSolChange,
-  cluster = 'mainnet',
   onPasswordReceived,
 }: MultiWalletPanelProps) {
   const [addWalletOpen, setAddWalletOpen] = useState(false);
-  const { fetchWalletData, loading } = useWalletData(cluster);
+  const { fetchWalletData, loading } = useWalletData();
 
   const handleAddWallets = useCallback(
     async (publicKeys: string[], password?: string) => {

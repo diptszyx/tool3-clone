@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useNetwork } from '@/context/NetworkContext';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 const TokenReviewForm = () => {
   const router = useRouter();
@@ -32,6 +33,8 @@ const TokenReviewForm = () => {
     handleBack,
     goToHome,
   } = useTokenReview(router);
+
+  const isFreeFeature = useInviteFeature('Create Token');
 
   if (isLoading) {
     return (
@@ -283,6 +286,27 @@ const TokenReviewForm = () => {
           <Card>
             <CardContent className="pt-6">
               <h3 className="font-medium mb-4">Create Token</h3>
+              <div
+                className={`p-4 mb-4 ${
+                  isFreeFeature
+                    ? 'bg-green-50 border border-green-200'
+                    : 'bg-blue-50 border border-blue-200'
+                } rounded-lg`}
+              >
+                <p className="text-sm">
+                  {isFreeFeature ? (
+                    <>
+                      <strong className="text-green-700">Free access activated!</strong>
+                      <span className="text-green-600"> No fees for token creation!</span>
+                    </>
+                  ) : (
+                    <>
+                      <strong className="text-blue-700">Creation Fee:</strong>
+                      <span className="text-blue-600"> 0.0029 SOL</span>
+                    </>
+                  )}
+                </p>
+              </div>
               <p className="text-sm text-gray-500 mb-4">
                 Once you confirm, your wallet will be prompted to sign a transaction to create the
                 token.

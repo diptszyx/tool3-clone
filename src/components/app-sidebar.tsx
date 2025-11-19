@@ -19,9 +19,10 @@ import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useNetwork } from '@/context/NetworkContext';
 import Link from 'next/link';
 import { Home, Lock, ArrowUp, Coin, ChevronDown, CreditCard, Keyboard } from '@nsmr/pixelart-react';
-
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { isFeatureFree } from '@/lib/invite-codes/helpers';
 import Image from 'next/image';
+import { Sparkles } from 'lucide-react';
 
 interface RouteItem {
   title: string;
@@ -53,11 +54,11 @@ export const route = {
           url: '/',
         },
         {
-          title: 'Swap to SOL ',
+          title: 'Swap to SOL',
           url: '/swap-sol',
         },
         {
-          title: 'Swap All Token to SOL ',
+          title: 'Swap All Token to SOL',
           url: '/swap-all',
         },
         {
@@ -184,6 +185,7 @@ export function AppSidebar() {
   const pathname = usePathname();
   const { network } = useNetwork();
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [freeFeatures, setFreeFeatures] = useState<Set<string>>(new Set());
 
   const navMain = network === WalletAdapterNetwork.Devnet ? route.devnet : route.mainnet;
 
@@ -198,6 +200,50 @@ export function AppSidebar() {
       return pathname.split('?')[0] === item.url.split('?')[0];
     });
   };
+
+  useEffect(() => {
+    const checkFreeFeatures = () => {
+      const features = new Set<string>();
+
+      const allFeatures = [
+        'Gasless Transfer',
+        'Swap to SOL',
+        'Swap All Token to SOL',
+        'Launch Token DBC Meteora',
+        'Increase Holders',
+        'Close account',
+        'Multisender',
+        'Local Web3 Wallet Manager',
+        'Wallet Asset Migration',
+        'Buy Sol Devnet',
+        'Raydium CPMM',
+        'Meteora DAMM V2',
+        'Create Token',
+        'Update Extensions',
+        'Burn Token',
+        'Permanent Delegate',
+      ];
+
+      allFeatures.forEach((feature) => {
+        if (isFeatureFree(feature)) {
+          features.add(feature);
+        }
+      });
+
+      setFreeFeatures(features);
+    };
+
+    checkFreeFeatures();
+
+    window.addEventListener('storage', checkFreeFeatures);
+
+    window.addEventListener('invite-code-activated', checkFreeFeatures);
+
+    return () => {
+      window.removeEventListener('storage', checkFreeFeatures);
+      window.removeEventListener('invite-code-activated', checkFreeFeatures);
+    };
+  }, []);
 
   return (
     <Sidebar className="border-r border-gray-800">
@@ -252,6 +298,11 @@ export function AppSidebar() {
                                   >
                                     <Link href={subItem.url || '#'}>
                                       <span>{subItem.title}</span>
+                                      {freeFeatures.has(subItem.title) && (
+                                        <span className="ml-auto">
+                                          <Sparkles size={12} className="text-white-300/80" />
+                                        </span>
+                                      )}
                                     </Link>
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>

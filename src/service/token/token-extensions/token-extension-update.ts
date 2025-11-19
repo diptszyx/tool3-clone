@@ -5,6 +5,7 @@ import { PublicKey, Transaction } from '@solana/web3.js';
 import { isCompatibleExtension } from '@/utils/token/token-compatibility';
 import { checkExtensionRequiredFields } from '@/utils/token/token-validation';
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 import { TextOptionType, TokenExtensionType } from './token-creation';
 
@@ -237,12 +238,15 @@ export function useTokenExtensionUpdate() {
 
     try {
       const toastId = toast.loading('Preparing extension update...');
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
 
       const requestData = {
         walletPublicKey: wallet.publicKey.toString(),
         mintAddress: mintAddress,
         selectedExtensions,
         extensionOptions,
+        inviteCode: inviteCode,
       };
 
       const response = await fetch('/api/update-extensions', {

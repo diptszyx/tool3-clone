@@ -6,9 +6,9 @@ import { checkExtensionsCompatibility } from '@/utils/token/token-compatibility'
 import { checkExtensionRequiredFields } from '@/utils/token/token-validation';
 import { useNetwork } from '@/context/NetworkContext';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 const PLATFORM_FEE_SOL = 0.0029;
-const FEE_RECIPIENT_ADDRESS = '4UWS2QEhNT9hyAnvRikAXtDhvvgJGGT8fHhLzoq5KhEa';
 
 export interface TokenCreationResult {
   mint: string;
@@ -120,7 +120,6 @@ export function useTokenReview(router: { push: (url: string) => void }) {
   const { connection } = useConnection();
   const wallet = useWallet();
   const { network } = useNetwork();
-
   const [isLoading, setIsLoading] = useState(true);
   const [tokenType, setTokenType] = useState<'spl' | 'extensions'>('extensions');
   const [tokenData, setTokenData] = useState<TokenDataType | null>(null);
@@ -132,6 +131,9 @@ export function useTokenReview(router: { push: (url: string) => void }) {
   const [transactionSignature, setTransactionSignature] = useState<string | null>(null);
   const [creationError, setCreationError] = useState<string | null>(null);
   const [metadataUri, setMetadataUri] = useState<string>('');
+  const isFreeFeature = useInviteFeature('Create Token');
+
+  const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
 
   useEffect(() => {
     const loadData = async () => {
@@ -401,18 +403,21 @@ export function useTokenReview(router: { push: (url: string) => void }) {
           );
 
           // Add platform fee transfer (0.0029 SOL)
-          try {
-            const feeRecipient = new PublicKey(FEE_RECIPIENT_ADDRESS);
-            const lamports = Math.round(PLATFORM_FEE_SOL * 1_000_000_000);
-            transaction.add(
-              SystemProgram.transfer({
-                fromPubkey: wallet.publicKey!,
-                toPubkey: feeRecipient,
-                lamports,
-              }),
-            );
-          } catch (feeErr) {
-            console.warn('Skipping platform fee due to invalid recipient:', feeErr);
+          if (!isFreeFeature && ADMIN_PUBLIC_KEY) {
+            try {
+              const feeRecipient = new PublicKey(ADMIN_PUBLIC_KEY);
+              const lamports = Math.round(PLATFORM_FEE_SOL * 1_000_000_000);
+
+              transaction.add(
+                SystemProgram.transfer({
+                  fromPubkey: wallet.publicKey!,
+                  toPubkey: feeRecipient,
+                  lamports,
+                }),
+              );
+            } catch (feeErr) {
+              console.warn('Invalid ADMIN_PUBLIC_KEY. Skipping platform fee.', feeErr);
+            }
           }
 
           transaction.add(
@@ -544,18 +549,21 @@ export function useTokenReview(router: { push: (url: string) => void }) {
           transaction.partialSign(mintKeypair);
         }
 
-        try {
-          const feeRecipient = new PublicKey(FEE_RECIPIENT_ADDRESS);
-          const lamports = Math.round(PLATFORM_FEE_SOL * 1_000_000_000);
-          transaction.add(
-            SystemProgram.transfer({
-              fromPubkey: wallet.publicKey!,
-              toPubkey: feeRecipient,
-              lamports,
-            }),
-          );
-        } catch (feeErr) {
-          console.warn('Skipping platform fee due to invalid recipient:', feeErr);
+        if (!isFreeFeature && ADMIN_PUBLIC_KEY) {
+          try {
+            const feeRecipient = new PublicKey(ADMIN_PUBLIC_KEY);
+            const lamports = Math.round(PLATFORM_FEE_SOL * 1_000_000_000);
+
+            transaction.add(
+              SystemProgram.transfer({
+                fromPubkey: wallet.publicKey!,
+                toPubkey: feeRecipient,
+                lamports,
+              }),
+            );
+          } catch (feeErr) {
+            console.warn('Invalid ADMIN_PUBLIC_KEY. Skipping platform fee.', feeErr);
+          }
         }
 
         const signedTransaction = await wallet.signTransaction(transaction);
