@@ -8,7 +8,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAccount,
 } from '@solana/spl-token';
-import { connectionDevnet } from '@/service/solana/connection';
+import { connectionMainnet } from '@/service/solana/connection';
 import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 const FEE_AMOUNT = 0.001;
@@ -21,7 +21,6 @@ export interface MintTransactionParams {
   decimals: number;
   isToken2022: boolean;
   inviteCode?: string;
-  cluster?: 'devnet' | 'mainnet-beta';
 }
 
 export async function createMintTransaction(params: MintTransactionParams): Promise<Transaction> {
@@ -29,6 +28,7 @@ export async function createMintTransaction(params: MintTransactionParams): Prom
 
   const mintPubkey = new PublicKey(tokenAddress);
   const programId = isToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
+  const connection = connectionMainnet;
 
   const userTokenAccount = await getAssociatedTokenAddress(
     mintPubkey,
@@ -40,12 +40,7 @@ export async function createMintTransaction(params: MintTransactionParams): Prom
 
   let accountExists = false;
   try {
-    const accountInfo = await getAccount(
-      connectionDevnet,
-      userTokenAccount,
-      'confirmed',
-      programId,
-    );
+    const accountInfo = await getAccount(connection, userTokenAccount, 'confirmed', programId);
     accountExists = accountInfo && accountInfo.mint.equals(mintPubkey);
   } catch {
     accountExists = false;
