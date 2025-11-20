@@ -85,6 +85,10 @@ export const route = {
           title: 'Wallet Asset Migration',
           url: '/wallet-asset-migration',
         },
+        {
+          title: 'Mint Additional Supply',
+          url: '/mint-additional-supply',
+        },
       ],
     },
     {
@@ -222,6 +226,7 @@ export function AppSidebar() {
         'Update Extensions',
         'Burn Token',
         'Permanent Delegate',
+        'Mint Additional Supply',
       ];
 
       allFeatures.forEach((feature) => {
