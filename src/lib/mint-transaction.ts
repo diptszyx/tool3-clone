@@ -1,4 +1,10 @@
-import { PublicKey, SystemProgram, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import {
+  PublicKey,
+  SystemProgram,
+  Transaction,
+  LAMPORTS_PER_SOL,
+  Connection,
+} from '@solana/web3.js';
 import {
   getAssociatedTokenAddress,
   createAssociatedTokenAccountInstruction,
@@ -8,7 +14,6 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAccount,
 } from '@solana/spl-token';
-import { connectionMainnet } from '@/service/solana/connection';
 import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
 const FEE_AMOUNT = 0.001;
@@ -21,14 +26,15 @@ export interface MintTransactionParams {
   decimals: number;
   isToken2022: boolean;
   inviteCode?: string;
+  connection: Connection;
 }
 
 export async function createMintTransaction(params: MintTransactionParams): Promise<Transaction> {
-  const { tokenAddress, publicKey, mintAmount, decimals, isToken2022, inviteCode } = params;
+  const { tokenAddress, publicKey, mintAmount, decimals, isToken2022, inviteCode, connection } =
+    params;
 
   const mintPubkey = new PublicKey(tokenAddress);
   const programId = isToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID;
-  const connection = connectionMainnet;
 
   const userTokenAccount = await getAssociatedTokenAddress(
     mintPubkey,

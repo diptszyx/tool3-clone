@@ -89,6 +89,14 @@ export const route = {
           title: 'Mint Additional Supply',
           url: '/mint-additional-supply',
         },
+        {
+          title: 'Wrap or Unwrap SOL',
+          url: '/wrap-sol',
+        },
+        {
+          title: 'Revoke Authority',
+          url: '/revoke-authority',
+        },
       ],
     },
     {
@@ -173,6 +181,18 @@ export const route = {
         {
           title: 'Permanent Delegate',
           url: '/permanent-delegate-recovery?cluster=devnet',
+        },
+        {
+          title: 'Mint Additional Supply',
+          url: '/mint-additional-supply?cluster=devnet',
+        },
+        {
+          title: 'Wrap or Unwrap SOL',
+          url: '/wrap-sol?cluster=devnet',
+        },
+        {
+          title: 'Revoke Authority',
+          url: '/revoke-authority?cluster=devnet',
         },
       ],
     },

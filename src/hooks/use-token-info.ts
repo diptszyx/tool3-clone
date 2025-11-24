@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, Connection } from '@solana/web3.js';
 import {
   getMint,
   TOKEN_PROGRAM_ID,
@@ -9,7 +9,6 @@ import {
 } from '@solana/spl-token';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
 import { toast } from 'sonner';
-import { connectionMainnet } from '@/service/solana/connection';
 
 export interface TokenMetadata {
   name?: string;
@@ -28,7 +27,6 @@ export interface TokenInfo {
 }
 
 const METADATA_PROGRAM_ID = new PublicKey('metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s');
-const connection = connectionMainnet;
 
 const isValidAddress = (address: string): boolean => {
   if (!address || address.length < 32 || address.length > 44) return false;
@@ -40,7 +38,10 @@ const isValidAddress = (address: string): boolean => {
   }
 };
 
-const getMetaplexMetadata = async (mintPubkey: PublicKey): Promise<TokenMetadata | null> => {
+const getMetaplexMetadata = async (
+  connection: Connection,
+  mintPubkey: PublicKey,
+): Promise<TokenMetadata | null> => {
   try {
     const [metadataPDA] = PublicKey.findProgramAddressSync(
       [Buffer.from('metadata'), METADATA_PROGRAM_ID.toBuffer(), mintPubkey.toBuffer()],
@@ -62,7 +63,11 @@ const getMetaplexMetadata = async (mintPubkey: PublicKey): Promise<TokenMetadata
   }
 };
 
-export const useTokenInfo = (tokenAddress: string, publicKey: PublicKey | null) => {
+export const useTokenInfo = (
+  tokenAddress: string,
+  publicKey: PublicKey | null,
+  connection: Connection,
+) => {
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -91,7 +96,7 @@ export const useTokenInfo = (tokenAddress: string, publicKey: PublicKey | null) 
 
       try {
         mintInfo = await getMint(connection, mintPubkey, 'confirmed', TOKEN_PROGRAM_ID);
-        metadata = await getMetaplexMetadata(mintPubkey);
+        metadata = await getMetaplexMetadata(connection, mintPubkey);
       } catch {
         try {
           mintInfo = await getMint(connection, mintPubkey, 'confirmed', TOKEN_2022_PROGRAM_ID);
@@ -117,10 +122,10 @@ export const useTokenInfo = (tokenAddress: string, publicKey: PublicKey | null) 
                 };
               }
             } catch {
-              metadata = await getMetaplexMetadata(mintPubkey);
+              metadata = await getMetaplexMetadata(connection, mintPubkey);
             }
           } else {
-            metadata = await getMetaplexMetadata(mintPubkey);
+            metadata = await getMetaplexMetadata(connection, mintPubkey);
           }
         } catch {
           throw new Error(
@@ -160,7 +165,7 @@ export const useTokenInfo = (tokenAddress: string, publicKey: PublicKey | null) 
     } finally {
       setIsChecking(false);
     }
-  }, [tokenAddress, publicKey]);
+  }, [tokenAddress, publicKey, connection]);
 
   useEffect(() => {
     if (abortControllerRef.current) {

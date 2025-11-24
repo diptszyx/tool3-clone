@@ -7,18 +7,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2 } from 'lucide-react';
 import { useTokenInfo } from '@/hooks/use-token-info';
 import { useMintToken, isValidAmount } from '@/hooks/use-mint-token';
+import { useConnection } from '@/hooks/use-connection';
 import { TokenAddressInput } from './token-address-input';
 import { TokenInfoCard } from './token-info-card';
 import { MintAmountInput } from './mint-amount-input';
 
 export default function MintTokenForm() {
   const { publicKey, signTransaction } = useWallet();
+  const connection = useConnection();
   const [tokenAddress, setTokenAddress] = useState('');
   const [mintAmount, setMintAmount] = useState('');
 
   const { tokenInfo, isChecking, updateSupplyOptimistically } = useTokenInfo(
     tokenAddress,
     publicKey,
+    connection,
   );
 
   const { mintTokens, isMinting, isFreeFeature } = useMintToken({
@@ -26,6 +29,7 @@ export default function MintTokenForm() {
     tokenInfo,
     publicKey,
     signTransaction,
+    connection,
     onSuccess: () => {
       const mintedAmount = parseFloat(mintAmount);
       updateSupplyOptimistically(mintedAmount);

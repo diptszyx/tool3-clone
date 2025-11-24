@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { toast } from 'sonner';
-import { connectionMainnet } from '@/service/solana/connection';
 import { TokenInfo } from './use-token-info';
 import { createMintTransaction } from '@/lib/mint-transaction';
 import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 import { useInviteFeature } from '@/hooks/use-invite-feature';
+import { Connection } from '@solana/web3.js';
 
 export const isValidAmount = (amount: string): boolean => {
   if (!amount || amount.trim() === '') return false;
@@ -18,6 +18,7 @@ interface UseMintTokenParams {
   tokenInfo: TokenInfo | null;
   publicKey: PublicKey | null;
   signTransaction: ((transaction: Transaction) => Promise<Transaction>) | undefined;
+  connection: Connection;
   onSuccess?: () => void;
 }
 
@@ -26,10 +27,10 @@ export const useMintToken = ({
   tokenInfo,
   publicKey,
   signTransaction,
+  connection,
   onSuccess,
 }: UseMintTokenParams) => {
   const [isMinting, setIsMinting] = useState(false);
-  const connection = connectionMainnet;
 
   const isFreeFeature = useInviteFeature('Mint Additional Supply');
 
@@ -69,6 +70,7 @@ export const useMintToken = ({
         decimals: tokenInfo.decimals,
         isToken2022: tokenInfo.isToken2022,
         inviteCode,
+        connection,
       });
 
       transaction.feePayer = publicKey;
@@ -82,10 +84,14 @@ export const useMintToken = ({
         preflightCommitment: 'confirmed',
       });
 
+      if (onSuccess) {
+        onSuccess();
+      }
+
       await connection.confirmTransaction(signature, 'confirmed');
 
       toast.success('Mint token successful', {
-        description: `You have minted ${numAmount.toLocaleString()} ${tokenInfo.metadata?.symbol || 'tokens'} `,
+        description: `You have minted ${numAmount.toLocaleString()} ${tokenInfo.metadata?.symbol || 'tokens'}`,
         action: {
           label: 'View Transaction',
           onClick: () =>
@@ -95,10 +101,6 @@ export const useMintToken = ({
             ),
         },
       });
-
-      if (onSuccess) {
-        setTimeout(onSuccess, 1500);
-      }
 
       return true;
     } catch (error: unknown) {
