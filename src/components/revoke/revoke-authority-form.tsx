@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Shield } from 'lucide-react';
 import { useConnection } from '@/hooks/use-connection';
 import { useTokenAuthorities } from '@/hooks/revoke-authority/use-token-authorities';
 import { TokenAddressInput } from './token-address-input';
@@ -46,11 +45,10 @@ export default function RevokeAuthorityForm() {
     <div className={`max-h-[calc(100vh-100px)] overflow-y-auto ${isMobile ? 'py-2' : 'py-6'}`}>
       <div className={`max-w-2xl mx-auto p-2 bg-white space-y-6 ${!isMobile && 'border-gear'}`}>
         <div className="space-y-2">
-          <h2 className="text-2xl font-bold flex items-center gap-2">
-            <Shield className="h-5 w-5" />
+          <h2 className="text-2xl font-bold text-black flex items-center gap-2">
             Revoke Token Authorities
           </h2>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-700">
             Permanently revoke mint, freeze, or update authorities for increased decentralization
           </p>
         </div>
@@ -131,8 +129,8 @@ export default function RevokeAuthorityForm() {
           )}
 
           {authorities && !hasAnyAuthority && (
-            <div className="p-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-              <p className="text-sm text-amber-600 dark:text-amber-400">
+            <div className="p-4 bg-gray-50 border-2 border-gray-300 rounded-lg">
+              <p className="text-sm text-gray-700 font-medium">
                 You do not have any authority for this token. Only the authority owner can revoke
                 authorities.
               </p>
@@ -140,7 +138,7 @@ export default function RevokeAuthorityForm() {
           )}
 
           {!publicKey && (
-            <p className="text-sm text-center text-muted-foreground">
+            <p className="text-sm text-center text-gray-700 font-medium">
               Please connect your wallet to continue
             </p>
           )}

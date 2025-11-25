@@ -57,30 +57,32 @@ export function RevokeMintTab({
 
   return (
     <div className="space-y-4 pt-4">
-      <Alert variant="destructive">
-        <AlertTitle>Warning: This action is permanent!</AlertTitle>
-        <AlertDescription>
+      <Alert className="bg-amber-50 border-2 border-amber-400">
+        <AlertTitle className="text-amber-900 font-bold">
+          Warning: This action is permanent!
+        </AlertTitle>
+        <AlertDescription className="text-amber-800">
           Once you revoke mint authority, no one can ever mint new tokens for this mint address.
           This action cannot be undone.
         </AlertDescription>
       </Alert>
 
-      <div className="p-4 bg-muted rounded-lg space-y-3 text-sm">
+      <div className="p-4 bg-gray-50 border-2 border-gray-300 rounded-lg space-y-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Current Authority:</span>
-          <span className="font-mono text-xs">{publicKey?.toBase58().slice(0, 20)}...</span>
+          <span className="text-gray-700 font-medium">Current Authority:</span>
+          <span className="font-mono text-xs text-black">
+            {publicKey?.toBase58().slice(0, 20)}...
+          </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">After Revoke:</span>
-          <span className="font-mono text-xs text-red-600">None (0x000...)</span>
+          <span className="text-gray-700 font-medium">After Revoke:</span>
+          <span className="font-mono text-xs text-gray-600">None (0x000...)</span>
         </div>
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm text-muted-foreground">
-          <strong>What happens after revoking:</strong>
-        </p>
-        <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+        <p className="text-sm text-black font-semibold">What happens after revoking:</p>
+        <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
           <li>Total supply becomes fixed forever</li>
           <li>No one can mint additional tokens</li>
           <li>Increases trust for token holders</li>
@@ -90,7 +92,11 @@ export function RevokeMintTab({
 
       <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <AlertDialogTrigger asChild>
-          <Button variant="destructive" className="w-full" disabled={!publicKey || isRevoking}>
+          <Button
+            variant="destructive"
+            className="w-full bg-gray-800 hover:bg-gray-700 text-white font-bold"
+            disabled={!publicKey || isRevoking}
+          >
             {isRevoking && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Revoke Mint Authority
           </Button>
@@ -102,11 +108,11 @@ export function RevokeMintTab({
               Are you absolutely sure?
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
-              <p>
-                This will <strong>permanently revoke</strong> your mint authority. You will never be
-                able to mint more tokens for this address.
+              <p className="text-gray-700">
+                This will <strong className="text-black">permanently revoke</strong> your mint
+                authority. You will never be able to mint more tokens for this address.
               </p>
-              <p className="text-red-600 font-semibold">This action cannot be undone.</p>
+              <p className="text-gray-800 font-bold">This action cannot be undone.</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

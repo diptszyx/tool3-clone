@@ -97,6 +97,10 @@ export const route = {
           title: 'Revoke Authority',
           url: '/revoke-authority',
         },
+        {
+          title: 'Clone Token',
+          url: '/clone-token',
+        },
       ],
     },
     {
@@ -194,6 +198,10 @@ export const route = {
           title: 'Revoke Authority',
           url: '/revoke-authority?cluster=devnet',
         },
+        {
+          title: 'Clone Token',
+          url: '/clone-token?cluster=devnet',
+        },
       ],
     },
     {
@@ -247,6 +255,9 @@ export function AppSidebar() {
         'Burn Token',
         'Permanent Delegate',
         'Mint Additional Supply',
+        'Wrap or Unwrap Sol',
+        'Revoke Authority',
+        'Clone Token',
       ];
 
       allFeatures.forEach((feature) => {

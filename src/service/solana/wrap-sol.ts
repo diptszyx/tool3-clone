@@ -1,4 +1,10 @@
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
+import {
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+  Connection,
+} from '@solana/web3.js';
 import {
   TOKEN_PROGRAM_ID,
   NATIVE_MINT,
@@ -8,7 +14,6 @@ import {
   createCloseAccountInstruction,
   getAccount,
 } from '@solana/spl-token';
-import { connectionDevnet } from './connection';
 
 export interface WrapResult {
   signature: string;
@@ -19,12 +24,13 @@ export async function wrapSol(
   walletPublicKey: PublicKey,
   signTransaction: (tx: Transaction) => Promise<Transaction>,
   amountInSol: number,
+  connection: Connection,
 ): Promise<WrapResult> {
   const wsolAccount = await getAssociatedTokenAddress(NATIVE_MINT, walletPublicKey);
 
   let accountExists = true;
   try {
-    await getAccount(connectionDevnet, wsolAccount);
+    await getAccount(connection, wsolAccount);
   } catch {
     accountExists = false;
   }
@@ -51,16 +57,14 @@ export async function wrapSol(
     }),
   );
 
-  // Sync native để chuyển SOL thành WSOL token
   tx.add(createSyncNativeInstruction(wsolAccount));
 
-  // Sign và send
   tx.feePayer = walletPublicKey;
-  tx.recentBlockhash = (await connectionDevnet.getLatestBlockhash()).blockhash;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
   const signed = await signTransaction(tx);
-  const signature = await connectionDevnet.sendRawTransaction(signed.serialize());
-  await connectionDevnet.confirmTransaction(signature, 'confirmed');
+  const signature = await connection.sendRawTransaction(signed.serialize());
+  await connection.confirmTransaction(signature, 'confirmed');
 
   return {
     signature,
@@ -68,52 +72,49 @@ export async function wrapSol(
   };
 }
 
-/**
- * Unwrap WSOL thành SOL
- */
 export async function unwrapSol(
   walletPublicKey: PublicKey,
   signTransaction: (tx: Transaction) => Promise<Transaction>,
+  connection: Connection,
 ): Promise<string> {
-  // Lấy WSOL account
   const wsolAccount = await getAssociatedTokenAddress(NATIVE_MINT, walletPublicKey);
 
-  // Check xem account có tồn tại không
   try {
-    await getAccount(connectionDevnet, wsolAccount);
+    await getAccount(connection, wsolAccount);
   } catch {
-    throw new Error('Bạn không có Wrapped SOL để unwrap');
+    throw new Error('You have no Wrapped SOL to unwrap');
   }
 
   const tx = new Transaction();
 
-  // Close account để lấy lại SOL
   tx.add(
     createCloseAccountInstruction(
       wsolAccount,
-      walletPublicKey, // destination (nhận SOL)
-      walletPublicKey, // owner
+      walletPublicKey,
+      walletPublicKey,
       [],
       TOKEN_PROGRAM_ID,
     ),
   );
 
-  // Sign và send
   tx.feePayer = walletPublicKey;
-  tx.recentBlockhash = (await connectionDevnet.getLatestBlockhash()).blockhash;
+  tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
   const signed = await signTransaction(tx);
-  const signature = await connectionDevnet.sendRawTransaction(signed.serialize());
-  await connectionDevnet.confirmTransaction(signature, 'confirmed');
+  const signature = await connection.sendRawTransaction(signed.serialize());
+  await connection.confirmTransaction(signature, 'confirmed');
 
   return signature;
 }
 
-export async function getWsolBalance(walletPublicKey: PublicKey): Promise<number> {
+export async function getWsolBalance(
+  walletPublicKey: PublicKey,
+  connection: Connection,
+): Promise<number> {
   try {
     const wsolAccount = await getAssociatedTokenAddress(NATIVE_MINT, walletPublicKey);
 
-    const accountInfo = await getAccount(connectionDevnet, wsolAccount);
+    const accountInfo = await getAccount(connection, wsolAccount);
     return Number(accountInfo.amount) / LAMPORTS_PER_SOL;
   } catch {
     return 0;
