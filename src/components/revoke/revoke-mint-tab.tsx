@@ -16,6 +16,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useRevokeAuthority } from '@/hooks/revoke-authority/use-revoke-authority';
 import { TokenBasicInfo } from '@/hooks/revoke-authority/use-token-authorities';
+import { toast } from 'sonner';
 
 interface RevokeMintTabProps {
   tokenAddress: string;
@@ -42,17 +43,35 @@ export function RevokeMintTab({
     signTransaction,
     connection,
     programId: tokenInfo?.programId,
-    onSuccess: () => {
-      setIsDialogOpen(false);
-      if (onSuccess) onSuccess();
-    },
   });
 
   const handleRevoke = async () => {
-    const success = await revokeMintAuthority();
-    if (success) {
-      setIsDialogOpen(false);
+    const result = await revokeMintAuthority();
+
+    if (!result.success) {
+      toast.error(result.error || 'Failed to revoke mint authority');
+      return;
     }
+
+    // Success case
+    const rpc = connection.rpcEndpoint;
+    const isDevnet = rpc.includes('devnet');
+    const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
+
+    toast.success('Mint authority revoked successfully!', {
+      description: 'This token can no longer mint new supply',
+      action: {
+        label: 'View Transaction',
+        onClick: () =>
+          window.open(
+            `https://orb.helius.dev/tx/${result.signature}?cluster=${cluster}&tab=summary`,
+            '_blank',
+          ),
+      },
+    });
+
+    setIsDialogOpen(false);
+    if (onSuccess) onSuccess();
   };
 
   return (

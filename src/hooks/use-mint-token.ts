@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { PublicKey, Transaction } from '@solana/web3.js';
-import { toast } from 'sonner';
+import { PublicKey, Transaction, Connection } from '@solana/web3.js';
 import { TokenInfo } from './use-token-info';
 import { createMintTransaction } from '@/lib/mint-transaction';
 import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 import { useInviteFeature } from '@/hooks/use-invite-feature';
-import { Connection } from '@solana/web3.js';
 
 export const isValidAmount = (amount: string): boolean => {
   if (!amount || amount.trim() === '') return false;
@@ -17,7 +15,7 @@ interface UseMintTokenParams {
   tokenAddress: string;
   tokenInfo: TokenInfo | null;
   publicKey: PublicKey | null;
-  signTransaction: ((transaction: Transaction) => Promise<Transaction>) | undefined;
+  signTransaction?: (transaction: Transaction) => Promise<Transaction>;
   connection: Connection;
   onSuccess?: () => void;
 }
@@ -31,30 +29,24 @@ export const useMintToken = ({
   onSuccess,
 }: UseMintTokenParams) => {
   const [isMinting, setIsMinting] = useState(false);
-
   const isFreeFeature = useInviteFeature('Mint Additional Supply');
 
   const mintTokens = async (mintAmount: string) => {
     if (!publicKey || !signTransaction) {
-      toast.error('Please connect your wallet');
-      return false;
+      return { ok: false, error: 'WALLET_NOT_CONNECTED' };
     }
 
     if (!tokenInfo?.canMint) {
-      toast.error('You do not have mint authority');
-      return false;
+      return { ok: false, error: 'NO_MINT_AUTHORITY' };
     }
 
     if (!isValidAmount(mintAmount)) {
-      toast.error('Please enter a valid amount (must be a positive number)');
-      return false;
+      return { ok: false, error: 'INVALID_AMOUNT' };
     }
 
     const numAmount = parseFloat(mintAmount);
-
     if (numAmount > Number.MAX_SAFE_INTEGER / Math.pow(10, tokenInfo.decimals)) {
-      toast.error('Amount is too large');
-      return false;
+      return { ok: false, error: 'AMOUNT_TOO_LARGE' };
     }
 
     setIsMinting(true);
@@ -78,41 +70,18 @@ export const useMintToken = ({
       transaction.recentBlockhash = blockhash;
 
       const signed = await signTransaction(transaction);
-
       const signature = await connection.sendRawTransaction(signed.serialize(), {
         skipPreflight: false,
         preflightCommitment: 'confirmed',
       });
 
-      if (onSuccess) {
-        onSuccess();
-      }
-
       await connection.confirmTransaction(signature, 'confirmed');
 
-      toast.success('Mint token successful', {
-        description: `You have minted ${numAmount.toLocaleString()} ${tokenInfo.metadata?.symbol || 'tokens'}`,
-        action: {
-          label: 'View Transaction',
-          onClick: () =>
-            window.open(
-              `https://orb.helius.dev/tx/${signature}?cluster=mainnet-beta&tab=summary`,
-              '_blank',
-            ),
-        },
-      });
+      if (onSuccess) onSuccess();
 
-      return true;
-    } catch (error: unknown) {
-      console.error('Mint error:', error);
-
-      if (error instanceof Error) {
-        toast.error(`Mint failed: ${error.message}`);
-      } else {
-        toast.error('Mint failed');
-      }
-
-      return false;
+      return { ok: true, signature };
+    } catch {
+      return { ok: false, error: 'MINT_FAILED' };
     } finally {
       setIsMinting(false);
     }

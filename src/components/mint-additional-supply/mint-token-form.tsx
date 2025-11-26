@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTokenInfo } from '@/hooks/use-token-info';
 import { useMintToken, isValidAmount } from '@/hooks/use-mint-token';
 import { useConnection } from '@/hooks/use-connection';
@@ -16,6 +17,7 @@ export default function MintTokenForm() {
   const isMobile = useIsMobile();
   const { publicKey, signTransaction } = useWallet();
   const connection = useConnection();
+
   const [tokenAddress, setTokenAddress] = useState('');
   const [mintAmount, setMintAmount] = useState('');
 
@@ -37,6 +39,42 @@ export default function MintTokenForm() {
       setMintAmount('');
     },
   });
+
+  const showToastError = (code: string) => {
+    const messages: Record<string, string> = {
+      WALLET_NOT_CONNECTED: 'Please connect your wallet.',
+      NO_MINT_AUTHORITY: 'You do not have mint authority.',
+      INVALID_AMOUNT: 'Please enter a valid positive amount.',
+      AMOUNT_TOO_LARGE: 'Amount too large.',
+      MINT_FAILED: 'Mint failed.',
+    };
+    toast.error(messages[code] || code);
+  };
+
+  const handleMint = async () => {
+    const result = await mintTokens(mintAmount);
+
+    if (!result.ok) {
+      showToastError(result.error ?? 'MINT_FAILED');
+      return;
+    }
+
+    const rpc = connection.rpcEndpoint;
+    const isDevnet = rpc.includes('devnet');
+    const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
+
+    toast.success('Mint token successful', {
+      description: `You have minted ${Number(mintAmount).toLocaleString()} ${tokenInfo?.metadata?.symbol || 'tokens'}`,
+      action: {
+        label: 'View Transaction',
+        onClick: () =>
+          window.open(
+            `https://orb.helius.dev/tx/${result.signature}?cluster=${cluster}&tab=summary`,
+            '_blank',
+          ),
+      },
+    });
+  };
 
   const canMint = tokenInfo?.canMint && isValidAmount(mintAmount);
 
@@ -79,8 +117,8 @@ export default function MintTokenForm() {
           {tokenInfo && !tokenInfo.canMint && (
             <div className="p-4 bg-amber-50 border-2 border-amber-400 rounded-lg">
               <p className="text-sm text-amber-800 font-medium">
-                <strong className="text-amber-900">No Permission:</strong> You don&apos;t have
-                permission to mint this token. The mint authority belongs to another wallet.
+                <strong className="text-amber-900">No Permission:</strong> You don&apos;t have mint
+                authority.
               </p>
             </div>
           )}
@@ -95,7 +133,7 @@ export default function MintTokenForm() {
 
               <Button
                 disabled={!canMint || isMinting}
-                onClick={() => mintTokens(mintAmount)}
+                onClick={handleMint}
                 className="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 rounded-lg transition-colors duration-200 disabled:bg-gray-400"
               >
                 {isMinting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -104,8 +142,7 @@ export default function MintTokenForm() {
 
               <div className="p-3 bg-gray-50 border-2 border-gray-300 rounded-lg">
                 <p className="text-xs text-gray-700 leading-relaxed">
-                  <strong className="text-black">Note:</strong> Minting will increase the total
-                  supply of this token. Make sure you have mint authority for this token address.
+                  <strong className="text-black">Note:</strong> Minting will increase total supply.
                 </p>
               </div>
             </div>

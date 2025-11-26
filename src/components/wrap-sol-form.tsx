@@ -12,7 +12,6 @@ import { Loader2, ArrowDownUp } from 'lucide-react';
 import { wrapSol, unwrapSol, getWsolBalance } from '@/service/solana/wrap-sol';
 import { useConnection } from '@/hooks/use-connection';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useNetwork } from '@/context/NetworkContext';
 
 export default function WrapSolForm() {
   const isMobile = useIsMobile();
@@ -24,7 +23,6 @@ export default function WrapSolForm() {
   const [solBalance, setSolBalance] = useState(0);
   const [wsolBalance, setWsolBalance] = useState(0);
   const [isLoadingBalances, setIsLoadingBalances] = useState(false);
-  const { network } = useNetwork();
 
   const loadBalances = useCallback(async () => {
     if (!publicKey) return;
@@ -68,17 +66,19 @@ export default function WrapSolForm() {
     try {
       const result = await wrapSol(publicKey, signTransaction, amount, connection);
 
+      const rpc = connection.rpcEndpoint;
+      const isDevnet = rpc.includes('devnet');
+      const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
+
       toast.success(`Wrapped ${amount} SOL successfully`, {
         description: `WSOL Address: ${result.wsolAddress.slice(0, 8)}...`,
         action: {
-          label: 'View on Solscan',
+          label: 'View on Orb',
           onClick: () => {
-            const solscanTxUrl =
-              network === 'devnet'
-                ? `https://solscan.io/tx/${result.signature}?cluster=devnet`
-                : `https://solscan.io/tx/${result.signature}`;
-
-            window.open(solscanTxUrl, '_blank');
+            window.open(
+              `https://orb.helius.dev/tx/${result.signature}?cluster=${cluster}&tab=summary`,
+              '_blank',
+            );
           },
         },
       });
@@ -107,10 +107,18 @@ export default function WrapSolForm() {
     try {
       const signature = await unwrapSol(publicKey, signTransaction, connection);
 
+      const rpc = connection.rpcEndpoint;
+      const isDevnet = rpc.includes('devnet');
+      const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
+
       toast.success(`Unwrapped ${wsolBalance} WSOL successfully`, {
         action: {
-          label: 'View on Solscan',
-          onClick: () => window.open(`https://solscan.io/tx/${signature}?cluster=devnet`, '_blank'),
+          label: 'View on Orb',
+          onClick: () =>
+            window.open(
+              `https://orb.helius.dev/tx/${signature}?cluster=${cluster}&tab=summary`,
+              '_blank',
+            ),
         },
       });
 

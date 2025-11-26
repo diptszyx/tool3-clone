@@ -11,14 +11,11 @@ import { AlertCircle, Copy, ExternalLink } from 'lucide-react';
 import { useConnection } from '@/hooks/use-connection';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useNetwork } from '@/context/NetworkContext';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { FEE_AMOUNT } from '@/lib/clone-token/create-clone-transaction';
 
 export default function CloneTokenForm() {
   const isMobile = useIsMobile();
   const connection = useConnection();
-  const { network } = useNetwork();
 
   const {
     tokenInfo,
@@ -70,10 +67,9 @@ export default function CloneTokenForm() {
   useEffect(() => {
     if (!result) return;
 
-    const solscan =
-      network === WalletAdapterNetwork.Devnet
-        ? `https://solscan.io/token/${result.mintAddress}?cluster=devnet`
-        : `https://solscan.io/token/${result.mintAddress}`;
+    const rpc = connection.rpcEndpoint;
+    const isDevnet = rpc.includes('devnet');
+    const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
 
     toast.success('Token cloned successfully!', {
       description: (
@@ -98,12 +94,12 @@ export default function CloneTokenForm() {
           </div>
 
           <a
-            href={solscan}
+            href={`https://orb.helius.dev/address/${result.mintAddress}?cluster=${cluster}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1 text-xs text-blue-600 hover:underline"
           >
-            View on Solscan
+            View on Orb
             <ExternalLink className="h-3 w-3" />
           </a>
         </div>
@@ -115,7 +111,7 @@ export default function CloneTokenForm() {
       reset();
       resetCreate();
     }, 500);
-  }, [result, network, reset, resetCreate]);
+  }, [result, connection, reset, resetCreate]);
 
   return (
     <div className={`max-h-[calc(100vh-100px)] overflow-y-auto ${isMobile ? 'py-2' : 'py-6'}`}>

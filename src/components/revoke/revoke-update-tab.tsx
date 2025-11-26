@@ -16,6 +16,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useRevokeAuthority } from '@/hooks/revoke-authority/use-revoke-authority';
 import { TokenBasicInfo } from '@/hooks/revoke-authority/use-token-authorities';
+import { toast } from 'sonner';
 
 interface RevokeUpdateTabProps {
   tokenAddress: string;
@@ -35,23 +36,42 @@ export function RevokeUpdateTab({
   onSuccess,
 }: RevokeUpdateTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const { revokeUpdateAuthority, isRevoking } = useRevokeAuthority({
     tokenAddress,
     publicKey,
     signTransaction,
     connection,
     programId: tokenInfo?.programId,
-    onSuccess: () => {
-      setIsDialogOpen(false);
-      if (onSuccess) onSuccess();
-    },
   });
 
   const handleRevoke = async () => {
-    const success = await revokeUpdateAuthority();
-    if (success) {
-      setIsDialogOpen(false);
+    const result = await revokeUpdateAuthority();
+
+    if (!result.success) {
+      toast.error(result.error || 'Failed to revoke update authority');
+      return;
     }
+
+    // Success case
+    const rpc = connection.rpcEndpoint;
+    const isDevnet = rpc.includes('devnet');
+    const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
+
+    toast.success('Update authority revoked successfully!', {
+      description: 'Token metadata can no longer be updated',
+      action: {
+        label: 'View Transaction',
+        onClick: () =>
+          window.open(
+            `https://orb.helius.dev/tx/${result.signature}?cluster=${cluster}&tab=summary`,
+            '_blank',
+          ),
+      },
+    });
+
+    setIsDialogOpen(false);
+    if (onSuccess) onSuccess();
   };
 
   return (
@@ -80,9 +100,7 @@ export function RevokeUpdateTab({
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm text-black font-semibold">
-          <strong>What happens after revoking:</strong>
-        </p>
+        <p className="text-sm text-black font-semibold">What happens after revoking:</p>
         <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
           <li>Token metadata (name, symbol, URI) becomes immutable</li>
           <li>No one can update metadata ever again</li>
@@ -110,8 +128,8 @@ export function RevokeUpdateTab({
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2">
               <p className="text-gray-700">
-                This will <strong className="text-black">permanently revoke</strong> your mint
-                authority. You will never be able to mint more tokens for this address.
+                This will <strong className="text-black">permanently revoke</strong> your update
+                authority. You will never be able to update token metadata for this address.
               </p>
               <p className="text-gray-800 font-bold">This action cannot be undone.</p>
             </AlertDialogDescription>

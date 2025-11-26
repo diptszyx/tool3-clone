@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { PublicKey, Transaction } from '@solana/web3.js';
-import { Connection } from '@solana/web3.js';
-import { toast } from 'sonner';
+import { PublicKey, Transaction, Connection } from '@solana/web3.js';
 import {
   createRevokeMintAuthorityTx,
   createRevokeFreezeAuthorityTx,
@@ -14,7 +12,12 @@ interface UseRevokeAuthorityParams {
   signTransaction: ((transaction: Transaction) => Promise<Transaction>) | undefined;
   connection: Connection;
   programId: PublicKey | undefined;
-  onSuccess?: () => void;
+}
+
+export interface RevokeResult {
+  success: boolean;
+  signature?: string;
+  error?: string;
 }
 
 export function useRevokeAuthority({
@@ -23,14 +26,12 @@ export function useRevokeAuthority({
   signTransaction,
   connection,
   programId,
-  onSuccess,
 }: UseRevokeAuthorityParams) {
   const [isRevoking, setIsRevoking] = useState(false);
 
-  const revokeMintAuthority = async () => {
+  const revokeMintAuthority = async (): Promise<RevokeResult> => {
     if (!publicKey || !signTransaction || !programId) {
-      toast.error('Please connect your wallet');
-      return false;
+      return { success: false, error: 'Please connect your wallet' };
     }
 
     setIsRevoking(true);
@@ -53,42 +54,19 @@ export function useRevokeAuthority({
 
       await connection.confirmTransaction(signature, 'confirmed');
 
-      toast.success(' Mint authority revoked successfully!', {
-        description: 'This token can no longer mint new supply',
-        action: {
-          label: 'View Transaction',
-          onClick: () =>
-            window.open(
-              `https://orb.helius.dev/tx/${signature}?cluster=mainnet-beta&tab=summary`,
-              '_blank',
-            ),
-        },
-      });
-
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      return true;
+      return { success: true, signature };
     } catch (error: unknown) {
       console.error('Revoke mint authority error:', error);
-
-      if (error instanceof Error) {
-        toast.error(`Failed to revoke mint authority: ${error.message}`);
-      } else {
-        toast.error('Failed to revoke mint authority');
-      }
-
-      return false;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return { success: false, error: errorMessage };
     } finally {
       setIsRevoking(false);
     }
   };
 
-  const revokeFreezeAuthority = async () => {
+  const revokeFreezeAuthority = async (): Promise<RevokeResult> => {
     if (!publicKey || !signTransaction || !programId) {
-      toast.error('Please connect your wallet');
-      return false;
+      return { success: false, error: 'Please connect your wallet' };
     }
 
     setIsRevoking(true);
@@ -111,42 +89,19 @@ export function useRevokeAuthority({
 
       await connection.confirmTransaction(signature, 'confirmed');
 
-      toast.success('Freeze authority revoked successfully!', {
-        description: 'This token can no longer freeze accounts',
-        action: {
-          label: 'View Transaction',
-          onClick: () =>
-            window.open(
-              `https://orb.helius.dev/tx/${signature}?cluster=mainnet-beta&tab=summary`,
-              '_blank',
-            ),
-        },
-      });
-
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      return true;
+      return { success: true, signature };
     } catch (error: unknown) {
       console.error('Revoke freeze authority error:', error);
-
-      if (error instanceof Error) {
-        toast.error(`Failed to revoke freeze authority: ${error.message}`);
-      } else {
-        toast.error('Failed to revoke freeze authority');
-      }
-
-      return false;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return { success: false, error: errorMessage };
     } finally {
       setIsRevoking(false);
     }
   };
 
-  const revokeUpdateAuthority = async () => {
+  const revokeUpdateAuthority = async (): Promise<RevokeResult> => {
     if (!publicKey || !signTransaction || !programId) {
-      toast.error('Please connect your wallet');
-      return false;
+      return { success: false, error: 'Please connect your wallet' };
     }
 
     setIsRevoking(true);
@@ -169,33 +124,11 @@ export function useRevokeAuthority({
 
       await connection.confirmTransaction(signature, 'confirmed');
 
-      toast.success('Update authority revoked successfully!', {
-        description: 'Token metadata can no longer be updated',
-        action: {
-          label: 'View Transaction',
-          onClick: () =>
-            window.open(
-              `https://orb.helius.dev/tx/${signature}?cluster=mainnet-beta&tab=summary`,
-              '_blank',
-            ),
-        },
-      });
-
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      return true;
+      return { success: true, signature };
     } catch (error: unknown) {
       console.error('Revoke update authority error:', error);
-
-      if (error instanceof Error) {
-        toast.error(`Failed to revoke update authority: ${error.message}`);
-      } else {
-        toast.error('Failed to revoke update authority');
-      }
-
-      return false;
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      return { success: false, error: errorMessage };
     } finally {
       setIsRevoking(false);
     }
