@@ -4,7 +4,12 @@ const STORAGE_KEY = 'invite_code_data';
 
 export function saveInviteCode(data: SavedInviteCode): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const normalizedData = {
+      ...data,
+      expiresAt: data.expiresAt && data.expiresAt.trim() !== '' ? data.expiresAt.trim() : null,
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalizedData));
   } catch (error) {
     console.error('Failed to save invite code:', error);
   }
@@ -42,7 +47,7 @@ export function isFeatureFree(featureName: string): boolean {
 
   if (!saved.features.includes(featureName)) return false;
 
-  if (saved.expiresAt === null) return true;
+  if (!saved.expiresAt) return true;
 
   try {
     const expiresDate = parseDate(saved.expiresAt);

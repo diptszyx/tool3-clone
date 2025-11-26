@@ -85,6 +85,22 @@ export const route = {
           title: 'Wallet Asset Migration',
           url: '/wallet-asset-migration',
         },
+        {
+          title: 'Mint Token',
+          url: '/mint-token',
+        },
+        {
+          title: 'Wrap or Unwrap SOL',
+          url: '/wrap-sol',
+        },
+        {
+          title: 'Revoke Authority',
+          url: '/revoke-authority',
+        },
+        {
+          title: 'Clone Token',
+          url: '/clone-token',
+        },
       ],
     },
     {
@@ -170,6 +186,22 @@ export const route = {
           title: 'Permanent Delegate',
           url: '/permanent-delegate-recovery?cluster=devnet',
         },
+        {
+          title: 'Mint Token',
+          url: '/mint-tokeny?cluster=devnet',
+        },
+        {
+          title: 'Wrap or Unwrap SOL',
+          url: '/wrap-sol?cluster=devnet',
+        },
+        {
+          title: 'Revoke Authority',
+          url: '/revoke-authority?cluster=devnet',
+        },
+        {
+          title: 'Clone Token',
+          url: '/clone-token?cluster=devnet',
+        },
       ],
     },
     {
@@ -222,6 +254,10 @@ export function AppSidebar() {
         'Update Extensions',
         'Burn Token',
         'Permanent Delegate',
+        'Mint Token',
+        'Wrap or Unwrap Sol',
+        'Revoke Authority',
+        'Clone Token',
       ];
 
       allFeatures.forEach((feature) => {

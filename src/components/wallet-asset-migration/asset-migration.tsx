@@ -12,7 +12,7 @@ import { ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import MigrationConfirmModal from './migration-confirm-modal';
 import { useWalletData } from '@/hooks/use-wallet-data';
-import { useMigration } from '@/hooks/useMigration';
+import { useMigration } from '@/hooks/use-migration';
 import {
   SingleMigrationSuccess,
   MultiMigrationSuccess,
