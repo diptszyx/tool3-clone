@@ -18,7 +18,7 @@ export default function RevokeAuthorityForm() {
   const [tokenAddress, setTokenAddress] = useState('');
   const isMobile = useIsMobile();
 
-  const { authorities, tokenInfo, isChecking, refetch } = useTokenAuthorities(
+  const { authorities, tokenInfo, isChecking, error, refetch } = useTokenAuthorities(
     tokenAddress,
     publicKey,
     connection,
@@ -59,6 +59,7 @@ export default function RevokeAuthorityForm() {
             onChange={setTokenAddress}
             isChecking={isChecking}
             authorities={authorities}
+            error={error}
           />
 
           {authorities && tokenInfo && (

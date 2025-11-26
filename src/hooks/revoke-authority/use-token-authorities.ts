@@ -5,8 +5,8 @@ import {
   TOKEN_PROGRAM_ID,
   TOKEN_2022_PROGRAM_ID,
   getMetadataPointerState,
+  getTokenMetadata,
 } from '@solana/spl-token';
-import { toast } from 'sonner';
 
 export interface TokenAuthorities {
   mintAuthority: string | null;
@@ -39,6 +39,96 @@ const isValidAddress = (address: string): boolean => {
   }
 };
 
+async function getToken2022UpdateAuthority(
+  connection: Connection,
+  metadataAddress: PublicKey,
+  mintAddress: PublicKey,
+  walletPublicKey: PublicKey,
+): Promise<{ authority: string | null; hasAuthority: boolean }> {
+  try {
+    const accountInfo = await connection.getAccountInfo(metadataAddress);
+    if (!accountInfo) return { authority: null, hasAuthority: false };
+
+    const isSameMint = metadataAddress.equals(mintAddress);
+
+    if (isSameMint) {
+      try {
+        const metadata = await getTokenMetadata(
+          connection,
+          mintAddress,
+          'confirmed',
+          TOKEN_2022_PROGRAM_ID,
+        );
+        if (metadata && metadata.updateAuthority) {
+          const updateAuthority = new PublicKey(metadata.updateAuthority);
+          return {
+            authority: updateAuthority.toBase58(),
+            hasAuthority: updateAuthority.equals(walletPublicKey),
+          };
+        } else {
+          return { authority: null, hasAuthority: false };
+        }
+      } catch {
+        return await readMetadataManually(accountInfo.data, walletPublicKey, true);
+      }
+    } else {
+      return await readMetadataManually(accountInfo.data, walletPublicKey, false);
+    }
+  } catch {
+    return { authority: null, hasAuthority: false };
+  }
+}
+
+async function readMetadataManually(
+  data: Buffer,
+  walletPublicKey: PublicKey,
+  isInMintAccount: boolean,
+): Promise<{ authority: string | null; hasAuthority: boolean }> {
+  try {
+    if (isInMintAccount) {
+      let offset = data.length;
+      while (offset > 86) {
+        const extensionLength = data.readUInt16LE(offset - 2);
+        const extensionType = data.readUInt16LE(offset - 4);
+        if (extensionType === 3) {
+          const extensionStart = offset - 4 - extensionLength;
+          const updateAuthorityOption = data[extensionStart];
+          if (updateAuthorityOption === 0) return { authority: null, hasAuthority: false };
+
+          const updateAuthorityBytes = data.slice(extensionStart + 1, extensionStart + 33);
+          if (updateAuthorityBytes.every((b) => b === 0))
+            return { authority: null, hasAuthority: false };
+
+          const updateAuthority = new PublicKey(updateAuthorityBytes);
+          return {
+            authority: updateAuthority.toBase58(),
+            hasAuthority: updateAuthority.equals(walletPublicKey),
+          };
+        }
+        offset = offset - 4 - extensionLength;
+      }
+      return { authority: null, hasAuthority: false };
+    } else {
+      if (data.length < 65) return { authority: null, hasAuthority: false };
+
+      const updateAuthorityOption = data[0];
+      if (updateAuthorityOption === 0) return { authority: null, hasAuthority: false };
+
+      const updateAuthorityBytes = data.slice(1, 33);
+      if (updateAuthorityBytes.every((b) => b === 0))
+        return { authority: null, hasAuthority: false };
+
+      const updateAuthority = new PublicKey(updateAuthorityBytes);
+      return {
+        authority: updateAuthority.toBase58(),
+        hasAuthority: updateAuthority.equals(walletPublicKey),
+      };
+    }
+  } catch {
+    return { authority: null, hasAuthority: false };
+  }
+}
+
 export function useTokenAuthorities(
   tokenAddress: string,
   walletPublicKey: PublicKey | null,
@@ -47,25 +137,27 @@ export function useTokenAuthorities(
   const [authorities, setAuthorities] = useState<TokenAuthorities | null>(null);
   const [tokenInfo, setTokenInfo] = useState<TokenBasicInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const checkAuthorities = useCallback(async () => {
     if (!tokenAddress || !walletPublicKey) {
       setAuthorities(null);
       setTokenInfo(null);
+      setError(null);
       return;
     }
-
     if (!isValidAddress(tokenAddress)) {
       setAuthorities(null);
       setTokenInfo(null);
-      toast.error('Invalid token address format');
+      setError('Invalid token address format');
       return;
     }
 
     setIsChecking(true);
     setAuthorities(null);
     setTokenInfo(null);
+    setError(null);
 
     try {
       const mintPubkey = new PublicKey(tokenAddress);
@@ -81,45 +173,47 @@ export function useTokenAuthorities(
           programId = TOKEN_2022_PROGRAM_ID;
           isToken2022 = true;
         } catch {
-          throw new Error('Token does not exist or invalid address. Please verify and try again.');
+          throw new Error('Token does not exist or invalid address');
         }
       }
 
       const hasMintAuthority =
         mintInfo.mintAuthority !== null && mintInfo.mintAuthority.equals(walletPublicKey);
-      const canRevokeMint = hasMintAuthority;
-
       const hasFreezeAuthority =
         mintInfo.freezeAuthority !== null && mintInfo.freezeAuthority.equals(walletPublicKey);
-      const canRevokeFreeze = hasFreezeAuthority;
 
       let updateAuthority: string | null = null;
       let hasUpdateAuthority = false;
-      let canRevokeUpdate = false;
 
       if (isToken2022) {
         try {
           const metadataPointer = getMetadataPointerState(mintInfo);
-          if (metadataPointer?.authority) {
-            updateAuthority = metadataPointer.authority.toBase58();
-            hasUpdateAuthority = metadataPointer.authority.equals(walletPublicKey);
-            canRevokeUpdate = hasUpdateAuthority;
+          if (metadataPointer?.metadataAddress) {
+            const result = await getToken2022UpdateAuthority(
+              connection,
+              metadataPointer.metadataAddress,
+              mintPubkey,
+              walletPublicKey,
+            );
+            updateAuthority = result.authority;
+            hasUpdateAuthority = result.hasAuthority;
           }
         } catch {}
       }
 
-      setAuthorities({
+      const authResult: TokenAuthorities = {
         mintAuthority: mintInfo.mintAuthority?.toBase58() || null,
         freezeAuthority: mintInfo.freezeAuthority?.toBase58() || null,
         updateAuthority,
         hasMintAuthority,
         hasFreezeAuthority,
         hasUpdateAuthority,
-        canRevokeMint,
-        canRevokeFreeze,
-        canRevokeUpdate,
-      });
+        canRevokeMint: hasMintAuthority,
+        canRevokeFreeze: hasFreezeAuthority,
+        canRevokeUpdate: hasUpdateAuthority,
+      };
 
+      setAuthorities(authResult);
       setTokenInfo({
         isToken2022,
         decimals: mintInfo.decimals,
@@ -127,18 +221,13 @@ export function useTokenAuthorities(
         programId,
       });
 
-      const hasAnyAuthority = hasMintAuthority || hasFreezeAuthority || hasUpdateAuthority;
-      if (!hasAnyAuthority) {
-        toast.warning('You do not have any authority for this token');
+      if (!hasMintAuthority && !hasFreezeAuthority && !hasUpdateAuthority) {
+        setError('no_authority');
       }
-    } catch (error) {
+    } catch (err) {
       setAuthorities(null);
       setTokenInfo(null);
-      if (error instanceof Error) {
-        console.error(error.message);
-      } else {
-        toast.error('Failed to check token. Please verify the address.');
-      }
+      setError(err instanceof Error ? err.message : 'Failed to check token');
     } finally {
       setIsChecking(false);
     }
@@ -148,7 +237,6 @@ export function useTokenAuthorities(
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-
     abortControllerRef.current = new AbortController();
 
     const timer = setTimeout(() => {
@@ -157,6 +245,7 @@ export function useTokenAuthorities(
       } else {
         setAuthorities(null);
         setTokenInfo(null);
+        setError(null);
       }
     }, 800);
 
@@ -172,6 +261,7 @@ export function useTokenAuthorities(
     authorities,
     tokenInfo,
     isChecking,
+    error,
     refetch: checkAuthorities,
   };
 }

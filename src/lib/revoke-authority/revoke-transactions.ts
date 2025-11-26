@@ -1,5 +1,6 @@
 import { Transaction, PublicKey, Connection } from '@solana/web3.js';
 import { createSetAuthorityInstruction, AuthorityType } from '@solana/spl-token';
+import { createUpdateAuthorityInstruction as createMetadataUpdateAuthorityInstruction } from '@solana/spl-token-metadata';
 
 export interface RevokeAuthorityParams {
   tokenMint: PublicKey;
@@ -68,16 +69,19 @@ export async function createRevokeUpdateAuthorityTx({
 }: RevokeAuthorityParams): Promise<Transaction> {
   const tx = new Transaction();
 
-  tx.add(
-    createSetAuthorityInstruction(
-      tokenMint,
-      currentAuthority,
-      AuthorityType.MetadataPointer,
-      null,
-      [],
+  try {
+    const instruction = createMetadataUpdateAuthorityInstruction({
+      metadata: tokenMint,
+      oldAuthority: currentAuthority,
+      newAuthority: null,
       programId,
-    ),
-  );
+    });
+
+    tx.add(instruction);
+  } catch (error) {
+    console.error('Error creating revoke update authority transaction:', error);
+    throw error;
+  }
 
   tx.feePayer = currentAuthority;
   const { blockhash } = await connection.getLatestBlockhash();

@@ -52,6 +52,7 @@ export function useCreateClone(connection: Connection): UseCreateCloneResult {
           decimals: tokenInfo.decimals,
           supply: 1000000,
           inviteCode,
+          programId: tokenInfo.programId,
         });
 
         transaction.feePayer = publicKey;
