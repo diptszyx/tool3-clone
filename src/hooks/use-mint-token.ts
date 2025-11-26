@@ -29,7 +29,7 @@ export const useMintToken = ({
   onSuccess,
 }: UseMintTokenParams) => {
   const [isMinting, setIsMinting] = useState(false);
-  const isFreeFeature = useInviteFeature('Mint Additional Supply');
+  const isFreeFeature = useInviteFeature('Mint Token');
 
   const mintTokens = async (mintAmount: string) => {
     if (!publicKey || !signTransaction) {

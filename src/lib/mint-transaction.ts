@@ -54,7 +54,7 @@ export async function createMintTransaction(params: MintTransactionParams): Prom
 
   const tx = new Transaction();
 
-  const hasInviteAccess = await isFeatureFreeServer('Mint Additional Supply', inviteCode);
+  const hasInviteAccess = await isFeatureFreeServer('Mint Token', inviteCode);
   const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
 
   if (ADMIN_PUBLIC_KEY && !hasInviteAccess) {

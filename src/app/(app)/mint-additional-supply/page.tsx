@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import MintForm from '@/components/mint-additional-supply/mint-token-form';
 
 export const metadata: Metadata = {
-  title: 'Mint Additional Supply',
+  title: 'Mint Token',
   description: '',
 };
 

@@ -83,7 +83,7 @@ export default function MintTokenForm() {
       <div className={`md:p-2 max-w-md mx-auto my-2 ${!isMobile && 'border-gear'}`}>
         <div className="space-y-6 px-[5px]">
           <div className="space-y-2 text-center">
-            <h1 className="text-2xl font-bold text-black">Mint Additional Token Supply</h1>
+            <h1 className="text-2xl font-bold text-black">Mint Token</h1>
             <p className="text-sm text-gray-700">Supports SPL Token and Token-2022</p>
           </div>
 

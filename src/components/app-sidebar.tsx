@@ -86,8 +86,8 @@ export const route = {
           url: '/wallet-asset-migration',
         },
         {
-          title: 'Mint Additional Supply',
-          url: '/mint-additional-supply',
+          title: 'Mint Token',
+          url: '/mint-token',
         },
         {
           title: 'Wrap or Unwrap SOL',
@@ -187,8 +187,8 @@ export const route = {
           url: '/permanent-delegate-recovery?cluster=devnet',
         },
         {
-          title: 'Mint Additional Supply',
-          url: '/mint-additional-supply?cluster=devnet',
+          title: 'Mint Token',
+          url: '/mint-tokeny?cluster=devnet',
         },
         {
           title: 'Wrap or Unwrap SOL',
@@ -254,7 +254,7 @@ export function AppSidebar() {
         'Update Extensions',
         'Burn Token',
         'Permanent Delegate',
-        'Mint Additional Supply',
+        'Mint Token',
         'Wrap or Unwrap Sol',
         'Revoke Authority',
         'Clone Token',
