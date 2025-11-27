@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import CloseAccountForm from '@/components/close-account/close-account-form';
 
 export const metadata: Metadata = {
-  title: 'Meteora DAMM - Create New Liquidity Pools Easily',
+  title: 'Solana Close Account | Reclaim Solana',
   description:
-    'Create a new liquidity pool effortlessly with Meteora DAMM. Experience seamless pool creation, secure transactions, and advanced AMM features.',
+    'Easily Reclaim Your Solana and Claim Your SOL with our seamless process. Use Solana close account to free up funds and optimize your wallet effortlessly.',
 };
 
 export default function CloseAccount() {

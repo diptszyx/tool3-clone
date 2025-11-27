@@ -5,6 +5,7 @@ import {
   createRevokeFreezeAuthorityTx,
   createRevokeUpdateAuthorityTx,
 } from '@/lib/revoke-authority/revoke-transactions';
+import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
 
 interface UseRevokeAuthorityParams {
   tokenAddress: string;
@@ -39,11 +40,15 @@ export function useRevokeAuthority({
     try {
       const mintPubkey = new PublicKey(tokenAddress);
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const transaction = await createRevokeMintAuthorityTx({
         tokenMint: mintPubkey,
         currentAuthority: publicKey,
         programId,
         connection,
+        inviteCode,
       });
 
       const signed = await signTransaction(transaction);
@@ -74,11 +79,15 @@ export function useRevokeAuthority({
     try {
       const mintPubkey = new PublicKey(tokenAddress);
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const transaction = await createRevokeFreezeAuthorityTx({
         tokenMint: mintPubkey,
         currentAuthority: publicKey,
         programId,
         connection,
+        inviteCode,
       });
 
       const signed = await signTransaction(transaction);
@@ -109,11 +118,15 @@ export function useRevokeAuthority({
     try {
       const mintPubkey = new PublicKey(tokenAddress);
 
+      const saved = getSavedInviteCode();
+      const inviteCode = saved?.code;
+
       const transaction = await createRevokeUpdateAuthorityTx({
         tokenMint: mintPubkey,
         currentAuthority: publicKey,
         programId,
         connection,
+        inviteCode,
       });
 
       const signed = await signTransaction(transaction);

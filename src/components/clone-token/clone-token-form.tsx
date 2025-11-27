@@ -12,10 +12,12 @@ import { useConnection } from '@/hooks/use-connection';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FEE_AMOUNT } from '@/lib/clone-token/create-clone-transaction';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 export default function CloneTokenForm() {
   const isMobile = useIsMobile();
   const connection = useConnection();
+  const isFreeFeature = useInviteFeature('Launch Token DBC Meteora');
 
   const {
     tokenInfo,
@@ -31,7 +33,6 @@ export default function CloneTokenForm() {
     result,
     createClone,
     reset: resetCreate,
-    isFreeFeature,
   } = useCreateClone(connection);
 
   const handleAddressChange = useCallback(

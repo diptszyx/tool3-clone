@@ -139,7 +139,7 @@ export async function createMultiSwapToSolTransactions(
   }
 
   const userSolBalance = await connectionMainnet.getBalance(walletPublicKey);
-  const estimatedGasFeePerTx = 0.001;
+  const estimatedGasFeePerTx = 0.002;
   const totalEstimatedGasFee = estimatedGasFeePerTx * batchTransactions.length;
 
   if (userSolBalance < totalEstimatedGasFee * LAMPORTS_PER_SOL) {

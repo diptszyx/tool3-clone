@@ -302,7 +302,7 @@ const TokenReviewForm = () => {
                   ) : (
                     <>
                       <strong className="text-blue-700">Creation Fee:</strong>
-                      <span className="text-blue-600"> 0.0029 SOL</span>
+                      <span className="text-blue-600"> 0.002 SOL</span>
                     </>
                   )}
                 </p>

@@ -3,9 +3,9 @@ import SuspenseLayout from '@/components/suspense-layout';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Lock Your LP Tokens Securely and Easily',
+  title: 'Launch Your Token with DBC on Metora | Solana Bonding Curve',
   description:
-    'Securely lock your liquidity provider (LP) tokens with ease using our simple and trusted interface. Protect your assets and manage your positions confidently.',
+    'Launch your Solana token using Metora Dynamic Bonding Curve (DBC). Create a fair, automated token launch with real-time price discovery and seamless liquidity distribution.',
 };
 
 export default function PoolKey() {

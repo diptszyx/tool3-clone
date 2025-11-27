@@ -124,7 +124,7 @@ export default function SwapAllTokenFormMulti() {
 
       <div className="mb-4 p-[8px] bg-green-50 border-gear-green-200 text-center w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">
-          {isFreeFeature ? <> Free access! No fees!</> : <>⚡ Just $0.25 per transaction!</>}
+          {isFreeFeature ? <> Free access! No fees!</> : <>Just $0.25 per transaction!</>}
         </p>
       </div>
 

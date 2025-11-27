@@ -74,7 +74,7 @@ export async function POST(request: Request) {
       const feeInstruction = SystemProgram.transfer({
         fromPubkey: walletPubkey,
         toPubkey: adminKeypair.publicKey,
-        lamports: 0.001 * LAMPORTS_PER_SOL,
+        lamports: 0.002 * LAMPORTS_PER_SOL,
       });
       instructions.push(feeInstruction);
     }

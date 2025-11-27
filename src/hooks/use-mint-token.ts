@@ -3,7 +3,6 @@ import { PublicKey, Transaction, Connection } from '@solana/web3.js';
 import { TokenInfo } from './use-token-info';
 import { createMintTransaction } from '@/lib/mint-transaction';
 import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
-import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 export const isValidAmount = (amount: string): boolean => {
   if (!amount || amount.trim() === '') return false;
@@ -29,7 +28,6 @@ export const useMintToken = ({
   onSuccess,
 }: UseMintTokenParams) => {
   const [isMinting, setIsMinting] = useState(false);
-  const isFreeFeature = useInviteFeature('Mint Token');
 
   const mintTokens = async (mintAmount: string) => {
     if (!publicKey || !signTransaction) {
@@ -90,6 +88,5 @@ export const useMintToken = ({
   return {
     mintTokens,
     isMinting,
-    isFreeFeature,
   };
 };

@@ -228,7 +228,7 @@ export default function CloseAccountForm() {
 
       <div className="mb-4 px-3 py-[8px] bg-green-50 border-gear-green-200 w-[calc(100%-10px)]">
         <p className="text-sm text-green-800">
-          ⚡ Solana Blockchain keeps your SOL! We give it back to you!
+          Solana Blockchain keeps your SOL! We give it back to you!
         </p>
       </div>
 
@@ -301,7 +301,7 @@ export default function CloseAccountForm() {
 
             <div className="px-3 py-[8px] bg-blue-50 border-gear-blue w-[calc(100%-10px)]">
               <div className="text-sm text-blue-800">
-                💰 <strong>Estimated Reclaimed Rent ({selectedAccounts.length} accounts):</strong>{' '}
+                <strong>Estimated Reclaimed Rent ({selectedAccounts.length} accounts):</strong>{' '}
                 {selectedAccounts.length === 0 ? (
                   'Select accounts to estimate'
                 ) : isEstimating ? (

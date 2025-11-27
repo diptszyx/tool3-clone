@@ -11,12 +11,15 @@ import { RevokeMintTab } from './revoke-mint-tab';
 import { RevokeFreezeTab } from './revoke-freeze-tab';
 import { RevokeUpdateTab } from './revoke-update-tab';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 export default function RevokeAuthorityForm() {
   const { publicKey, signTransaction } = useWallet();
   const connection = useConnection();
   const [tokenAddress, setTokenAddress] = useState('');
   const isMobile = useIsMobile();
+
+  const isFreeFeature = useInviteFeature('Revoke Authority');
 
   const { authorities, tokenInfo, isChecking, error, refetch } = useTokenAuthorities(
     tokenAddress,
@@ -50,6 +53,20 @@ export default function RevokeAuthorityForm() {
           </h2>
           <p className="text-sm text-gray-700">
             Permanently revoke mint, freeze, or update authorities for increased decentralization
+          </p>
+        </div>
+
+        <div
+          className={`p-3 rounded-lg border-2 ${
+            isFreeFeature ? 'bg-green-50 border-green-400' : 'bg-gray-50 border-gray-300'
+          }`}
+        >
+          <p className="text-sm font-medium">
+            {isFreeFeature ? (
+              <span className="text-green-800">Free access activated</span>
+            ) : (
+              <span className="text-gray-700">Revoke Fee: 0.002 SOL per action</span>
+            )}
           </p>
         </div>
 

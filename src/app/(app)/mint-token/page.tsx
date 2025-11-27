@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
-import MintForm from '@/components/mint-additional-supply/mint-token-form';
+import MintForm from '@/components/mint-token/mint-token-form';
 
 export const metadata: Metadata = {
-  title: 'Mint Token',
-  description: '',
+  title: 'Mint Solana Token Supply | No-Code & Cheap | Tool3',
+  description:
+    'The best an faster way to mint more supply of an SPL Token. No-Code solution created by Tool3',
 };
 
 export default function MintToken() {

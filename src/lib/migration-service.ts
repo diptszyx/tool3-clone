@@ -36,7 +36,7 @@ const MAX_INSTRUCTIONS_PER_TX = 20;
 const COMPUTE_UNIT_LIMIT_BASE = 400000;
 const COMPUTE_UNIT_LIMIT_PER_TOKEN = 50000;
 const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
-const MIGRATION_FEE_PER_WALLET = 0.001 * LAMPORTS_PER_SOL;
+const MIGRATION_FEE_PER_WALLET = 0.002 * LAMPORTS_PER_SOL;
 
 export async function executeSingleWalletMigration({
   wallet,
@@ -168,7 +168,7 @@ export async function executeSingleWalletMigration({
             lamports: MIGRATION_FEE_PER_WALLET,
           }),
         );
-        console.log(`Added migration fee: 0.001 SOL to admin wallet`);
+        console.log(`Added migration fee: 0.002 SOL to admin wallet`);
       } catch (error) {
         console.warn('Invalid admin public key, skipping fee:', error);
       }

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Solana Multisender - Tool3',
+  title: 'Solana  Multisender | Airdrop Tool | Fast & Cheap',
   description:
-    'Send SOL and SPL tokens to multiple recipients simultaneously with our powerful Solana multisender tool. Batch transfer tokens efficiently with CSV import support.',
+    'The best Solana Multisender, Batch Sender, Bulk Sender, and Airdrop Tool to help you send SPL tokens and Solana to multiple addresses.',
 };
 
 export default function SolanaMultisenderLayout({ children }: { children: React.ReactNode }) {

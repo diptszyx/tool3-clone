@@ -8,7 +8,6 @@ import {
   getTokenMetadata,
 } from '@solana/spl-token';
 import { Metadata } from '@metaplex-foundation/mpl-token-metadata';
-import { toast } from 'sonner';
 
 export interface TokenMetadata {
   name?: string;
@@ -71,6 +70,7 @@ export const useTokenInfo = (
   const [tokenInfo, setTokenInfo] = useState<TokenInfo | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const checkMintAuthority = useCallback(async () => {
     if (!tokenAddress || !publicKey) {
@@ -80,7 +80,7 @@ export const useTokenInfo = (
 
     if (!isValidAddress(tokenAddress)) {
       setTokenInfo(null);
-      toast.error('Invalid token address format');
+      setError('INVALID_ADDRESS');
       return;
     }
 
@@ -153,14 +153,14 @@ export const useTokenInfo = (
       setTokenInfo(info);
 
       if (!canMint) {
-        toast.warning('You do not have mint authority for this token');
+        setError('NO_MINT_AUTHORITY');
       }
     } catch (error) {
       setTokenInfo(null);
       if (error instanceof Error) {
         console.log(error.message);
       } else {
-        toast.error('Failed to check token. Please verify the address.');
+        setError('FETCH_FAILED');
       }
     } finally {
       setIsChecking(false);
@@ -205,6 +205,7 @@ export const useTokenInfo = (
   return {
     tokenInfo,
     isChecking,
+    error,
     refetch: checkMintAuthority,
     updateSupplyOptimistically,
   };
