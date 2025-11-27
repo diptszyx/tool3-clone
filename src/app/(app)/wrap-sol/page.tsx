@@ -3,7 +3,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Wrap SOL',
-  description: 'Convert SOL to Wrapped SOL (WSOL) quickly and easily.',
+  description: 'Easily wrap or unwrap Solana without Coding.',
 };
 
 export default function SwapSol() {

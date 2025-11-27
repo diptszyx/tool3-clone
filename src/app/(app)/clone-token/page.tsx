@@ -3,7 +3,8 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Clone Token',
-  description: 'Clone any token on Solana easily and quickly from your wallet.',
+  description:
+    'Solana token cloning tool allows you to quickly copy and fork token data to launch new projects instantly, enhancing market responsiveness.',
 };
 
 export default function CloneToken() {

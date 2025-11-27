@@ -294,7 +294,7 @@ export default function SwapSolForm() {
             variant="default"
             disabled={loading || !selectedToken}
           >
-            {loading ? 'Processing...' : '💫 Swap to SOL'}
+            {loading ? 'Processing...' : ' Swap to SOL'}
           </Button>
         </form>
       </Form>

@@ -8,20 +8,20 @@ interface TokenAddressInputProps {
   onChange: (value: string) => void;
   isChecking: boolean;
   authorities: TokenAuthorities | null;
+  error: string | null;
 }
-
-const isValidAddressFormat = (address: string): boolean => {
-  if (!address) return true;
-  return address.length >= 32 && address.length <= 44;
-};
 
 export function TokenAddressInput({
   value,
   onChange,
   isChecking,
   authorities,
+  error,
 }: TokenAddressInputProps) {
-  const hasAnyAuthority = authorities?.hasMintAuthority || authorities?.hasFreezeAuthority;
+  const hasAnyAuthority =
+    authorities?.hasMintAuthority ||
+    authorities?.hasFreezeAuthority ||
+    authorities?.hasUpdateAuthority;
 
   return (
     <div className="space-y-2">
@@ -41,14 +41,14 @@ export function TokenAddressInput({
           </div>
         )}
 
-        {!isChecking && value && !authorities && !isValidAddressFormat(value) && (
+        {!isChecking && error && error !== 'no_authority' && (
           <p className="text-sm text-red-500 flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
-            Invalid address format (must be 32-44 characters)
+            {error}
           </p>
         )}
 
-        {!isChecking && authorities && !hasAnyAuthority && (
+        {!isChecking && error === 'no_authority' && (
           <p className="text-sm text-amber-600 flex items-center gap-1">
             <AlertCircle className="h-3 w-3" />
             You do not own any authority for this token

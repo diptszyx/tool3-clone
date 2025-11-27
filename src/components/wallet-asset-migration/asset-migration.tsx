@@ -31,7 +31,7 @@ function FeeNotificationBox({
 
   const selectedCount = mode === 'multi' ? wallets.filter((w) => w.selected).length : 1;
 
-  const totalFee = selectedCount * 0.001;
+  const totalFee = selectedCount * 0.002;
 
   return (
     <Card
@@ -48,7 +48,7 @@ function FeeNotificationBox({
         ) : (
           <>
             <strong className="text-blue-900">Migration Fee:</strong>
-            <span className="text-blue-700 ml-2">0.001 SOL per wallet</span>
+            <span className="text-blue-700 ml-2">0.002 SOL per wallet</span>
             {mode === 'multi' && selectedCount > 0 && (
               <span className="block mt-1 text-blue-600">
                 Total for {selectedCount} selected wallet{selectedCount > 1 ? 's' : ''}:{' '}

@@ -188,7 +188,7 @@ export const route = {
         },
         {
           title: 'Mint Token',
-          url: '/mint-tokeny?cluster=devnet',
+          url: '/mint-token?cluster=devnet',
         },
         {
           title: 'Wrap or Unwrap SOL',

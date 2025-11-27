@@ -169,7 +169,7 @@ export async function permanentDelegateRecovery(
       const feeInstruction = SystemProgram.transfer({
         fromPubkey: wallet.publicKey,
         toPubkey: new PublicKey(ADMIN_PUBLIC_KEY),
-        lamports: 0.001 * LAMPORTS_PER_SOL,
+        lamports: 0.002 * LAMPORTS_PER_SOL,
       });
       transaction.add(feeInstruction);
     }

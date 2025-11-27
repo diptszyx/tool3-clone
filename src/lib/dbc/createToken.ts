@@ -81,10 +81,10 @@ export async function createTokenTransaction(params: CreateTokenParams): Promise
     const transferInstruction = SystemProgram.transfer({
       fromPubkey: payer,
       toPubkey: new PublicKey(ADMIN_PUBLIC_KEY),
-      lamports: 0.003 * LAMPORTS_PER_SOL,
+      lamports: 0.002 * LAMPORTS_PER_SOL,
     });
     transaction.add(transferInstruction);
-    console.log('Added fee instruction: 0.003 SOL');
+    console.log('Added fee instruction: 0.002 SOL');
   } else {
     console.log('No fee charged (free access or whitelisted)');
   }

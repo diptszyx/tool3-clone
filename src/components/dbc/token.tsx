@@ -182,7 +182,7 @@ export default function CreateTokenForm() {
               </>
             ) : (
               <>
-                <strong>Creation Fee:</strong> 0.003 SOL
+                <strong>Creation Fee:</strong> 0.002 SOL
               </>
             )}
           </p>

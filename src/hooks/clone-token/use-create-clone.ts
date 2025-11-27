@@ -4,7 +4,6 @@ import { buildCloneTransaction } from '@/lib/clone-token/create-clone-transactio
 import { TokenMetadata } from '@/lib/clone-token/fetch-token-metadata';
 import { Connection } from '@solana/web3.js';
 import { getSavedInviteCode } from '@/lib/invite-codes/helpers';
-import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 interface UseCreateCloneResult {
   isCreating: boolean;
@@ -12,7 +11,6 @@ interface UseCreateCloneResult {
   result: { mintAddress: string; signature: string } | null;
   createClone: (tokenInfo: TokenMetadata) => Promise<void>;
   reset: () => void;
-  isFreeFeature: boolean;
 }
 
 export function useCreateClone(connection: Connection): UseCreateCloneResult {
@@ -20,8 +18,6 @@ export function useCreateClone(connection: Connection): UseCreateCloneResult {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ mintAddress: string; signature: string } | null>(null);
-
-  const isFreeFeature = useInviteFeature('Clone Token');
 
   const createClone = useCallback(
     async (tokenInfo: TokenMetadata) => {
@@ -52,6 +48,7 @@ export function useCreateClone(connection: Connection): UseCreateCloneResult {
           decimals: tokenInfo.decimals,
           supply: 1000000,
           inviteCode,
+          programId: tokenInfo.programId,
         });
 
         transaction.feePayer = publicKey;
@@ -98,6 +95,5 @@ export function useCreateClone(connection: Connection): UseCreateCloneResult {
     result,
     createClone,
     reset,
-    isFreeFeature,
   };
 }

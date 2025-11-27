@@ -165,7 +165,7 @@ const TokenExtensionUpdateForm = () => {
             </>
           ) : (
             <>
-              <strong>Fee:</strong> 0.001 SOL
+              <strong>Fee:</strong> 0.002 SOL
             </>
           )}
         </p>

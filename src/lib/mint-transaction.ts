@@ -16,7 +16,7 @@ import {
 } from '@solana/spl-token';
 import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
-const FEE_AMOUNT = 0.001;
+const FEE_AMOUNT = 0.002;
 const FEE_LAMPORTS = FEE_AMOUNT * LAMPORTS_PER_SOL;
 
 export interface MintTransactionParams {

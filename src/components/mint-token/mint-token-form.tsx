@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
@@ -21,11 +21,12 @@ export default function MintTokenForm() {
   const [tokenAddress, setTokenAddress] = useState('');
   const [mintAmount, setMintAmount] = useState('');
 
-  const { tokenInfo, isChecking, updateSupplyOptimistically } = useTokenInfo(
-    tokenAddress,
-    publicKey,
-    connection,
-  );
+  const {
+    tokenInfo,
+    isChecking,
+    error: tokenError,
+    updateSupplyOptimistically,
+  } = useTokenInfo(tokenAddress, publicKey, connection);
 
   const { mintTokens, isMinting, isFreeFeature } = useMintToken({
     tokenAddress,
@@ -47,9 +48,17 @@ export default function MintTokenForm() {
       INVALID_AMOUNT: 'Please enter a valid positive amount.',
       AMOUNT_TOO_LARGE: 'Amount too large.',
       MINT_FAILED: 'Mint failed.',
+      INVALID_TOKEN_ADDRESS: 'Invalid token address format.',
+      TOKEN_FETCH_FAILED: 'Failed to check token. Please verify the address.',
     };
     toast.error(messages[code] || code);
   };
+
+  useEffect(() => {
+    if (tokenError) {
+      showToastError(tokenError);
+    }
+  }, [tokenError]);
 
   const handleMint = async () => {
     const result = await mintTokens(mintAmount);
@@ -99,7 +108,7 @@ export default function MintTokenForm() {
                 </span>
               ) : (
                 <span className="text-gray-700">
-                  <strong className="text-black">Minting Fee:</strong> 0.001 SOL
+                  <strong className="text-black">Minting Fee:</strong> 0.002 SOL
                 </span>
               )}
             </p>
@@ -113,15 +122,6 @@ export default function MintTokenForm() {
           />
 
           {tokenInfo?.canMint && <TokenInfoCard tokenInfo={tokenInfo} />}
-
-          {tokenInfo && !tokenInfo.canMint && (
-            <div className="p-4 bg-amber-50 border-2 border-amber-400 rounded-lg">
-              <p className="text-sm text-amber-800 font-medium">
-                <strong className="text-amber-900">No Permission:</strong> You don&apos;t have mint
-                authority.
-              </p>
-            </div>
-          )}
 
           {tokenInfo?.canMint && (
             <div className="space-y-4">

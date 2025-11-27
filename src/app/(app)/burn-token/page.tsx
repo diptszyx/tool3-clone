@@ -1,7 +1,11 @@
-'use client';
-
 import { BurnForm } from '@/components/burn/burn-form';
 import SuspenseLayout from '@/components/suspense-layout';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Burn Tokens on Solana',
+  description: 'Clean up your wallet by burning NFTs and tokens from the blockchain!',
+};
 
 export default function BurnTokenPage() {
   return (

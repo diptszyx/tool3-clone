@@ -13,7 +13,6 @@ import {
   getAssociatedTokenAddress,
   getMinimumBalanceForRentExemptMint,
   MINT_SIZE,
-  TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import {
   createCreateMetadataAccountV3Instruction,
@@ -21,7 +20,7 @@ import {
 } from '@metaplex-foundation/mpl-token-metadata';
 import { isFeatureFreeServer } from '@/lib/invite-codes/check-server';
 
-const FEE_AMOUNT = 0.001;
+const FEE_AMOUNT = 0.002;
 const FEE_LAMPORTS = FEE_AMOUNT * LAMPORTS_PER_SOL;
 
 export interface BuildCloneTransactionParams {
@@ -33,6 +32,7 @@ export interface BuildCloneTransactionParams {
   decimals: number;
   supply?: number;
   inviteCode?: string;
+  programId: PublicKey;
 }
 
 export interface BuildCloneTransactionResult {
@@ -43,7 +43,17 @@ export interface BuildCloneTransactionResult {
 export async function buildCloneTransaction(
   params: BuildCloneTransactionParams,
 ): Promise<BuildCloneTransactionResult> {
-  const { connection, payer, name, symbol, uri, decimals, supply = 1_000_000, inviteCode } = params;
+  const {
+    connection,
+    payer,
+    name,
+    symbol,
+    uri,
+    decimals,
+    supply = 1_000_000,
+    inviteCode,
+    programId,
+  } = params;
 
   try {
     const mintKeypair = Keypair.generate();
@@ -56,7 +66,7 @@ export async function buildCloneTransaction(
       TOKEN_METADATA_PROGRAM_ID,
     );
 
-    const tokenAccount = await getAssociatedTokenAddress(mintPubkey, payer);
+    const tokenAccount = await getAssociatedTokenAddress(mintPubkey, payer, false, programId);
 
     const transaction = new Transaction();
 
@@ -84,13 +94,11 @@ export async function buildCloneTransaction(
         newAccountPubkey: mintPubkey,
         space: MINT_SIZE,
         lamports,
-        programId: TOKEN_PROGRAM_ID,
+        programId: programId,
       }),
     );
 
-    transaction.add(
-      createInitializeMintInstruction(mintPubkey, decimals, payer, payer, TOKEN_PROGRAM_ID),
-    );
+    transaction.add(createInitializeMintInstruction(mintPubkey, decimals, payer, payer, programId));
 
     if (uri) {
       transaction.add(
@@ -122,11 +130,13 @@ export async function buildCloneTransaction(
     }
 
     transaction.add(
-      createAssociatedTokenAccountInstruction(payer, tokenAccount, payer, mintPubkey),
+      createAssociatedTokenAccountInstruction(payer, tokenAccount, payer, mintPubkey, programId),
     );
 
     const amount = BigInt(supply) * BigInt(10 ** decimals);
-    transaction.add(createMintToInstruction(mintPubkey, tokenAccount, payer, amount));
+    transaction.add(
+      createMintToInstruction(mintPubkey, tokenAccount, payer, amount, [], programId),
+    );
 
     return {
       transaction,

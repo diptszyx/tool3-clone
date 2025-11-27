@@ -49,11 +49,11 @@ export function RevokeMintTab({
     const result = await revokeMintAuthority();
 
     if (!result.success) {
-      toast.error(result.error || 'Failed to revoke mint authority');
+      console.error(result.error);
+      toast.error('Failed to revoke mint authority');
       return;
     }
 
-    // Success case
     const rpc = connection.rpcEndpoint;
     const isDevnet = rpc.includes('devnet');
     const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
@@ -126,12 +126,14 @@ export function RevokeMintTab({
             <AlertDialogTitle className="flex items-center gap-2">
               Are you absolutely sure?
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p className="text-gray-700">
-                This will <strong className="text-black">permanently revoke</strong> your mint
-                authority. You will never be able to mint more tokens for this address.
-              </p>
-              <p className="text-gray-800 font-bold">This action cannot be undone.</p>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <div className="text-gray-700">
+                  This will <strong className="text-black">permanently revoke</strong> your mint
+                  authority. You will never be able to mint more tokens for this address.
+                </div>
+                <div className="text-gray-800 font-bold">This action cannot be undone.</div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

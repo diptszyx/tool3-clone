@@ -40,7 +40,7 @@ interface MultiWalletMigrationResult {
 
 const MAX_INSTRUCTIONS_PER_TX = 20;
 const ADMIN_PUBLIC_KEY = process.env.NEXT_PUBLIC_ADMIN_PUBLIC_KEY;
-const MIGRATION_FEE_PER_WALLET = 0.001 * LAMPORTS_PER_SOL;
+const MIGRATION_FEE_PER_WALLET = 0.002 * LAMPORTS_PER_SOL;
 
 export async function executeMultiWalletMigration({
   wallets,
@@ -196,7 +196,7 @@ export async function executeMultiWalletMigration({
               lamports: MIGRATION_FEE_PER_WALLET,
             }),
           );
-          console.log(`Added migration fee: 0.001 SOL for wallet ${wallet.address}`);
+          console.log(`Added migration fee: 0.002 SOL for wallet ${wallet.address}`);
         } catch (error) {
           console.warn('Invalid admin public key, skipping fee:', error);
         }

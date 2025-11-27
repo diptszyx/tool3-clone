@@ -1,7 +1,13 @@
-'use client';
 import { TokenCreationForm } from '@/components/token-creation-form';
 import SuspenseLayout from '@/components/suspense-layout';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Create SPL Tokens and Token2022 on Solana',
+  description:
+    'Create Solana tokens effortlessly with no coding required. Fast, affordable, and user-friendly.',
+};
 
 export default function CreateToken() {
   return (

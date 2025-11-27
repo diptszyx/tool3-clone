@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     'Easily transfer tokens without requiring SOL in your wallet. Fast, secure and convenient token transfers designed for all Web3 users.',
 };
 
-export default function WithdrawLP() {
+export default function TransferPage() {
   return (
     <div className="h-full flex md:items-center mt-10 md:mt-0">
       <div className="container mx-auto px-4">

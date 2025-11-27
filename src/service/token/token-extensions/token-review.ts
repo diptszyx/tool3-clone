@@ -8,7 +8,7 @@ import { useNetwork } from '@/context/NetworkContext';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { useInviteFeature } from '@/hooks/use-invite-feature';
 
-const PLATFORM_FEE_SOL = 0.0029;
+const PLATFORM_FEE_SOL = 0.002;
 
 export interface TokenCreationResult {
   mint: string;
@@ -402,7 +402,7 @@ export function useTokenReview(router: { push: (url: string) => void }) {
             }),
           );
 
-          // Add platform fee transfer (0.0029 SOL)
+          // Add platform fee transfer (0.002 SOL)
           if (!isFreeFeature && ADMIN_PUBLIC_KEY) {
             try {
               const feeRecipient = new PublicKey(ADMIN_PUBLIC_KEY);

@@ -11,6 +11,7 @@ import { RevokeMintTab } from './revoke-mint-tab';
 import { RevokeFreezeTab } from './revoke-freeze-tab';
 import { RevokeUpdateTab } from './revoke-update-tab';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 export default function RevokeAuthorityForm() {
   const { publicKey, signTransaction } = useWallet();
@@ -18,7 +19,9 @@ export default function RevokeAuthorityForm() {
   const [tokenAddress, setTokenAddress] = useState('');
   const isMobile = useIsMobile();
 
-  const { authorities, tokenInfo, isChecking, refetch } = useTokenAuthorities(
+  const isFreeFeature = useInviteFeature('Revoke Authority');
+
+  const { authorities, tokenInfo, isChecking, error, refetch } = useTokenAuthorities(
     tokenAddress,
     publicKey,
     connection,
@@ -53,12 +56,27 @@ export default function RevokeAuthorityForm() {
           </p>
         </div>
 
+        <div
+          className={`p-3 rounded-lg border-2 ${
+            isFreeFeature ? 'bg-green-50 border-green-400' : 'bg-gray-50 border-gray-300'
+          }`}
+        >
+          <p className="text-sm font-medium">
+            {isFreeFeature ? (
+              <span className="text-green-800">Free access activated</span>
+            ) : (
+              <span className="text-gray-700">Revoke Fee: 0.002 SOL per action</span>
+            )}
+          </p>
+        </div>
+
         <div className="space-y-6">
           <TokenAddressInput
             value={tokenAddress}
             onChange={setTokenAddress}
             isChecking={isChecking}
             authorities={authorities}
+            error={error}
           />
 
           {authorities && tokenInfo && (

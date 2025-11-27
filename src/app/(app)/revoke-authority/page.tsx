@@ -4,7 +4,8 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Revoke Token Authority',
-  description: 'Revoke mint, freeze, or update authority for your SPL tokens safely.',
+  description:
+    'Easily Revoke the Freeze, Mint and Update Authority of your Solana Token - Rennounce ownership of your SPL Token',
 };
 
 export default function Revoke() {

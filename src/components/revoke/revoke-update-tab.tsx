@@ -49,11 +49,11 @@ export function RevokeUpdateTab({
     const result = await revokeUpdateAuthority();
 
     if (!result.success) {
-      toast.error(result.error || 'Failed to revoke update authority');
+      console.error(result.error);
+      toast.error('Failed to revoke update authority');
       return;
     }
 
-    // Success case
     const rpc = connection.rpcEndpoint;
     const isDevnet = rpc.includes('devnet');
     const cluster = isDevnet ? 'devnet' : 'mainnet-beta';
@@ -126,12 +126,14 @@ export function RevokeUpdateTab({
             <AlertDialogTitle className="flex items-center gap-2">
               Are you absolutely sure?
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p className="text-gray-700">
-                This will <strong className="text-black">permanently revoke</strong> your update
-                authority. You will never be able to update token metadata for this address.
-              </p>
-              <p className="text-gray-800 font-bold">This action cannot be undone.</p>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2">
+                <div className="text-gray-700">
+                  This will <strong className="text-black">permanently revoke</strong> your update
+                  authority. You will never be able to update token metadata for this address.
+                </div>
+                <div className="text-gray-800 font-bold">This action cannot be undone.</div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
