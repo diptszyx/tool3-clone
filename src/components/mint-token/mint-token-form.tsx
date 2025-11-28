@@ -12,12 +12,13 @@ import { TokenAddressInput } from './token-address-input';
 import { TokenInfoCard } from './token-info-card';
 import { MintAmountInput } from './mint-amount-input';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useInviteFeature } from '@/hooks/use-invite-feature';
 
 export default function MintTokenForm() {
   const isMobile = useIsMobile();
   const { publicKey, signTransaction } = useWallet();
   const connection = useConnection();
-
+  const isFreeFeature = useInviteFeature('Mint Token');
   const [tokenAddress, setTokenAddress] = useState('');
   const [mintAmount, setMintAmount] = useState('');
 
@@ -28,7 +29,7 @@ export default function MintTokenForm() {
     updateSupplyOptimistically,
   } = useTokenInfo(tokenAddress, publicKey, connection);
 
-  const { mintTokens, isMinting, isFreeFeature } = useMintToken({
+  const { mintTokens, isMinting } = useMintToken({
     tokenAddress,
     tokenInfo,
     publicKey,
