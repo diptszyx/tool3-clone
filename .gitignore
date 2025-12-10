@@ -20,6 +20,7 @@
 # production
 /build
 /TEB_UI/
+
 # misc
 .DS_Store
 *.pem
@@ -39,3 +40,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Android/TWA build files (Bubblewrap generated)
+/app/
+/android/
+/.gradle/
+/gradle/
+android.keystore
+*.keystore
+twa-manifest.json
+*.apk
+*.aab
+*.apk.idsig
+build.gradle
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle
+store_icon.png
+manifest-checksum.txt
+file-system.probe

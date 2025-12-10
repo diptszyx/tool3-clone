@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "xyz.tool3.twa",
+        "sha256_cert_fingerprints": ["B9:3F:E3:7C:A7:1F:CB:D5:5E:74:71:81:6B:A2:2E:70:1D:F7:20:1E:5B:E3:CB:28:A2:29:1C:BF:B7:72:1A:F7"]
+      }
+    }]
