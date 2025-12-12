@@ -1,7 +1,7 @@
 'use client';
 
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -21,7 +21,6 @@ import Image from 'next/image';
 import type { WalletName } from '@solana/wallet-adapter-base';
 import { Loader } from '@nsmr/pixelart-react';
 import { QRCodeSVG } from 'qrcode.react';
-import { isMobile, openWalletApp } from '@/utils/wallet-utils';
 
 export function shortenAddress(address: string, chars = 4): string {
   return `${address.slice(0, chars)}...${address.slice(-chars)}`;
@@ -34,29 +33,13 @@ export default function WalletConnectButton() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedWallet, setSelectedWallet] = useState<string | null>(null);
   const [showQR, setShowQR] = useState(false);
-  const [isMobileDevice, setIsMobileDevice] = useState(false);
-
-  useEffect(() => {
-    setIsMobileDevice(isMobile());
-  }, []);
+  const [isMobileDevice] = useState(false);
 
   const displayAddress = publicKey ? shortenAddress(publicKey.toBase58()) : '';
 
   const handleWalletSelect = async (walletName: string) => {
     try {
       setSelectedWallet(walletName);
-      if (isMobileDevice) {
-        const wallet = wallets.find((w) => w.adapter.name === walletName);
-        if (wallet?.readyState === 'Installed') {
-          select(walletName as WalletName);
-        } else {
-          openWalletApp(walletName);
-        }
-
-        setDialogOpen(false);
-        setSelectedWallet(null);
-        return;
-      }
       select(walletName as WalletName);
       setDialogOpen(false);
       setSelectedWallet(null);

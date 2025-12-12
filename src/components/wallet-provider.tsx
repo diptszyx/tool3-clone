@@ -3,13 +3,18 @@
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { clusterApiUrl } from '@solana/web3.js';
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useEffect } from 'react';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 
 import { useNetwork } from '@/context/NetworkContext';
+import { initializeMobileWalletAdapter } from '@/lib/mobile-wallet-adapter';
 
 export default function WalletProviderComponent({ children }: { children: ReactNode }) {
   const { network } = useNetwork();
+
+  useEffect(() => {
+    initializeMobileWalletAdapter();
+  }, []);
 
   const endpoint = useMemo(() => {
     if (network === 'devnet') {
