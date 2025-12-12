@@ -14,6 +14,8 @@ import ChatwootWidget from '@/components/chatwoot-widget';
 import { InviteCodeHandler } from '@/components/invite-code-handler';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://tool3-clone-afk5.vercel.app/'),
+
   title: 'Tool3 - Powerful All-in-One Token Tool',
   description:
     'Tool3 is your all-in-one Token Tool providing seamless solutions for token creation, liquidity pool management, secure LP token locking, instant token swaps, effortless devnet token purchases and much more.',
@@ -77,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <head>
         <GoogleTagManager gtmId="GTM-T3L7ZX2F" />
+        <link rel="sitemap" type="application/xml" href="/sitemap.xml" />{' '}
         <Script
           id="json-ld"
           type="application/ld+json"
