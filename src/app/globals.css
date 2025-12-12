@@ -115,7 +115,6 @@
 
 body {
   font-family: 'DinkieBitmap', sans-serif;
-  overflow: hidden;
 }
 
 @layer base {
