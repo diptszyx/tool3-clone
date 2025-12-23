@@ -9,7 +9,8 @@
     "lint": "next lint",
     "prepare": "husky",
     "postbuild": "next-sitemap",
-    "encrypt": "ts-node -P tsconfig.node.json script/encrypt.ts"
+    "encrypt": "ts-node -P tsconfig.node.json script/encrypt.ts",
+    "build:apk": "bash ./build-apk.sh"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

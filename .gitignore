@@ -41,22 +41,42 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Android/TWA build files (Bubblewrap generated)
-/android-app/
-/android/
-/.gradle/
-/gradle/
-android.keystore
+# ========================================
+# Android/TWA Build Files (Bubblewrap)
+# ========================================
+
+# Keystore - NEVER COMMIT
 *.keystore
-twa-manifest.json
+
+# Build outputs
 *.apk
 *.aab
 *.apk.idsig
+
+# Android build directories - THÊM DẤU * để match mọi nơi
+app/
+android-app/
+.gradle/
+gradle/
+
+# Gradle wrapper files - BỎ DẤU / ở đầu để match mọi nơi
+**/gradlew
+**/gradlew.bat
+**/gradle-wrapper.jar
+**/gradle-wrapper.properties
+
+# Gradle config files - BỎ DẤU / ở đầu
 build.gradle
-gradle.properties
-gradlew
-gradlew.bat
 settings.gradle
+gradle.properties
+local.properties
+
+# Generated files
 store_icon.png
 manifest-checksum.txt
 file-system.probe
+
+# Android IDE (optional, nếu team dùng Android Studio)
+*.iml
+.idea/
+captures/
