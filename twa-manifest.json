@@ -14,13 +14,14 @@
   "enableNotifications": true,
   "startUrl": "/",
   "iconUrl": "https://tool3-clone-afk5.vercel.app/icon-512x512.png",
+  "maskableIconUrl": "https://tool3-clone-afk5.vercel.app/icon-512x512-maskable.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "/Users/tho/project/tool3-mobile/android.keystore",
     "alias": "android"
   },
-  "appVersionName": "4",
-  "appVersionCode": 4,
+  "appVersionName": "6",
+  "appVersionCode": 6,
   "shortcuts": [],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://tool3-clone-afk5.vercel.app/manifest.webmanifest",
@@ -42,5 +43,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "4"
+  "appVersion": "6"
 }
